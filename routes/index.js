@@ -29,7 +29,11 @@ router.post('/upload', function(req, res) {
 
       request.get(req.body.uri).pipe(fs.createWriteStream(newPath + newName))
         .on('close', function() {
-          res.send(req.external_path + '/' + newName); 
+          if(req.params.encrypted == true) {
+            res.send(req.external_path + '/e/' + newName); 
+          } else {
+            res.send(req.external_path + '/' + newName); 
+          }
         });
     }
   } else {
