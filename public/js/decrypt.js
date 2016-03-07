@@ -1,3 +1,9 @@
+$("#decryptButton").keyup(function(event){
+  if(event.keyCode == 13){
+	  $("#id_of_button").click();
+  }
+});
+
 function decrypt() {
   var password = $('#password').val();
   var content = $('#content').text();
