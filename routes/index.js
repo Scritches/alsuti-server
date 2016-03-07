@@ -20,7 +20,11 @@ router.post('/upload', function(req, res) {
             newPath = __dirname + '/../public/';
 
         fs.writeFile(newPath + newName, data, function(err) {
-          res.send(req.external_path + '/' + newName); 
+          if(req.body.encrypted) {
+            res.send(req.external_path + '/e/' + newName); 
+          } else {
+            res.send(req.external_path + '/' + newName); 
+          }
         });
       });
     } else if(_.has(req.body, 'uri')) {
