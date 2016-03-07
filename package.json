@@ -16,6 +16,9 @@
     "multer": "0.1.8",
     "shortid": "latest",
     "underscore": "latest",
+    "node-cryptojs-aes": "latest",
+    "file-type": "latest",
+    "read-chunk": "latest",
     "request": "latest"
   }
 }

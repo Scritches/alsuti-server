@@ -3,6 +3,9 @@ var express = require('express'),
     shortid = require('shortid'),
     _ = require('underscore')._,
     request = require('request'),
+    cj = require('node-cryptojs-aes'),
+    ft = require('file-type'),
+    rc = require('read-chunk'),
     router = express.Router();
 
 /* GET home page. */
@@ -32,6 +35,16 @@ router.post('/upload', function(req, res) {
   } else {
     res.send('Error: Incorrect API key');
   }
+});
+
+router.get('/e/:file', function(req, res) {
+  var filePath = __dirname + '/../public/' + req.params.file;
+
+  fs.readFile(filePath, 'utf-8', function(err, data) {
+    res.render('decrypt', { 
+      'content': data.toString('utf-8')
+    });
+  });
 });
 
 module.exports = router;
