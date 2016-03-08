@@ -30,7 +30,7 @@ function decrypt() {
     $('code').each(function(i, block) { //lol
       hljs.highlightBlock(block);
     });
-    a.attr('href', 'data:text/plain;base64,'+plain);
+    a.attr('href', 'data:text/plain;utf-8,'+plain);
   }
 
   a.show()
