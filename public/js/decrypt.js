@@ -1,35 +1,41 @@
-
-$("#decryptButton").keyup(function(event){
-  if(event.keyCode == 13){
-    $("#decryptButton").click();
-  }
+$(function() {
+  $("#password").keyup(function(event){
+    if(event.keyCode == 13){
+      decrypt();
+    }
+  });
 });
 
 function decrypt() {
   var password = $('#password').val();
   var content = cipherText || $('#content').text();
+  var splitFile = fileName.split('.');
+  var ext = splitFile[splitFile.length-1];
 
   var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
-  var image = btoa(plain);
 
-  $('#image').attr('src', 'data:image/jpeg;base64,' + image);
-  $('#image').show();
+  $('#message').hide();
 
-  $('#content').text(plain);
   var a = $('#downloadButton');
+
+  if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) {
+    var image = btoa(plain);
+    $('#image').attr('src', 'data:image/'+ ext +';base64,' + image);
+    $('#image').show();
+    $('#content').hide()
+
+    a.attr('href', 'data:image/'+ ext +';base64,'+image);
+  } else {
+    $('#content').html(htmlEntities(plain).replace(/\n/g, '<br />'));
+    a.attr('href', 'data:text/plain;base64,'+plain);
+  }
+
   a.show()
-  a.attr('href', 'data:image/jpeg;base64,'+image);
-  a.attr('download', 'file.jpg');
-  //document.body.appendChild(image);
+  a.attr('download', fileName);
+  $('#decryptThings').hide();
+}
 
-/*
-
-				if(!/^data:/.test(decrypted)){
-					alert("Invalid pass phrase or file! Please try again.");
-					return false;
-				}
-
-				a.attr('href', decrypted);
-				a.attr('download', file.name.replace('.encrypted',''));
-*/
+// https://css-tricks.com/snippets/javascript/htmlentities-for-javascript/
+function htmlEntities(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

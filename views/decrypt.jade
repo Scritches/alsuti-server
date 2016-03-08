@@ -6,16 +6,19 @@ html
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript').
       var cipherText="!{content}";
+      var fileName="!{fileName}";
     script(type='text/javascript' src='/js/lib/aes.js')
     script(type='text/javascript' src='/js/decrypt.js')
   body
-    h1 Decrypt File
-    p Password:
-    input(id='password' type='password')
+    div#decryptThings
+      h1 Decrypt File
+      p Password:
+      input(id='password' type='password')
 
-    button#decryptButton(onclick='decrypt()') Decrypt
+      button#decryptButton(onclick='decrypt()') Decrypt
     a#downloadButton(style='display:none;') Download
     br 
+    p#message(style='display:none')
     center
       img#image(style='display:none;')
     p#content !{content}

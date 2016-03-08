@@ -50,7 +50,8 @@ router.get('/e/:file', function(req, res) {
 
   fs.readFile(filePath, 'utf-8', function(err, data) {
     res.render('decrypt', { 
-      'content': data.toString('utf-8')
+      'fileName': req.params.file,
+      'content': data.toString('utf-8').trim()
     });
   });
 });
