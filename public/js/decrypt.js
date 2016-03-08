@@ -7,7 +7,7 @@ $("#decryptButton").keyup(function(event){
 
 function decrypt() {
   var password = $('#password').val();
-  var content = $('#content').text();
+  var content = cipherText || $('#content').text();
 
   var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
   var image = btoa(plain);
