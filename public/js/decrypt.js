@@ -1,10 +1,8 @@
 
-$(function() {
-  $("#decryptButton").keyup(function(event){
-    if(event.keyCode == 13){
-        $("#decryptButton").click();
-    }
-  });
+$("#decryptButton").keyup(function(event){
+  if(event.keyCode == 13){
+    $("#decryptButton").click();
+  }
 });
 
 function decrypt() {
