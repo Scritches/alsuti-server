@@ -26,7 +26,7 @@ function decrypt() {
 
     a.attr('href', 'data:image/'+ ext +';base64,'+image);
   } else {
-    $('#content').html(htmlEntities(plain).replace(/\n/g, '<br />').replace(/ /g, '&nbsp;'));
+    $('#content').html(htmlEntities(plain).replace(/\s/g, '&nbsp;').replace(/\n/g, '<br />'));
     a.attr('href', 'data:text/plain;base64,'+plain);
   }
 
