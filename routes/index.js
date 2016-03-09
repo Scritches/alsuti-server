@@ -4,8 +4,6 @@ var express = require('express'),
     _ = require('underscore')._,
     request = require('request'),
     cj = require('node-cryptojs-aes'),
-    ft = require('file-type'),
-    rc = require('read-chunk'),
     router = express.Router();
 
 /* GET home page. */
@@ -39,6 +37,17 @@ router.post('/upload', function(req, res) {
             res.send(req.external_path + '/' + newName); 
           }
         });
+    } else if(_.has(req.body, 'content')) {
+      var newName = shortid.generate() + '.' + req.body.extension,
+          newPath = __dirname + '/../public/';
+
+      fs.writeFile(newPath + newName, req.body.content, function(err) {
+        if(req.body.encrypted) {
+          res.send(req.external_path + '/e/' + newName); 
+        } else {
+          res.send(req.external_path + '/' + newName); 
+        }
+      });
     }
   } else {
     res.send('Error: Incorrect API key');
