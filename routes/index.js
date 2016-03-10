@@ -16,7 +16,7 @@ router.post('/upload', function(req, res) {
     if(_.has(req.files, 'fileupload')) {
       fs.readFile(req.files.fileupload.path, function(err, data) {
         var newName = shortid.generate() + '.' + _.last(req.files.fileupload.originalname.split('.'))
-            newPath = __dirname + '/../public/';
+            newPath = __dirname + '/../files/';
 
         fs.writeFile(newPath + newName, data, function(err) {
           if(req.body.encrypted) {
@@ -28,7 +28,7 @@ router.post('/upload', function(req, res) {
       });
     } else if(_.has(req.body, 'uri')) {
       var newName = shortid.generate() + '.' + _.last(req.body.uri.split('.')).replace(/\?.*$/,'').replace(/:.*$/,'')
-          newPath = __dirname + '/../public/';
+          newPath = __dirname + '/../files/';
 
       request.get(req.body.uri).pipe(fs.createWriteStream(newPath + newName))
         .on('close', function() {
@@ -40,7 +40,7 @@ router.post('/upload', function(req, res) {
         });
     } else if(_.has(req.body, 'content')) {
       var newName = shortid.generate() + '.' + req.body.extension,
-          newPath = __dirname + '/../public/';
+          newPath = __dirname + '/../files/';
 
       fs.writeFile(newPath + newName, req.body.content, function(err) {
         if(req.body.encrypted) {
@@ -56,13 +56,30 @@ router.post('/upload', function(req, res) {
 });
 
 router.get('/e/:file', function(req, res) {
-  var filePath = __dirname + '/../public/' + req.params.file;
+  var filePath = __dirname + '/../files/' + req.params.file;
 
   if(req.device.type == 'bot') {
     res.sendFile(path.resolve(filePath));
   } else {
     fs.readFile(filePath, 'utf-8', function(err, data) {
-      res.render('decrypt', { 
+      res.render('view', { 
+        'fileName': req.params.file,
+        'content': data.toString('utf-8').trim(),
+        'encrypted': true
+      });
+    });
+  }
+});
+
+router.get('/:file', function(req, res) {
+  var filePath = __dirname + '/../files/' + req.params.file,
+      ext = _.last(req.params.file.split('.'));
+
+  if(req.device.type == 'bot' || _.include([ 'jpg', 'png', 'gif', 'jpeg' ], ext)) {
+    res.sendFile(path.resolve(filePath)); 
+  } else {
+    fs.readFile(filePath, 'utf-8', function(err, data) {
+      res.render('view', {
         'fileName': req.params.file,
         'content': data.toString('utf-8').trim()
       });

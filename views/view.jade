@@ -6,13 +6,19 @@ html
     link(rel='stylesheet', href='/stylesheets/style.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript').
-      var cipherText="!{content}";
       var fileName="!{fileName}";
+    -if(encrypted)
+      script(type='text/javascript').
+        var encrypted=true;
+        var cipherText="!{content}";
+    -else
+      script(type='text/javascript').
+        var encrypted=false;
     script(type='text/javascript' src='/js/lib/aes.js')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
-    script(type='text/javascript' src='/js/decrypt.js')
+    script(type='text/javascript' src='/js/main.js')
   body
-    div#decryptThings
+    div#decryptThings(style='display:none;')
       h1 Decrypt File
       p Password:
       input(id='password' type='password')
