@@ -28,7 +28,17 @@ function decrypt() {
   } else {
     $('#content').html(htmlEntities(plain));
     $('code').each(function(i, block) { //lol
-      hljs.highlightBlock(block);
+      block.className = ext;
+      if(ext == 'txt') {
+        var guessed = hljs.highlightAuto($('#content').html()); // this is a bit inefficient, will have to find out a way to extract the lang detection without actually doing the hilight
+        if(guessed.r < 75) {
+          block.className = 'hljs txt';
+        } else {
+          hljs.highlightBlock(block);
+        }
+      } else {
+        hljs.highlightBlock(block);
+      }
     });
     a.attr('href', 'data:text/plain;utf-8,'+plain);
   }
