@@ -4,6 +4,7 @@ var express = require('express'),
     _ = require('underscore')._,
     request = require('request'),
     cj = require('node-cryptojs-aes'),
+    path = require('path'),
     router = express.Router();
 
 /* GET home page. */
@@ -57,12 +58,16 @@ router.post('/upload', function(req, res) {
 router.get('/e/:file', function(req, res) {
   var filePath = __dirname + '/../public/' + req.params.file;
 
-  fs.readFile(filePath, 'utf-8', function(err, data) {
-    res.render('decrypt', { 
-      'fileName': req.params.file,
-      'content': data.toString('utf-8').trim()
+  if(req.device.type == 'bot') {
+    res.sendFile(path.resolve(filePath));
+  } else {
+    fs.readFile(filePath, 'utf-8', function(err, data) {
+      res.render('decrypt', { 
+        'fileName': req.params.file,
+        'content': data.toString('utf-8').trim()
+      });
     });
-  });
+  }
 });
 
 module.exports = router;

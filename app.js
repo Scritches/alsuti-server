@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var _ = require('underscore')._;
 var process = require('process');
 var sys = require('sys');
+var device = require('express-device');
 
 var routes = require('./routes/index');
 
@@ -30,6 +31,7 @@ app.set('view engine', 'jade');
 // app.use(favicon(__dirname + '/public/favicon.ico'));
 
 app.use(logger('dev'));
+app.use(device.capture({'parseUserAgent':true}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false, limit: '500mb' }));
 app.use(multer());
