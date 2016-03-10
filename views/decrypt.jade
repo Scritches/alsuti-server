@@ -1,0 +1,27 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(type='text/javascript' src='/js/lib/jquery.min.js')
+    script(type='text/javascript').
+      var cipherText="!{content}";
+      var fileName="!{fileName}";
+    script(type='text/javascript' src='/js/lib/aes.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
+    script(type='text/javascript' src='/js/decrypt.js')
+  body
+    div#decryptThings
+      h1 Decrypt File
+      p Password:
+      input(id='password' type='password')
+
+      button#decryptButton(onclick='decrypt()') Decrypt
+    a#downloadButton(style='display:none;') Download
+    br 
+    p#message(style='display:none')
+    center
+      img#image(style='display:none;')
+    pre
+      code#content !{content}

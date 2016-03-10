@@ -3,6 +3,8 @@ var express = require('express'),
     shortid = require('shortid'),
     _ = require('underscore')._,
     request = require('request'),
+    cj = require('node-cryptojs-aes'),
+    path = require('path'),
     router = express.Router();
 
 /* GET home page. */
@@ -17,7 +19,11 @@ router.post('/upload', function(req, res) {
             newPath = __dirname + '/../public/';
 
         fs.writeFile(newPath + newName, data, function(err) {
-          res.send(req.external_path + '/' + newName); 
+          if(req.body.encrypted) {
+            res.send(req.external_path + '/e/' + newName); 
+          } else {
+            res.send(req.external_path + '/' + newName); 
+          }
         });
       });
     } else if(_.has(req.body, 'uri')) {
@@ -26,11 +32,41 @@ router.post('/upload', function(req, res) {
 
       request.get(req.body.uri).pipe(fs.createWriteStream(newPath + newName))
         .on('close', function() {
-          res.send(req.external_path + '/' + newName); 
+          if(req.body.encrypted) {
+            res.send(req.external_path + '/e/' + newName); 
+          } else {
+            res.send(req.external_path + '/' + newName); 
+          }
         });
+    } else if(_.has(req.body, 'content')) {
+      var newName = shortid.generate() + '.' + req.body.extension,
+          newPath = __dirname + '/../public/';
+
+      fs.writeFile(newPath + newName, req.body.content, function(err) {
+        if(req.body.encrypted) {
+          res.send(req.external_path + '/e/' + newName); 
+        } else {
+          res.send(req.external_path + '/' + newName); 
+        }
+      });
     }
   } else {
     res.send('Error: Incorrect API key');
+  }
+});
+
+router.get('/e/:file', function(req, res) {
+  var filePath = __dirname + '/../public/' + req.params.file;
+
+  if(req.device.type == 'bot') {
+    res.sendFile(path.resolve(filePath));
+  } else {
+    fs.readFile(filePath, 'utf-8', function(err, data) {
+      res.render('decrypt', { 
+        'fileName': req.params.file,
+        'content': data.toString('utf-8').trim()
+      });
+    });
   }
 });
 
