@@ -79,10 +79,12 @@ router.get('/:file', function(req, res) {
     res.sendFile(path.resolve(filePath)); 
   } else {
     fs.readFile(filePath, 'utf-8', function(err, data) {
-      res.render('view', {
-        'fileName': req.params.file,
-        'content': data.toString('utf-8').trim()
-      });
+      if(!err && data) {
+        res.render('view', {
+          'fileName': req.params.file,
+          'content': data.toString('utf-8').trim()
+        });
+      }
     });
   }
 });
