@@ -73,7 +73,7 @@ router.get('/e/:file', function(req, res) {
 
 router.get('/:file', function(req, res) {
   var filePath = __dirname + '/../files/' + req.params.file,
-      ext = _.last(req.params.file.split('.'));
+      ext = _.last(req.params.file.split('.')).toLowerCase();
 
   if(req.device.type == 'bot' || _.include([ 'jpg', 'png', 'gif', 'jpeg' ], ext)) {
     res.sendFile(path.resolve(filePath)); 

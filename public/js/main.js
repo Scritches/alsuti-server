@@ -14,7 +14,7 @@ $(function() {
 
 function renderText(content) {
   var splitFile = fileName.split('.');
-  var ext = splitFile[splitFile.length-1];
+  var ext = splitFile[splitFile.length-1].toLowerCase();
   var a = $('#downloadButton');
   $('#content').html(htmlEntities(content));
   $('code').each(function(i, block) { //lol
@@ -40,7 +40,7 @@ function decrypt() {
   var password = $('#password').val();
   var content = cipherText || $('#content').text();
   var splitFile = fileName.split('.');
-  var ext = splitFile[splitFile.length-1];
+  var ext = splitFile[splitFile.length-1].toLowerCase();
 
   var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
 
