@@ -59,6 +59,8 @@ function decrypt() {
     var a = $('#downloadButton');
     var image = btoa(plain)
 
+    $('#content').hide();
+
     a.attr('href', 'data:application/'+ ext +';base64,' + image);
     a.show()
     a.attr('download', fileName);
