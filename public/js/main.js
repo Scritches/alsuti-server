@@ -55,6 +55,13 @@ function decrypt() {
     a.attr('href', 'data:image/'+ ext +';base64,' + image);
     a.show()
     a.attr('download', fileName);
+  } else if(ext == 'pdf') {
+    var a = $('#downloadButton');
+    var image = btoa(plain)
+
+    a.attr('href', 'data:application/'+ ext +';base64,' + image);
+    a.show()
+    a.attr('download', fileName);
   } else {
     renderText(plain);
   }
