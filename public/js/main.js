@@ -8,7 +8,7 @@ $(function() {
   if(encrypted) {
     $('#decryptThings').show();
   } else {
-    renderText($('#content').html());
+    renderText($('#content').text());
   }
 });
 
