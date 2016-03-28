@@ -48,7 +48,10 @@ function decrypt() {
 
   if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { //todo: split this out
     var a = $('#downloadButton');
-    var image = btoa(plain);
+    var image = plain;
+    if(!plain.match(/^YW5kcm9pZHN1Y2tz/)) {
+      image = btoa(plain);
+    }
     $('#image').attr('src', 'data:image/'+ ext +';base64,' + image);
     $('#image').show();
     $('#content').hide();
