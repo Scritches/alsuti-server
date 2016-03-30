@@ -62,11 +62,15 @@ router.get('/e/:file', function(req, res) {
     res.sendFile(path.resolve(filePath));
   } else {
     fs.readFile(filePath, 'utf-8', function(err, data) {
-      res.render('view', { 
-        'fileName': req.params.file,
-        'content': data.toString('utf-8').trim(),
-        'encrypted': true
-      });
+      if (!err && data) {
+        res.render('view', { 
+          'fileName': req.params.file,
+          'content': data.toString('utf-8').trim(),
+          'encrypted': true
+        });
+      } else {
+        res.send('Error: File not found');
+      }
     });
   }
 });
@@ -84,6 +88,8 @@ router.get('/:file', function(req, res) {
           'fileName': req.params.file,
           'content': data.toString('utf-8').trim()
         });
+      } else {
+        res.send('Error: File not found');
       }
     });
   }
