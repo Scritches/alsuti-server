@@ -16,7 +16,7 @@ function renderText(content) {
   var splitFile = fileName.split('.');
   var ext = splitFile[splitFile.length-1].toLowerCase();
   var a = $('#downloadButton');
-  $('#content').text(htmlEntities(content));
+  $('#content').text(content);
   $('code').each(function(i, block) { //lol
     block.className = ext;
     if(ext == 'txt') {
