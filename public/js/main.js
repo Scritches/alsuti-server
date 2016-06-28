@@ -19,14 +19,8 @@ function renderText(content) {
   $('#content').text(content);
   $('code').each(function(i, block) { //lol
     block.className = ext;
-    if(ext == 'txt') {
-      var guessed = hljs.highlightAuto($('#content').html()); // this is a bit inefficient, will have to find out a way to extract the lang detection without actually doing the hilight
-      console.log(guessed);
-      if(guessed.r < 75) {
-        block.className = 'hljs txt';
-      } else {
-        hljs.highlightBlock(block);
-      }
+    if(ext == 'txt' || ext == 'log') {
+      block.className = 'hljs txt';
     } else {
       hljs.highlightBlock(block);
     }
