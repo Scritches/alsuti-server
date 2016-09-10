@@ -6,16 +6,21 @@ $(function() {
   });
 
   if(encrypted) {
-    $('#decryptThings').show();
+    if(window.location.hash) {
+      decrypt(window.location.hash.substr(1));
+    } else {
+      $('#decryptThings').show();
+    }
   } else {
     renderText($('#content').text());
   }
 });
 
 function renderText(content) {
-  var splitFile = fileName.split('.');
-  var ext = splitFile[splitFile.length-1].toLowerCase();
-  var a = $('#downloadButton');
+  var splitFile = fileName.split('.'),
+      ext = splitFile[splitFile.length-1].toLowerCase(),
+      a = $('#downloadButton');
+
   $('#content').text(content);
   $('code').each(function(i, block) { //lol
     block.className = ext;
@@ -30,11 +35,15 @@ function renderText(content) {
   a.attr('download', fileName);
 }
 
-function decrypt() {
-  var password = $('#password').val();
-  var content = cipherText || $('#content').text();
-  var splitFile = fileName.split('.');
-  var ext = splitFile[splitFile.length-1].toLowerCase();
+function decrypt(pass) {
+  var password = $('#password').val(),
+      content = cipherText || $('#content').text(),
+      splitFile = fileName.split('.'),
+      ext = splitFile[splitFile.length-1].toLowerCase();
+
+  if(pass) {
+    password = pass;
+  }
 
   var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
 
