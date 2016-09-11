@@ -12,7 +12,7 @@ $(function() {
       $('#decryptThings').show();
     }
   } else {
-    renderText($('#content').text());
+    renderText($('#content').html());
   }
 });
 
@@ -36,6 +36,9 @@ function renderText(content) {
 }
 
 function decrypt(pass) {
+  $('#message').text = 'Decrypting';
+  $('#message').show();
+
   var password = $('#password').val(),
       content = cipherText || $('#content').text(),
       splitFile = fileName.split('.'),
@@ -47,7 +50,7 @@ function decrypt(pass) {
 
   var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
 
-  $('#message').hide();
+  //$('#message').hide();
 
   if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { //todo: split this out
     var a = $('#downloadButton');
