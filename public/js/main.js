@@ -12,7 +12,7 @@ $(function() {
       $('#decryptThings').show();
     }
   } else {
-    renderText($('#content').html());
+    renderText($('#content').text());
   }
 });
 
@@ -80,9 +80,4 @@ function decrypt(pass) {
   }
 
   $('#decryptThings').hide();
-}
-
-// https://css-tricks.com/snippets/javascript/htmlentities-for-javascript/
-function htmlEntities(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
