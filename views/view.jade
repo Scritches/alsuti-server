@@ -6,6 +6,7 @@ html
       link(rel='stylesheet', href='../stylesheets/style.css')
       script(type='text/javascript' src='../js/lib/jquery.min.js')
       script(type='text/javascript' src='../js/lib/aes.js')
+      script(type='text/javascript' src='../js/lib/js.cookie.js')
       script(type='text/javascript' src='../js/main.js')
       script(type='text/javascript').
         var encrypted=true;
@@ -14,11 +15,16 @@ html
       link(rel='stylesheet', href='./stylesheets/style.css')
       script(type='text/javascript' src='./js/lib/jquery.min.js')
       script(type='text/javascript' src='./js/lib/aes.js')
+      script(type='text/javascript' src='./js/lib/js.cookie.js')
       script(type='text/javascript' src='./js/main.js')
       script(type='text/javascript').
         var encrypted=false;
-    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
+    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
+    -if(encrypted)
+      script(type='text/javascript' src='../js/lib/highlightjs-line-numbers.js')
+    -else
+      script(type='text/javascript' src='./js/lib/highlightjs-line-numbers.js')
     script(type='text/javascript').
       var fileName="!{fileName}";
   body
@@ -26,10 +32,12 @@ html
       h1 Decrypt File
       p Password:
       input(id='password' type='password')
-
       button#decryptButton(onclick='decrypt()') Decrypt
-    a#downloadButton(style='display:none;') Download
-    br 
+    div#optionBar
+      a#downloadButton(style='display:none;') Download
+      label#lineNumbersLabel(style='display:none;')
+        input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
+        | Show Line Numbers
     p#message(style='display:none')
     center
       img#image(style='display:none;width:80%;')

@@ -14,6 +14,9 @@ $(function() {
   } else {
     renderText($('#content').text());
   }
+
+  loadOptions();
+  toggleLineNumbers();
 });
 
 function renderText(content) {
@@ -22,7 +25,7 @@ function renderText(content) {
       a = $('#downloadButton');
 
   $('#content').text(content);
-  $('code').each(function(i, block) { //lol
+  $('code').each(function(i, block) {
     block.className = ext;
     if(ext == 'txt' || ext == 'log') {
       block.className = 'hljs txt';
@@ -30,13 +33,52 @@ function renderText(content) {
       hljs.highlightBlock(block);
     }
   });
+
   a.attr('href', 'data:text/plain;utf-8,'+content);
-  a.show()
   a.attr('download', fileName);
+  a.show();
+
+  $('#lineNumbersLabel').show();
+}
+
+function toggleLineNumbers() {
+  if($('#lineNumbersCheckbox').prop('checked')) {
+    // disable line wrapping
+    $('pre').css('word-wrap', 'normal');
+    $('pre').css('white-space', '');
+
+    // add line numbers
+    $('code').each(function(i, block) {
+      hljs.lineNumbersBlock(block);
+    });
+  }
+  else {
+    // remove line numbers
+    $('code.hljs-line-numbers').remove();
+
+    // re-enable line wrapping
+    wsAttrs = [ 'pre-wrap', '-moz-pre-wrap', '-pre-wrap', '-o-pre-wrap' ];
+    $('pre').css('word-wrap', 'break-word');
+    for(var i=0; i < wsAttrs.length; ++i) {
+      $('pre').css('white-space', wsAttrs[i]);
+      if ($('pre').css('whitespace') == wsAttrs[i])
+        break;
+    }
+  }
+}
+
+function saveOptions() {
+  Cookies.set('lineNumbers', $('#lineNumbersCheckbox').prop('checked'),
+              { expires: 365, path: '/' });
+}
+
+function loadOptions() {
+  var lineNumbers = Cookies.get('lineNumbers');
+  $('#lineNumbersCheckbox').prop('checked', lineNumbers == 'true');
 }
 
 function decrypt(pass) {
-  $('#message').text = 'Decrypting';
+  $('#message').text = 'Decrypting..';
   $('#message').show();
 
   var password = $('#password').val(),
@@ -50,7 +92,7 @@ function decrypt(pass) {
 
   var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
 
-  //$('#message').hide();
+  $('#message').hide();
 
   if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { //todo: split this out
     var a = $('#downloadButton');
