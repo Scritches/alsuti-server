@@ -2,21 +2,25 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
-    link(rel='stylesheet', href='/stylesheets/style.css')
-    script(type='text/javascript' src='/js/lib/jquery.min.js')
-    script(type='text/javascript').
-      var fileName="!{fileName}";
     -if(encrypted)
+      link(rel='stylesheet', href='../stylesheets/style.css')
+      script(type='text/javascript' src='../js/lib/jquery.min.js')
+      script(type='text/javascript' src='../js/lib/aes.js')
+      script(type='text/javascript' src='../js/main.js')
       script(type='text/javascript').
         var encrypted=true;
         var cipherText="!{content}";
     -else
+      link(rel='stylesheet', href='./stylesheets/style.css')
+      script(type='text/javascript' src='./js/lib/jquery.min.js')
+      script(type='text/javascript' src='./js/lib/aes.js')
+      script(type='text/javascript' src='./js/main.js')
       script(type='text/javascript').
         var encrypted=false;
-    script(type='text/javascript' src='/js/lib/aes.js')
+    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
-    script(type='text/javascript' src='/js/main.js')
+    script(type='text/javascript').
+      var fileName="!{fileName}";
   body
     div#decryptThings(style='display:none;')
       h1 Decrypt File
@@ -30,4 +34,4 @@ html
     center
       img#image(style='display:none;width:80%;')
     pre
-      code#content !{content}
+      code#content #{content}

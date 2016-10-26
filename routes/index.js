@@ -65,7 +65,7 @@ router.get('/e/:file', function(req, res) {
       if (!err && data) {
         res.render('view', { 
           'fileName': req.params.file,
-          'content': data.toString('utf-8').trim(),
+          'content': data.toString('utf-8'),
           'encrypted': true
         });
       } else {
@@ -86,7 +86,7 @@ router.get('/:file', function(req, res) {
       if(!err && data) {
         res.render('view', {
           'fileName': req.params.file,
-          'content': data.toString('utf-8').trim()
+          'content': data.toString('utf-8')
         });
       } else {
         res.send('Error: File not found');
