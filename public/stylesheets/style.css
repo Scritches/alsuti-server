@@ -7,10 +7,29 @@ a {
   color: #00B7FF;
 }
 
-pre {
-  white-space: pre-wrap;       /* CSS 3 */
-  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-  white-space: -pre-wrap;      /* Opera 4-6 */
-  white-space: -o-pre-wrap;    /* Opera 7 */
-  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+#optionBar {
+    padding: 5px;
+    background-color: rgb(240,240,240);
+    border: 1px solid #CCC;
+}
+
+#optionBar > * {
+    margin-right: 10px;
+}
+
+#optionBar:last-child {
+    margin-right: 0px;
+}
+
+code.hljs-line-numbers {
+    border-right: 1px solid #CCC;
+    color: #999;
+    float: left;
+    text-align: right;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
