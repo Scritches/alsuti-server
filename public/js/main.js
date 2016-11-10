@@ -39,6 +39,7 @@ function renderText(content) {
   a.show();
 
   $('#lineNumbersLabel').show();
+  $('#optionBar').show();
 }
 
 function toggleLineNumbers() {
@@ -106,8 +107,8 @@ function decrypt(pass) {
     $('#image').show();
     $('#content').hide();
     a.attr('href', 'data:image/'+ ext +';base64,' + image);
-    a.show()
     a.attr('download', fileName);
+    a.show()
   } else if(ext == 'pdf') {
     var a = $('#downloadButton');
     var image = btoa(plain)
@@ -115,11 +116,12 @@ function decrypt(pass) {
     $('#content').hide();
 
     a.attr('href', 'data:application/'+ ext +';base64,' + image);
-    a.show()
     a.attr('download', fileName);
+    a.show();
   } else {
     renderText(plain);
   }
 
   $('#decryptThings').hide();
+  $('#optionBar').show();
 }
