@@ -33,7 +33,7 @@ html
       p Password:
       input(id='password' type='password')
       button#decryptButton(onclick='decrypt()') Decrypt
-    div#optionBar
+    div#optionBar(style='display:none;')
       a#downloadButton(style='display:none;') Download
       label#lineNumbersLabel(style='display:none;')
         input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')

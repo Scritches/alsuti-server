@@ -21,6 +21,27 @@ a {
     margin-right: 0px;
 }
 
+li.uploadListing {
+    list-style: none;
+}
+li.uploadListing:nth-child(even) {
+    background-color: #FFF;
+}
+li.uploadListing:nth-child(odd) {
+    background-color: #EEE;
+}
+.uploadTime {
+    float: right;
+}
+
+.pageLink {
+    font-size: 18px;
+    margin-right: 10px
+}
+.pageLink:last-child {
+    margin-right: 0;
+}
+
 code.hljs-line-numbers {
     border-right: 1px solid #CCC;
     color: #999;
