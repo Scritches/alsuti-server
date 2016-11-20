@@ -8,25 +8,24 @@ a {
 }
 
 /* listings */
-
 li.uploadListing {
-    list-style: none;
+  list-style: none;
 }
 li.uploadListing:nth-child(even) {
-    background-color: #FFF;
+  background-color: #FFF;
 }
 li.uploadListing:nth-child(odd) {
-    background-color: #EEE;
+  background-color: #EEE;
 }
 .uploadTime {
-    float: right;
+  float: right;
 }
 .pageLink {
-    font-size: 18px;
-    margin-right: 10px
+  font-size: 18px;
+  margin-right: 10px
 }
 .pageLink:last-child {
-    margin-right: 0;
+  margin-right: 0;
 }
 
 /* option bar */
@@ -48,14 +47,14 @@ h2.title {
 p.description {
 }
 code.hljs-line-numbers {
-    border-right: 1px solid #CCC;
-    color: #999;
-    float: left;
-    text-align: right;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+  border-right: 1px solid #CCC;
+  color: #999;
+  float: left;
+  text-align: right;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }

@@ -5,7 +5,8 @@ var _ = require('underscore')._,
     fs = require('fs'),
     path = require('path'),
     request = require('request'),
-    shortid = require('shortid');
+    shortid = require('shortid'),
+    unqlite = require('unqlite');
 
 var router = express.Router();
 
@@ -29,7 +30,7 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
         return {
           fileName: fileName,
           externalPath: null,
-          uploadTime: fs.statSync(dir + fileName).birthtime.getTime(),
+          uploadTime: fs.statSync(dir + fileName).mtime.getTime(),
           title: null,
           description: null
         };
@@ -43,37 +44,44 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
 
     // set externalPath/title/description for each upload
     var db = req.app.get('db');
-    async.forEachSeries(uploads, function(u,done) {
-      db.fetch(u.fileName + '.encrypted', function(err, key, value) {
-        u.externalPath = (!err && value == 'true' ? '/e/' : '/') + u.fileName;
-        db.fetch(u.fileName + '.title', function(err, key, value) {
-          u.title = !err ? value : null;
-          db.fetch(u.fileName + '.description', function(err, key, value) {
-            u.description = !err ? value : null;
-            done(); // suck my dick, async
+    db.open(unqlite.OPEN_CREATE, function(err) {
+      if(err) {
+        console.log("[unqlite] cannot open database");
+        return;
+      }
+
+      async.forEachSeries(uploads, function(u,done) {
+          db.fetch(u.fileName + '.encrypted', function(err, key, value) {
+            u.externalPath = (!err && value == 'true' ? '/e/' : '/') + u.fileName;
+            db.fetch(u.fileName + '.title', function(err, key, value) {
+              u.title = !err ? value : null;
+              db.fetch(u.fileName + '.description', function(err, key, value) {
+                u.description = !err ? value : null;
+                done();
+              });
+            });
           });
-        });
-      });
-    }, function(err) {
-      var page;
-      if(_.has(req.query, 'page')) {
-        page = parseInt(req.query['page']);
-        if(page < 1)
+      }, function(err) {
+        var page;
+        if(_.has(req.query, 'page')) {
+          page = parseInt(req.query['page']);
+          if(page < 1)
+            page = 1;
+        }
+        else {
           page = 1;
-      }
-      else {
-        page = 1;
-      }
+        }
 
-      var start = (page - 1) * listingsPerPage,
-          end = start + listingsPerPage,
-          lastPage = end >= uploads.length;
+        var start = (page - 1) * listingsPerPage,
+            end = start + listingsPerPage,
+            lastPage = end >= uploads.length;
 
-      res.render('listing', {
-        'title': "File Listing",
-        'page': page,
-        'lastPage': lastPage,
-        'uploads': uploads.slice(start, end)
+        res.render('listing', {
+          'title': "File Listing",
+          'page': page,
+          'lastPage': lastPage,
+          'uploads': uploads.slice(start, end)
+        });
       });
     });
   });
@@ -149,40 +157,46 @@ router.post('/upload', function(req, res) {
 
   var k;
   var db = req.app.get('db');
-
-  async.series([
-    function(done) {
-      if(_.has(req.body, 'encrypted') && req.body.encrypted) {
-        db.store(slug + '.encrypted', 'true', function(err, key, val) {
-          onStore(err, key, val);
-          done();
-        });
-      } else {
-        done();
-      }
-    },
-    function(done) {
-      if(_.has(req.body, 'title') && req.body.title.length > 0) {
-        db.store(slug + '.title', req.body.title, function(err, key, val) {
-          onStore(err, key, val);
-          done();
-        });
-      } else {
-        done();
-      }
-    },
-    function(done) {
-      if(_.has(req.body, 'description') && req.body.description.length > 0) {
-        db.store(slug + '.description', req.body.description, function(err, key, val) {
-          onStore(err, key, val);
-        });
-      } else {
-        done();
-      }
-    }],
-    function(err) {
+  db.open(unqlite.OPEN_CREATE, function(err) {
+    if(err) {
+      console.log("[unqlite] cannot open database");
+      return;
     }
-  );
+
+    async.series([
+      function(done) {
+        if(_.has(req.body, 'encrypted') && req.body.encrypted) {
+          db.store(slug + '.encrypted', 'true', function(err, key, val) {
+            onStore(err, key, val);
+            done();
+          });
+        } else {
+          done();
+        }
+      },
+      function(done) {
+        if(_.has(req.body, 'title') && req.body.title.length > 0) {
+          db.store(slug + '.title', req.body.title, function(err, key, val) {
+            onStore(err, key, val);
+            done();
+          });
+        } else {
+          done();
+        }
+      },
+      function(done) {
+        if(_.has(req.body, 'description') && req.body.description.length > 0) {
+          db.store(slug + '.description', req.body.description, function(err, key, val) {
+            onStore(err, key, val);
+          });
+        } else {
+          done();
+        }
+      }],
+      function(err) {
+      }
+    );
+  });
 });
 
 router.get('/e/:file', function(req, res) {
@@ -197,27 +211,35 @@ router.get('/e/:file', function(req, res) {
             description;
 
         var db = req.app.get('db');
-        async.series([
-          function(done) {
-            db.fetch(req.params.file + '.title', function(err, key, value) {
-              title = !err ? value : null;
-              done();
-            });
-          },
-          function(done) {
-            db.fetch(req.params.file + '.description', function(err, key, value) {
-              description = !err ? value : null;
-              done();
-            });
+        db.open(unqlite.OPEN_CREATE, function(err) {
+          if(err) {
+            console.log("[unqlite] cannot open database");
+            return;
           }
-        ], function(err) {
-          res.render('view', {
-            'fileName': req.params.file,
-            'content': data.toString('utf-8'),
-            'encrypted': true,
-            'title': title,
-            'description': description
-          });
+
+          async.series([
+            function(done) {
+              db.fetch(req.params.file + '.title', function(err, key, value) {
+                title = !err ? value : null;
+                done();
+              });
+            },
+            function(done) {
+              db.fetch(req.params.file + '.description', function(err, key, value) {
+                description = !err ? value : null;
+                done();
+              });
+            }],
+            function(err) {
+              res.render('view', {
+                'fileName': req.params.file,
+                'content': data.toString('utf-8'),
+                'encrypted': true,
+                'title': title,
+                'description': description
+              });
+            }
+          );
         });
       }
       else {
@@ -240,26 +262,34 @@ router.get('/:file', function(req, res) {
             description;
 
         var db = req.app.get('db');
-        async.series([
-          function(done) {
-            db.fetch(req.params.file + '.title', function(err, key, value) {
-              title = !err ? value : null;
-              done();
-            });
-          },
-          function(done) {
-            db.fetch(req.params.file + '.description', function(err, key, value) {
-              description = !err ? value : null;
-              done();
-            });
+        db.open(unqlite.OPEN_CREATE, function(err) {
+          if(err) {
+            console.log("[unqlite] cannot open database");
+            return;
           }
-        ], function(err) {
-          res.render('view', {
-            'fileName': req.params.file,
-            'content': data.toString('utf-8'),
-            'title': title,
-            'description': description
-          });
+
+          async.series([
+            function(done) {
+              db.fetch(req.params.file + '.title', function(err, key, value) {
+                title = !err ? value : null;
+                done();
+              });
+            },
+            function(done) {
+              db.fetch(req.params.file + '.description', function(err, key, value) {
+                description = !err ? value : null;
+                done();
+              });
+            }],
+            function(err) {
+              res.render('view', {
+                'fileName': req.params.file,
+                'content': data.toString('utf-8'),
+                'title': title,
+                'description': description
+              });
+            }
+          );
         });
       } else {
         res.send('Error: File not found');
