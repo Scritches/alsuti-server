@@ -10,10 +10,10 @@ var _ = require('underscore')._,
 var router = express.Router();
 
 // file listings
-if(_.has(process.env, 'ALSUTI_LISTING')) {
-  itemsPerPage = parseInt(process.env.ALSUTI_LISTING, 10);
-  if(itemsPerPage <= 0) {
-    itemsPerPage = 20; // default to 20
+if(_.has(process.env, 'ALSUTI_LISTINGS')) {
+  var listingsPerPage = parseInt(process.env.ALSUTI_LISTINGS, 10);
+  if(listingsPerPage <= 0) {
+    listingsPerPage = 20; // default to 20
   }
 
   router.get('/', function(req, res) {
@@ -65,8 +65,8 @@ if(_.has(process.env, 'ALSUTI_LISTING')) {
         page = 1;
       }
 
-      var start = (page - 1) * itemsPerPage,
-          end = start + itemsPerPage,
+      var start = (page - 1) * listingsPerPage,
+          end = start + listingsPerPage,
           lastPage = end >= uploads.length;
 
       res.render('listing', {
