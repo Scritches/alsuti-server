@@ -196,15 +196,18 @@ router.get('/e/:file', function(req, res) {
         var title,
             description;
 
+        var db = req.app.get('db');
         async.series([
           function(done) {
-            var db = req.app.get('db');
             db.fetch(req.params.file + '.title', function(err, key, value) {
               title = !err ? value : null;
-              db.fetch(req.params.file + '.description', function(err, key, value) {
-                description = !err ? value : null;
-                done();
-              });
+              done();
+            });
+          },
+          function(done) {
+            db.fetch(req.params.file + '.description', function(err, key, value) {
+              description = !err ? value : null;
+              done();
             });
           }
         ], function(err) {
@@ -236,15 +239,18 @@ router.get('/:file', function(req, res) {
         var title,
             description;
 
+        var db = req.app.get('db');
         async.series([
           function(done) {
-            var db = req.app.get('db');
             db.fetch(req.params.file + '.title', function(err, key, value) {
               title = !err ? value : null;
-              db.fetch(req.params.file + '.description', function(err, key, value) {
-                description = !err ? value : null;
-                done();
-              });
+              done();
+            });
+          },
+          function(done) {
+            db.fetch(req.params.file + '.description', function(err, key, value) {
+              description = !err ? value : null;
+              done();
             });
           }
         ], function(err) {
