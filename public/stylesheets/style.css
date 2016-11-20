@@ -9,6 +9,7 @@ a {
 
 /* listings */
 li.uploadListing {
+  font-size: 18px;
   list-style: none;
 }
 li.uploadListing:nth-child(even) {

@@ -14,7 +14,7 @@ var router = express.Router();
 if(_.has(process.env, 'ALSUTI_LISTINGS')) {
   var listingsPerPage = parseInt(process.env.ALSUTI_LISTINGS, 10);
   if(listingsPerPage <= 0) {
-    listingsPerPage = 20; // default to 20
+    listingsPerPage = 25; // default to 25
   }
 
   router.get('/', function(req, res) {
