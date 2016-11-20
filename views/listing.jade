@@ -10,6 +10,10 @@ html
         | Page #{page}
     each u,i in uploads
       li(class='uploadListing')
+        -if(u.encrypted)
+          img(class='lock', width='18px', src='./padlock.png')
+        -else
+          img(class='lock', width='18px')
         -if(u.title != null)
           a(href='#{u.externalPath}')= u.title
         -else

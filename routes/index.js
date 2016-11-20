@@ -31,6 +31,7 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
           fileName: fileName,
           externalPath: null,
           uploadTime: fs.statSync(dir + fileName).mtime.getTime(),
+          encrypted: false,
           title: null,
           description: null
         };
@@ -51,16 +52,18 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
       }
 
       async.forEachSeries(uploads, function(u,done) {
-          db.fetch(u.fileName + '.encrypted', function(err, key, value) {
-            u.externalPath = (!err && value == 'true' ? '/e/' : '/') + u.fileName;
-            db.fetch(u.fileName + '.title', function(err, key, value) {
-              u.title = !err ? value : null;
-              db.fetch(u.fileName + '.description', function(err, key, value) {
-                u.description = !err ? value : null;
-                done();
-              });
+        db.fetch(u.fileName + '.encrypted', function(err, key, value) {
+          u.encrypted = !err;
+          u.externalPath = (u.encrypted ? '/e/' : '/') + u.fileName;
+          console.log(u.entrypted + ": " + u.externalPath);
+          db.fetch(u.fileName + '.title', function(err, key, value) {
+            u.title = !err ? value : null;
+            db.fetch(u.fileName + '.description', function(err, key, value) {
+              u.description = !err ? value : null;
+              done();
             });
           });
+        });
       }, function(err) {
         var page;
         if(_.has(req.query, 'page')) {
@@ -155,7 +158,6 @@ router.post('/upload', function(req, res) {
     }
   }
 
-  var k;
   var db = req.app.get('db');
   db.open(unqlite.OPEN_CREATE, function(err) {
     if(err) {
@@ -188,12 +190,18 @@ router.post('/upload', function(req, res) {
         if(_.has(req.body, 'description') && req.body.description.length > 0) {
           db.store(slug + '.description', req.body.description, function(err, key, val) {
             onStore(err, key, val);
+            done();
           });
         } else {
           done();
         }
       }],
       function(err) {
+        db.close(function(err) {
+          if(err) {
+            console.log("[unqlite] cannot close database");
+          }
+        });
       }
     );
   });
@@ -231,6 +239,12 @@ router.get('/e/:file', function(req, res) {
               });
             }],
             function(err) {
+              db.close(function(err) {
+                if(err) {
+                  console.log("[unqlite] cannot close database");
+                }
+              });
+
               res.render('view', {
                 'fileName': req.params.file,
                 'content': data.toString('utf-8'),
@@ -282,6 +296,12 @@ router.get('/:file', function(req, res) {
               });
             }],
             function(err) {
+              db.close(function(err) {
+                if(err) {
+                  console.log("[unqlite] cannot close database");
+                }
+              });
+
               res.render('view', {
                 'fileName': req.params.file,
                 'content': data.toString('utf-8'),

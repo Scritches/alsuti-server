@@ -18,6 +18,13 @@ li.uploadListing:nth-child(even) {
 li.uploadListing:nth-child(odd) {
   background-color: #EEE;
 }
+img.lock {
+  display: inline-block;
+  height: 75%;
+  margin-top: auto;
+  margin-left: 2px;
+  margin-right: 2px;
+}
 .uploadTime {
   float: right;
 }
