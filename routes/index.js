@@ -1,53 +1,38 @@
-var express = require('express'),
-    fs = require('fs'),
-    shortid = require('shortid'),
-    _ = require('underscore')._,
-    request = require('request'),
+var _ = require('underscore')._,
+    async = require('async'),
     cj = require('node-cryptojs-aes'),
+    express = require('express'),
+    fs = require('fs'),
     path = require('path'),
-    router = express.Router(),
-    unqlite = require('unqlite');
+    request = require('request'),
+    shortid = require('shortid');
 
-var db = new unqlite.Database('alsuti.db');
-db.open(unqlite.OPEN_CREATE, function(err) {
-  if(err)
-    throw err;
-});
+var router = express.Router();
 
 // file listings
-if(_.has(process.env, 'ALSUTI_LISTINGS') && process.env.ALSUTI_LISTINGS == 'on') {
-  router.get('/', function(req, res) {
-    var dir = './files/';
+if(_.has(process.env, 'ALSUTI_LISTING')) {
+  itemsPerPage = parseInt(process.env.ALSUTI_LISTING, 10);
+  if(itemsPerPage <= 0) {
+    itemsPerPage = 20; // default to 20
+  }
 
-    var uploads = fs.readdirSync(dir)
-    // filter hidden files
-    .filter(function(fileName) {
+  router.get('/', function(req, res) {
+    var dir = './files/',
+        uploads = fs.readdirSync(dir);
+
+    // filter hidden
+    uploads = uploads.filter(function(fileName) {
       return fileName.startsWith('.') == false;
     })
-    // map each fileName into an upload object
+    // map into upload object
     .map(function(fileName) {
-      var u = {
-        fileName: fileName,
-        uploadTime: fs.statSync(dir + fileName).birthtime.getTime(),
-        externalPath: '/' + fileName,
-        title: null,
-        description: null,
-      };
-
-      db.fetch(fileName + '.encrypted', function(err, key, value) {
-        if(!err && value == 'true')
-          u.externalPath = '/e' + u.externalPath;
-      });
-      db.fetch(fileName + '.title', function(err, key, value) {
-        if(!err)
-          u.title = value;
-      });
-      db.fetch(fileName + '.description', function(err, key, value) {
-        if(!err)
-          u.description = value;
-      });
-
-      return u;
+        return {
+          fileName: fileName,
+          externalPath: null,
+          uploadTime: fs.statSync(dir + fileName).birthtime.getTime(),
+          title: null,
+          description: null
+        };
     })
     // sort by upload time
     .sort(function(a,b) {
@@ -56,102 +41,148 @@ if(_.has(process.env, 'ALSUTI_LISTINGS') && process.env.ALSUTI_LISTINGS == 'on')
     // reverse for chronological order
     .reverse();
 
-    var page;
-    if (_.has(req.query, 'page')) {
-      page = parseInt(req.query['page']);
-      if(page < 1)
+    // set externalPath/title/description for each upload
+    var db = req.app.get('db');
+    async.forEachSeries(uploads, function(u,done) {
+      db.fetch(u.fileName + '.encrypted', function(err, key, value) {
+        u.externalPath = (!err && value == 'true' ? '/e/' : '/') + u.fileName;
+        db.fetch(u.fileName + '.title', function(err, key, value) {
+          u.title = !err ? value : null;
+          db.fetch(u.fileName + '.description', function(err, key, value) {
+            u.description = !err ? value : null;
+            done(); // suck my dick, async
+          });
+        });
+      });
+    }, function(err) {
+      var page;
+      if(_.has(req.query, 'page')) {
+        page = parseInt(req.query['page']);
+        if(page < 1)
+          page = 1;
+      }
+      else {
         page = 1;
-    }
-    else {
-      page = 1;
-    }
+      }
 
-    var itemsPerPage;
-    if(_.has(process.env, 'ALSUTI_LISTINGS_PAGE_SIZE'))
-      itemsPerPage = parseInt(process.env.ALSUTI_LISTINGS_PAGE_SIZE, 10);
-    else
-      itemsPerPage = 20; // default to 20
+      var start = (page - 1) * itemsPerPage,
+          end = start + itemsPerPage,
+          lastPage = end >= uploads.length;
 
-    // paginate
-    var start = (page - 1) * itemsPerPage,
-        end = start + itemsPerPage;
-
-    // check if last page
-    var lastPage;
-    if(end >= uploads.length) {
-      end = uploads.length;
-      lastPage = true;
-    } else {
-      lastPage = false;
-    }
-
-    res.render('listing', {
-      'title': "File Listing",
-      'currentPage': page,
-      'lastPage': lastPage,
-      'uploads': uploads.slice(start, end)
+      res.render('listing', {
+        'title': "File Listing",
+        'page': page,
+        'lastPage': lastPage,
+        'uploads': uploads.slice(start, end)
+      });
     });
   });
 }
 
-/* GET home page. */
 router.post('/upload', function(req, res) {
+  var api_key = req.app.get('api_key');
+  if(req.body.api_key != api_key) {
+    res.status(401);
+    res.send('Error: Incorrect API key');
+    return;
+  }
+
+  var external_path = req.app.get('external_path');
   res.setHeader('Content-Type', 'application/text');
   console.log(req.body);
 
-  if(req.body.api_key == req.api_key) {
-    if(_.has(req.files, 'fileupload')) {
-      fs.readFile(req.files.fileupload.path, function(err, data) {
-        var newName = shortid.generate() + '.' + _.last(req.files.fileupload.originalname.split('.'))
-            newPath = __dirname + '/../files/';
+  var localPath,
+      slug;
 
-        fs.writeFile(newPath + newName, data, function(err) {
-          if(req.body.encrypted) {
-            res.send(req.external_path + '/e/' + newName); 
-          } else {
-            res.send(req.external_path + '/' + newName); 
-          }
-        });
-      });
-    } else if(_.has(req.body, 'uri')) {
-      var newName = shortid.generate() + '.' + _.last(req.body.uri.split('.')).replace(/\?.*$/,'').replace(/:.*$/,'')
-          newPath = __dirname + '/../files/';
+  if(_.has(req.files, 'fileupload')) {
+    localPath = __dirname + '/../files/';
+    slug = shortid.generate() + '.' + _.last(req.files.fileupload.originalname.split('.'));
 
-      request.get(req.body.uri).pipe(fs.createWriteStream(newPath + newName))
-        .on('close', function() {
-          if(req.body.encrypted) {
-            res.send(req.external_path + '/e/' + newName); 
-          } else {
-            res.send(req.external_path + '/' + newName); 
-          }
-        });
-    } else if(_.has(req.body, 'content')) {
-      var newName = shortid.generate() + '.' + req.body.extension,
-          newPath = __dirname + '/../files/';
-
-      fs.writeFile(newPath + newName, req.body.content, function(err) {
-        if(req.body.encrypted) {
-          res.send(req.external_path + '/e/' + newName); 
+    fs.readFile(req.files.fileupload.path, function(err, data) {
+      fs.writeFile(localPath + slug, data, function(err) {
+        if(_.has(req.body, 'encrypted') && req.body.encrypted) {
+          res.send(external_path + '/e/' + slug);
         } else {
-          res.send(req.external_path + '/' + newName); 
+          res.send(external_path + '/' + slug); 
         }
       });
-    }
-    else {
-        return;
-    }
+    });
+  }
+  else if(_.has(req.body, 'uri')) {
+    localPath = __dirname + '/../files/';
+    slug = shortid.generate() + '.' + _.last(req.body.uri.split('.')).replace(/\?.*$/,'').replace(/:.*$/,'');
 
-    var storeError = function(err,key,value) {
-        console.log("error: could not store \"" + key + "\" -> \"" + value + "\"");
-    }
+    request.get(req.body.uri).pipe(fs.createWriteStream(localPath + slug))
+      .on('close', function() {
+        if(_.has(req.body, 'encrypted') && req.body.encrypted) {
+          res.send(external_path + '/e/' + slug); 
+        } else {
+          res.send(external_path + '/' + slug); 
+        }
+      });
+  }
+  else if(_.has(req.body, 'content')) {
+    localPath = __dirname + '/../files/';
+    slug = shortid.generate() + '.' + req.body.extension;
 
-    db.store(newName + '.encrypted', req.body.encrypted, storeError);
-    db.store(newName + '.title', req.body.title, storeError);
-    db.store(newName + '.description', req.body.description, storeError);
+    fs.writeFile(localPath + slug, req.body.content, function(err) {
+      if(_.has(req.body, 'encrypted') && req.body.encrypted) {
+        res.send(external_path + '/e/' + slug); 
+      } else {
+        res.send(external_path + '/' + slug); 
+      }
+    });
   }
   else {
-    res.send('Error: Incorrect API key');
+    res.status(400);
+    res.send("Error: no data");
+    return;
   }
+
+  var onStore = function(err, key, val) {
+    if(err) {
+      console.log("[unqlite] " + "store error: " + key + " -> " + val);
+    } else {
+      console.log("[unqlite] " + key + " -> " + val);
+    }
+  }
+
+  var k;
+  var db = req.app.get('db');
+
+  async.series([
+    function(done) {
+      if(_.has(req.body, 'encrypted') && req.body.encrypted) {
+        db.store(slug + '.encrypted', 'true', function(err, key, val) {
+          onStore(err, key, val);
+          done();
+        });
+      } else {
+        done();
+      }
+    },
+    function(done) {
+      if(_.has(req.body, 'title') && req.body.title.length > 0) {
+        db.store(slug + '.title', req.body.title, function(err, key, val) {
+          onStore(err, key, val);
+          done();
+        });
+      } else {
+        done();
+      }
+    },
+    function(done) {
+      if(_.has(req.body, 'description') && req.body.description.length > 0) {
+        db.store(slug + '.description', req.body.description, function(err, key, val) {
+          onStore(err, key, val);
+        });
+      } else {
+        done();
+      }
+    }],
+    function(err) {
+    }
+  );
 });
 
 router.get('/e/:file', function(req, res) {
@@ -161,13 +192,32 @@ router.get('/e/:file', function(req, res) {
     res.sendFile(path.resolve(filePath));
   } else {
     fs.readFile(filePath, 'utf-8', function(err, data) {
-      if (!err && data) {
-        res.render('view', { 
-          'fileName': req.params.file,
-          'content': data.toString('utf-8'),
-          'encrypted': true
+      if(!err && data) {
+        var title,
+            description;
+
+        async.series([
+          function(done) {
+            var db = req.app.get('db');
+            db.fetch(req.params.file + '.title', function(err, key, value) {
+              title = !err ? value : null;
+              db.fetch(req.params.file + '.description', function(err, key, value) {
+                description = !err ? value : null;
+                done();
+              });
+            });
+          }
+        ], function(err) {
+          res.render('view', {
+            'fileName': req.params.file,
+            'content': data.toString('utf-8'),
+            'encrypted': true,
+            'title': title,
+            'description': description
+          });
         });
-      } else {
+      }
+      else {
         res.send('Error: File not found');
       }
     });
@@ -183,9 +233,27 @@ router.get('/:file', function(req, res) {
   } else {
     fs.readFile(filePath, 'utf-8', function(err, data) {
       if(!err && data) {
-        res.render('view', {
-          'fileName': req.params.file,
-          'content': data.toString('utf-8')
+        var title,
+            description;
+
+        async.series([
+          function(done) {
+            var db = req.app.get('db');
+            db.fetch(req.params.file + '.title', function(err, key, value) {
+              title = !err ? value : null;
+              db.fetch(req.params.file + '.description', function(err, key, value) {
+                description = !err ? value : null;
+                done();
+              });
+            });
+          }
+        ], function(err) {
+          res.render('view', {
+            'fileName': req.params.file,
+            'content': data.toString('utf-8'),
+            'title': title,
+            'description': description
+          });
         });
       } else {
         res.send('Error: File not found');

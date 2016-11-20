@@ -7,20 +7,18 @@ html
     center
       h1= title
       h2
-        | Page #{currentPage}
+        | Page #{page}
     each u,i in uploads
       li(class='uploadListing')
-        if u.title != null
+        -if(u.title != null)
           a(href='#{u.externalPath}')= u.title
-        else
+        -else
           a(href='#{u.externalPath}')= u.fileName
-        if u.description != null
-          p(class='uploadDescription')= u.description
         span(class='uploadTime')= moment(u.uploadTime).format("Y/MM/DD HH:mm:SS")
     center
-      if currentPage > 1
-        a(class='pageLink', href='?page=#{currentPage - 1}')
+      -if(page > 1)
+        a(class='pageLink', href='?page=#{page - 1}')
           | Previous
-      if lastPage == false
-        a(class='pageLink', href='?page=#{currentPage + 1}')
+      -if(lastPage == false)
+        a(class='pageLink', href='?page=#{page + 1}')
           | Next

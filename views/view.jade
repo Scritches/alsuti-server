@@ -33,6 +33,10 @@ html
       p Password:
       input(id='password' type='password')
       button#decryptButton(onclick='decrypt()') Decrypt
+    -if(title && title.length > 0)
+      h2#title(style='display:none')= title
+    -if(description && description.length > 0)
+      p#description(style='display:none')= description
     div#optionBar(style='display:none;')
       a#downloadButton(style='display:none;') Download
       label#lineNumbersLabel(style='display:none;')

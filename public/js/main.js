@@ -34,6 +34,9 @@ function renderText(content) {
     }
   });
 
+  $('h2#title').show();
+  $('p#description').show();
+
   a.attr('href', 'data:text/plain;utf-8,'+content);
   a.attr('download', fileName);
   a.show();
@@ -95,21 +98,25 @@ function decrypt(pass) {
 
   $('#message').hide();
 
-  if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { //todo: split this out
+  if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { // todo: split this out
     var a = $('#downloadButton');
+
     var image;
     if(!plain.match(/^YW5kcm9pZHN1Y2tz/)) {
       image = btoa(plain);
     } else {
       image = plain.replace(/^YW5kcm9pZHN1Y2tz/,'');
     }
+
     $('#image').attr('src', 'data:image/'+ ext +';base64,' + image);
     $('#image').show();
     $('#content').hide();
+
     a.attr('href', 'data:image/'+ ext +';base64,' + image);
     a.attr('download', fileName);
     a.show()
-  } else if(ext == 'pdf') {
+  }
+  else if(ext == 'pdf') {
     var a = $('#downloadButton');
     var image = btoa(plain)
 
@@ -118,10 +125,10 @@ function decrypt(pass) {
     a.attr('href', 'data:application/'+ ext +';base64,' + image);
     a.attr('download', fileName);
     a.show();
-  } else {
+  }
+  else {
     renderText(plain);
   }
 
   $('#decryptThings').hide();
-  $('#optionBar').show();
 }

@@ -1,17 +1,15 @@
-var express = require('express');
-var fs = require('fs');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var multer = require('multer');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var _ = require('underscore')._;
-var process = require('process');
-var sys = require('sys');
-var device = require('express-device');
-
-var routes = require('./routes/index');
+var _ = require('underscore')._,
+    bodyParser = require('body-parser'),
+    cookieParser = require('cookie-parser'),
+    express = require('express'),
+    favicon = require('serve-favicon'),
+    fs = require('fs'),
+    device = require('express-device'),
+    logger = require('morgan'),
+    multer = require('multer'),
+    path = require('path'),
+    process = require('process'),
+    sys = require('sys');
 
 if(!_.has(process.env, 'ALSUTI_API_KEY')) {
   console.log('You must set the ALSUTI_API_KEY environment variable');
@@ -24,21 +22,24 @@ if(!_.has(process.env, 'ALSUTI_ENDPOINT')) {
 
 var app = express();
 
-// required for date formatting in listing template
-app.locals.moment = require('moment');
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // use favicon if it exists
 var faviconPath = __dirname + '/public/favicon.ico';
-try {
-  fs.accessSync(faviconPath, fs.F_OK);
-  app.use(favicon(faviconPath));
-} catch(e) {
-  console.log("Note: no favicon found in /public.");
-}
+fs.access(faviconPath, fs.F_OK, function(err) {
+  if(!err) {
+    app.use(favicon(faviconPath));
+  }
+});
+
+// make api key and endpoint accessible from handlers
+app.set('api_key', process.env.ALSUTI_API_KEY);
+app.set('external_path', process.env.ALSUTI_ENDPOINT);
+
+// required for listing template
+app.locals.moment = require('moment');
 
 app.use(logger('dev'));
 app.use(device.capture({'parseUserAgent':true}));
@@ -48,14 +49,8 @@ app.use(multer());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Add some stuff to the req
-app.use(function(req, res, next) {
-  req.api_key = process.env.ALSUTI_API_KEY;
-  req.external_path = process.env.ALSUTI_ENDPOINT;
-  next();
-});
-
-app.use('/', routes);
+// set up primary routes
+app.use('/', require('./routes/index'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -64,10 +59,7 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-// error handlers
-
-// development error handler
-// will print stacktrace
+// development error handler; prints stacktrace
 if(app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
@@ -78,8 +70,7 @@ if(app.get('env') === 'development') {
   });
 }
 
-// production error handler
-// no stacktraces leaked to user
+// production error handler; no stacktraces
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {

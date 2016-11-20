@@ -1,9 +1,29 @@
 #!/usr/bin/env node
-var debug = require('debug')('server');
+var unqlite = require('unqlite');
 var app = require('../app');
 
-app.set('port', process.env.PORT || 3067);
+var db = new unqlite.Database('alsuti.db');
 
-var server = app.listen(app.get('port'), function() {
-  debug('Express server listening on port ' + server.address().port);
+app.set('port', process.env.PORT || 3067);
+app.set('db', db);
+
+db.open(unqlite.OPEN_CREATE, function(err) {
+  if(err) {
+    console.log("[unqlite] cannot open database");
+    process.exit(0);
+  }
+
+  var server = app.listen(app.get('port'), function() {
+    console.log('Express server listening on port ' + server.address().port);
+  });
+
+  process.on('SIGTERM', function() {
+    server.close(function() {
+      db.close(function(err) {
+        if(err) {
+          console.log("[unqlite] cannot close database");
+        }
+      });
+    });
+  });
 });

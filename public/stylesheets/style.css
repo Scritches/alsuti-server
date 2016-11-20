@@ -7,19 +7,7 @@ a {
   color: #00B7FF;
 }
 
-#optionBar {
-    padding: 5px;
-    background-color: rgb(240,240,240);
-    border: 1px solid #CCC;
-}
-
-#optionBar > * {
-    margin-right: 10px;
-}
-
-#optionBar:last-child {
-    margin-right: 0px;
-}
+/* listings */
 
 li.uploadListing {
     list-style: none;
@@ -33,7 +21,6 @@ li.uploadListing:nth-child(odd) {
 .uploadTime {
     float: right;
 }
-
 .pageLink {
     font-size: 18px;
     margin-right: 10px
@@ -42,6 +29,24 @@ li.uploadListing:nth-child(odd) {
     margin-right: 0;
 }
 
+/* option bar */
+#optionBar {
+    padding: 5px;
+    background-color: rgb(240,240,240);
+    border: 1px solid #CCC;
+}
+#optionBar > * {
+    margin-right: 10px;
+}
+#optionBar:last-child {
+    margin-right: 0px;
+}
+
+/* content */
+h2.title {
+}
+p.description {
+}
 code.hljs-line-numbers {
     border-right: 1px solid #CCC;
     color: #999;
