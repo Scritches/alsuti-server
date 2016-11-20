@@ -97,13 +97,14 @@ if(_.has(process.env, 'ALSUTI_LISTINGS') && process.env.ALSUTI_LISTINGS == 'on')
 /* GET home page. */
 router.post('/upload', function(req, res) {
   res.setHeader('Content-Type', 'application/text');
-  console.log(req.body);
 
   if(req.body.api_key == req.api_key) {
     if(_.has(req.files, 'fileupload')) {
       fs.readFile(req.files.fileupload.path, function(err, data) {
         var newName = shortid.generate() + '.' + _.last(req.files.fileupload.originalname.split('.'))
             newPath = __dirname + '/../files/';
+
+        req.body.title = req.body.title || newName;
 
         fs.writeFile(newPath + newName, data, function(err) {
           if(req.body.encrypted) {
