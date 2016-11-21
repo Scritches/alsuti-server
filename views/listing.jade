@@ -11,13 +11,14 @@ html
     each u,i in uploads
       li(class='uploadListing')
         -if(u.encrypted)
-          img(class='lock', width='18px', src='./padlock.png')
+          span(class='lockFlag')
+            | E
         -else
-          img(class='lock', width='18px')
+          span(class='lockFlag')
         -if(u.title != null)
-          a(href='#{u.externalPath}')= u.title
+          a(class='uploadLink', href='#{u.externalPath}')= u.title
         -else
-          a(href='#{u.externalPath}')= u.fileName
+          a(class='uploadLink', href='#{u.externalPath}')= u.fileName
         span(class='uploadTime')= moment(u.uploadTime).format("Y/MM/DD HH:mm:SS")
     center
       -if(page > 1)

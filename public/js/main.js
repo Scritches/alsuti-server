@@ -9,7 +9,7 @@ $(function() {
     if(window.location.hash) {
       decrypt(window.location.hash.substr(1));
     } else {
-      $('#decryptThings').show();
+      $('#decryption').show();
     }
   } else {
     renderText($('#content').text());
@@ -21,8 +21,7 @@ $(function() {
 
 function renderText(content) {
   var splitFile = fileName.split('.'),
-      ext = splitFile[splitFile.length-1].toLowerCase(),
-      a = $('#downloadButton');
+      ext = splitFile[splitFile.length-1].toLowerCase();
 
   $('#content').text(content);
   $('code').each(function(i, block) {
@@ -34,15 +33,12 @@ function renderText(content) {
     }
   });
 
-  $('h2#title').show();
-  $('p#description').show();
-
+  var a = $('#downloadLink');
   a.attr('href', 'data:text/plain;utf-8,'+content);
   a.attr('download', fileName);
   a.show();
 
   $('#lineNumbersLabel').show();
-  $('#optionBar').show();
 }
 
 function toggleLineNumbers() {
@@ -82,8 +78,8 @@ function loadOptions() {
 }
 
 function decrypt(pass) {
-  $('#message').text = 'Decrypting..';
-  $('#message').show();
+  $('#decryptionStatus').text = 'Decrypting..';
+  $('#decryptionStatus').show();
 
   var password = $('#password').val(),
       content = cipherText || $('#content').text(),
@@ -96,7 +92,7 @@ function decrypt(pass) {
 
   var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
 
-  $('#message').hide();
+  $('#decryptionStatus').hide();
 
   if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { // todo: split this out
     var a = $('#downloadButton');
@@ -130,5 +126,5 @@ function decrypt(pass) {
     renderText(plain);
   }
 
-  $('#decryptThings').hide();
+  $('#decryption').hide();
 }

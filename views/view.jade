@@ -28,21 +28,20 @@ html
     script(type='text/javascript').
       var fileName="!{fileName}";
   body
-    div#decryptThings(style='display:none;')
-      h1 Decrypt File
-      p Password:
-      input(id='password' type='password')
-      button#decryptButton(onclick='decrypt()') Decrypt
     -if(title && title.length > 0)
-      h2#title(style='display:none')= title
+      h1#title= title
     -if(description && description.length > 0)
-      p#description(style='display:none')= description
-    div#optionBar(style='display:none;')
-      a#downloadButton(style='display:none;') Download
+      p#description= description
+    div#optionBar
+      div#decryption(style='display:none;')
+        span#decryptionStatus
+          | Locked
+        input(id='password' placeholder='Enter Password', type='password')
+        button(onclick='decrypt()') Decrypt
+      a#downloadLink(style='display:none;') Download
       label#lineNumbersLabel(style='display:none;')
         input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
         | Show Line Numbers
-    p#message(style='display:none')
     center
       img#image(style='display:none;width:80%;')
     pre

@@ -9,27 +9,34 @@ a {
 
 /* listings */
 li.uploadListing {
-  font-size: 18px;
+  font-size: 15px;
   list-style: none;
-}
-li.uploadListing:nth-child(even) {
-  background-color: #FFF;
+  line-height: 30px;
 }
 li.uploadListing:nth-child(odd) {
+  background-color: #FFF;
+}
+li.uploadListing:nth-child(even) {
   background-color: #EEE;
 }
-img.lock {
-  display: inline-block;
-  margin-top: auto;
-  margin-left: 2px;
-  margin-right: 2px;
+li.uploadListing > * {
+  margin-left: 5px;
+  margin-right: 5px;
 }
-.uploadTime {
+span.lockFlag {
+  display: inline-block;
+  font-weight: bold;
+  width: 15px;
+  text-align: center;
+}
+a.uploadLink {
+}
+span.uploadTime {
   float: right;
 }
 .pageLink {
   font-size: 18px;
-  margin-right: 10px
+  margin-right: 10px;
 }
 .pageLink:last-child {
   margin-right: 0;
@@ -46,6 +53,19 @@ img.lock {
 }
 #optionBar:last-child {
     margin-right: 0px;
+}
+
+/* decryption stuff */
+span#decryptionStatus {
+  color: #FF2222;
+  font-weight: bold;
+}
+#decryption > * {
+  display: inline-block;
+  margin-right: 5px;
+}
+#decryption > *:last-child {
+  margin-right: 0px;
 }
 
 /* content */

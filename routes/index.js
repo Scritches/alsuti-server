@@ -55,7 +55,6 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
         db.fetch(u.fileName + '.encrypted', function(err, key, value) {
           u.encrypted = !err;
           u.externalPath = (u.encrypted ? '/e/' : '/') + u.fileName;
-          console.log(u.entrypted + ": " + u.externalPath);
           db.fetch(u.fileName + '.title', function(err, key, value) {
             u.title = !err ? value : null;
             db.fetch(u.fileName + '.description', function(err, key, value) {
