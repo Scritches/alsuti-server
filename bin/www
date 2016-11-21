@@ -3,21 +3,26 @@ var _ = require('underscore')._,
     app = require('../app'),
     redis = require('redis');
 
+// database setup
+
 var db = redis.createClient();
-if(_.has(process.env, 'DB')) {
-  db.select(process.env.DB);
-}
-
-app.set('db', db);
-app.set('port', process.env.PORT || 3067);
-
 db.on('error', function(err) {
   console.log("Error: " + err);
 });
 
-var server = app.listen(app.get('port'), function() {
+app.locals.db = db;
+if(_.has(process.env, 'DB')) {
+  db.select(process.env.DB);
+}
+
+// server setup
+
+var port = process.env.PORT || 3067;
+var server = app.listen(port, function() {
   console.log('Express server listening on port ' + server.address().port);
 });
+
+// signal handler for clean shutdown
 
 var shutdown = function() {
   console.log("\b\bShutting down..");

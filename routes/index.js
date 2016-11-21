@@ -9,7 +9,6 @@ var _ = require('underscore')._,
 
 var router = express.Router();
 
-// file listings
 if(_.has(process.env, 'ALSUTI_LISTINGS')) {
   var listingsPerPage = parseInt(process.env.ALSUTI_LISTINGS, 10);
   if(listingsPerPage <= 0) {
@@ -26,13 +25,14 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
     })
     // map into upload object
     .map(function(fileName) {
-        return {
-          fileName: fileName,
-          uploadTime: fs.statSync(dir + fileName).mtime.getTime(),
-          encrypted: false,
-          title: null,
-          description: null
-        };
+      return {
+        fileName: fileName,
+        // TODO: stop using mtime and store this info into database via /upload
+        uploadTime: fs.statSync(dir + fileName).mtime.getTime(),
+        encrypted: false,
+        title: null,
+        description: null
+      };
     })
     // sort by upload time
     .sort(function(a,b) {
@@ -41,9 +41,9 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
     // reverse for chronological order
     .reverse();
 
-    // set externalPath/title/description for each upload
-    var db = req.app.get('db');
+    var db = req.app.locals.db;
     async.forEachSeries(uploads, function(u,done) {
+      // get metadata for each upload
       db.hget(u.fileName, 'encrypted', function(err, reply) {
         u.encrypted = !err && reply == 'true';
         db.hget(u.fileName, 'title', function(err, reply) {
@@ -65,6 +65,8 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
       else {
         page = 1;
       }
+
+      // paginate and render
 
       var start = (page - 1) * listingsPerPage,
           end = start + listingsPerPage,
@@ -129,14 +131,14 @@ router.post('/upload', function(req, res) {
       console.log("Redis Error: " + err);
   }
 
-  var db = req.app.get('db');
+  var db = req.app.locals.db;
   db.hset(slug, 'encrypted', req.body.encrypted);
   db.hset(slug, 'title', req.body.title);
   db.hset(slug, 'description', req.body.description);
 });
 
 router.get('/:file', function(req, res) {
-  var db = req.app.get('db'),
+  var db = req.app.locals.db,
       filePath = __dirname + '/../files/' + req.params.file,
       ext = _.last(req.params.file.split('.')).toLowerCase();
 
@@ -164,7 +166,7 @@ router.get('/:file', function(req, res) {
       });
     }],
     function(err) {
-      if(req.device.type == 'bot' || (encrypted == false && _.include(['jpg', 'png,', 'gif', 'jpeg'], ext))) {
+      if(req.device.type == 'bot' || (encrypted == false && _.include(['jpg', 'png', 'gif', 'jpeg'], ext))) {
         res.sendFile(path.resolve(filePath));
       } else {
         fs.readFile(filePath, 'utf-8', function(err, data) {
@@ -184,6 +186,11 @@ router.get('/:file', function(req, res) {
       }
     }
   );
+});
+
+// redirect deprecated urls for backwards compatibility
+router.get('/e/:file', function(req, res) {
+  res.redirect(301, '/' + req.params.file);
 });
 
 module.exports = router;
