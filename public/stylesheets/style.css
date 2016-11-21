@@ -24,9 +24,11 @@ li.uploadListing > * {
   margin-right: 5px;
 }
 span.lockFlag {
+  color: #FF0000;
   display: inline-block;
+  font-family: monospace;
   font-weight: bold;
-  width: 15px;
+  width: auto;
   text-align: center;
 }
 a.uploadLink {
@@ -57,7 +59,7 @@ span.uploadTime {
 
 /* decryption stuff */
 span#decryptionStatus {
-  color: #FF2222;
+  color: #FF0000;
   font-weight: bold;
 }
 #decryption > * {

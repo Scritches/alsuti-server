@@ -28,9 +28,9 @@ html
     script(type='text/javascript').
       var fileName="!{fileName}";
   body
-    -if(title && title.length > 0)
+    -if(title != null && title.trim().length > 0)
       h1#title= title
-    -if(description && description.length > 0)
+    -if(description != null && description.trim().length > 0)
       p#description= description
     div#optionBar
       div#decryption(style='display:none;')

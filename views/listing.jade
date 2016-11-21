@@ -12,9 +12,10 @@ html
       li(class='uploadListing')
         -if(u.encrypted)
           span(class='lockFlag')
-            | E
+            | L
         -else
           span(class='lockFlag')
+            | &nbsp;
         -if(u.title != null)
           a(class='uploadLink', href='#{u.externalPath}')= u.title
         -else

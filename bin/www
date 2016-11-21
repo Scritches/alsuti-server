@@ -11,7 +11,8 @@ var server = app.listen(app.get('port'), function() {
   console.log('Express server listening on port ' + server.address().port);
 });
 
-process.on('SIGTERM', function() {
+process.on('SIGINT', function() {
+  console.log("\b\bShutting down..");
   server.close(function() {
     db.close(function(err) {
       if(err) {
