@@ -11,13 +11,10 @@ var server = app.listen(app.get('port'), function() {
   console.log('Express server listening on port ' + server.address().port);
 });
 
-process.on('SIGINT', function() {
+var shutdown = function() {
   console.log("\b\bShutting down..");
-  server.close(function() {
-    db.close(function(err) {
-      if(err) {
-        console.log("[unqlite] cannot close database");
-      }
-    });
-  });
-});
+  server.close();
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

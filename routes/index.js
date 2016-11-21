@@ -99,7 +99,6 @@ router.post('/upload', function(req, res) {
 
   var external_path = req.app.get('external_path');
   res.setHeader('Content-Type', 'application/text');
-  console.log(req.body);
 
   var localPath,
       slug;
