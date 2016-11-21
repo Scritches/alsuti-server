@@ -1,14 +1,29 @@
 #!/usr/bin/env node
-var app = require('../app');
+var _ = require('underscore')._,
+    app = require('../app'),
+    redis = require('redis');
 
+var db = redis.createClient();
+if(_.has(process.env, 'DB')) {
+  db.select(process.env.DB);
+}
+
+app.set('db', db);
 app.set('port', process.env.PORT || 3067);
+
+db.on('error', function(err) {
+  console.log("Error: " + err);
+});
+
 var server = app.listen(app.get('port'), function() {
   console.log('Express server listening on port ' + server.address().port);
 });
 
 var shutdown = function() {
   console.log("\b\bShutting down..");
-  server.close();
+  server.close(function() {
+    db.quit();
+  });
   process.exit(0);
 }
 

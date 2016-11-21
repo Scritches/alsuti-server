@@ -17,9 +17,9 @@ html
           span(class='lockFlag')
             | &nbsp;
         -if(u.title != null)
-          a(class='uploadLink', href='#{u.externalPath}')= u.title
+          a(class='uploadLink', href='/#{u.fileName}')= u.title
         -else
-          a(class='uploadLink', href='#{u.externalPath}')= u.fileName
+          a(class='uploadLink', href='/#{u.fileName}')= u.fileName
         span(class='uploadTime')= moment(u.uploadTime).format("Y/MM/DD HH:mm:SS")
     center
       -if(page > 1)

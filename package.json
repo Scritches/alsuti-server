@@ -20,7 +20,7 @@
     "node-cryptojs-aes": "latest",
     "express-device": "latest",
     "useragent": "latest",
-    "request": "latest",
-    "unqlite": "latest"
+    "redis": "latest",
+    "request": "latest"
   }
 }

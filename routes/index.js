@@ -5,8 +5,7 @@ var _ = require('underscore')._,
     fs = require('fs'),
     path = require('path'),
     request = require('request'),
-    shortid = require('shortid'),
-    unqlite = require('unqlite');
+    shortid = require('shortid');
 
 var router = express.Router();
 
@@ -29,7 +28,6 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
     .map(function(fileName) {
         return {
           fileName: fileName,
-          externalPath: null,
           uploadTime: fs.statSync(dir + fileName).mtime.getTime(),
           encrypted: false,
           title: null,
@@ -44,46 +42,39 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
     .reverse();
 
     // set externalPath/title/description for each upload
-    var db = new unqlite.Database('alsuti.db');
-    db.open(unqlite.OPEN_CREATE, function(err) {
-      if(err) {
-        console.log("[unqlite] cannot open database");
-        return;
-      }
-
-      async.forEachSeries(uploads, function(u,done) {
-        db.fetch(u.fileName + '.encrypted', function(err, key, value) {
-          u.encrypted = !err && value == 'true';
-          u.externalPath = (u.encrypted ? '/e/' : '/') + u.fileName;
-          db.fetch(u.fileName + '.title', function(err, key, value) {
-            u.title = !err ? value : null;
-            db.fetch(u.fileName + '.description', function(err, key, value) {
-              u.description = !err ? value : null;
-              done();
-            });
+    var db = req.app.get('db');
+    async.forEachSeries(uploads, function(u,done) {
+      db.hget(u.fileName, 'encrypted', function(err, reply) {
+        u.encrypted = !err && reply == 'true';
+        db.hget(u.fileName, 'title', function(err, reply) {
+          u.title = !err ? reply : null;
+          db.hget(u.fileName, 'description', function(err, reply) {
+            u.description = !err ? reply : null;
+            done();
           });
         });
-      }, function(err) {
-        var page;
-        if(_.has(req.query, 'page')) {
-          page = parseInt(req.query['page']);
-          if(page < 1)
-            page = 1;
-        }
-        else {
+      });
+    },
+    function(err) {
+      var page;
+      if(_.has(req.query, 'page')) {
+        page = parseInt(req.query['page']);
+        if(page < 1)
           page = 1;
-        }
+      }
+      else {
+        page = 1;
+      }
 
-        var start = (page - 1) * listingsPerPage,
-            end = start + listingsPerPage,
-            lastPage = end >= uploads.length;
+      var start = (page - 1) * listingsPerPage,
+          end = start + listingsPerPage,
+          lastPage = end >= uploads.length;
 
-        res.render('listing', {
-          'title': "File Listing",
-          'page': page,
-          'lastPage': lastPage,
-          'uploads': uploads.slice(start, end)
-        });
+      res.render('listing', {
+        'title': "File Listing",
+        'page': page,
+        'lastPage': lastPage,
+        'uploads': uploads.slice(start, end)
       });
     });
   });
@@ -98,48 +89,33 @@ router.post('/upload', function(req, res) {
   }
 
   var external_path = req.app.get('external_path');
-  res.setHeader('Content-Type', 'application/text');
 
   var localPath,
       slug;
 
+  res.setHeader('Content-Type', 'application/text');
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
     slug = shortid.generate() + '.' + _.last(req.files.fileupload.originalname.split('.'));
-
     fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + slug, data, function(err) {
-        if(_.has(req.body, 'encrypted') && req.body.encrypted) {
-          res.send(external_path + '/e/' + slug);
-        } else {
-          res.send(external_path + '/' + slug); 
-        }
+        res.send(external_path + '/' + slug); 
       });
     });
   }
   else if(_.has(req.body, 'uri')) {
     localPath = __dirname + '/../files/';
     slug = shortid.generate() + '.' + _.last(req.body.uri.split('.')).replace(/\?.*$/,'').replace(/:.*$/,'');
-
     request.get(req.body.uri).pipe(fs.createWriteStream(localPath + slug))
       .on('close', function() {
-        if(_.has(req.body, 'encrypted') && req.body.encrypted) {
-          res.send(external_path + '/e/' + slug); 
-        } else {
-          res.send(external_path + '/' + slug); 
-        }
+        res.send(external_path + '/' + slug); 
       });
   }
   else if(_.has(req.body, 'content')) {
     localPath = __dirname + '/../files/';
     slug = shortid.generate() + '.' + req.body.extension;
-
     fs.writeFile(localPath + slug, req.body.content, function(err) {
-      if(_.has(req.body, 'encrypted') && req.body.encrypted) {
-        res.send(external_path + '/e/' + slug); 
-      } else {
-        res.send(external_path + '/' + slug); 
-      }
+      res.send(external_path + '/' +  slug); 
     });
   }
   else {
@@ -148,172 +124,66 @@ router.post('/upload', function(req, res) {
     return;
   }
 
-  var onStore = function(err, key, val) {
-    if(err) {
-      console.log("[unqlite] " + "store error: " + key + " -> " + val);
-    } else {
-      console.log("[unqlite] " + key + " -> " + val);
-    }
+  var handleReply = function(err, reply) {
+    if(err)
+      console.log("Redis Error: " + err);
   }
 
-  var db = new unqlite.Database('alsuti.db');
-  db.open(unqlite.OPEN_CREATE, function(err) {
-    if(err) {
-      console.log("[unqlite] cannot open database");
-      return;
-    }
-
-    async.series([
-      function(done) {
-        if(_.has(req.body, 'encrypted') && req.body.encrypted) {
-          db.store(slug + '.encrypted', 'true', function(err, key, val) {
-            onStore(err, key, val);
-            done();
-          });
-        } else {
-          done();
-        }
-      },
-      function(done) {
-        if(_.has(req.body, 'title') && req.body.title.length > 0) {
-          db.store(slug + '.title', req.body.title, function(err, key, val) {
-            onStore(err, key, val);
-            done();
-          });
-        } else {
-          done();
-        }
-      },
-      function(done) {
-        if(_.has(req.body, 'description') && req.body.description.length > 0) {
-          db.store(slug + '.description', req.body.description, function(err, key, val) {
-            onStore(err, key, val);
-            done();
-          });
-        } else {
-          done();
-        }
-      }],
-      function(err) {
-        db.close(function(err) {
-          if(err) {
-            console.log("[unqlite] cannot close database");
-          }
-        });
-      }
-    );
-  });
-});
-
-router.get('/e/:file', function(req, res) {
-  var filePath = __dirname + '/../files/' + req.params.file;
-
-  if(req.device.type == 'bot') {
-    res.sendFile(path.resolve(filePath));
-  } else {
-    fs.readFile(filePath, 'utf-8', function(err, data) {
-      if(!err && data) {
-        var title,
-            description;
-
-        var db = new unqlite.Database('alsuti.db');
-        db.open(unqlite.OPEN_CREATE, function(err) {
-          if(err) {
-            console.log("[unqlite] cannot open database");
-            return;
-          }
-
-          async.series([
-            function(done) {
-              db.fetch(req.params.file + '.title', function(err, key, value) {
-                title = !err ? value : null;
-                done();
-              });
-            },
-            function(done) {
-              db.fetch(req.params.file + '.description', function(err, key, value) {
-                description = !err ? value : null;
-                done();
-              });
-            }],
-            function(err) {
-              db.close(function(err) {
-                if(err) {
-                  console.log("[unqlite] cannot close database");
-                }
-              });
-
-              res.render('view', {
-                'fileName': req.params.file,
-                'content': data.toString('utf-8'),
-                'encrypted': true,
-                'title': title,
-                'description': description
-              });
-            }
-          );
-        });
-      }
-      else {
-        res.send('Error: File not found');
-      }
-    });
-  }
+  var db = req.app.get('db');
+  db.hset(slug, 'encrypted', req.body.encrypted);
+  db.hset(slug, 'title', req.body.title);
+  db.hset(slug, 'description', req.body.description);
 });
 
 router.get('/:file', function(req, res) {
-  var filePath = __dirname + '/../files/' + req.params.file,
+  var db = req.app.get('db'),
+      filePath = __dirname + '/../files/' + req.params.file,
       ext = _.last(req.params.file.split('.')).toLowerCase();
 
-  if(req.device.type == 'bot' || _.include([ 'jpg', 'png', 'gif', 'jpeg' ], ext)) {
-    res.sendFile(path.resolve(filePath)); 
-  } else {
-    fs.readFile(filePath, 'utf-8', function(err, data) {
-      if(!err && data) {
-        var title,
-            description;
+  var encrypted,
+      title,
+      description;
 
-        var db = new unqlite.Database('alsuti.db');
-        db.open(unqlite.OPEN_CREATE, function(err) {
-          if(err) {
-            console.log("[unqlite] cannot open database");
-            return;
-          }
-
-          async.series([
-            function(done) {
-              db.fetch(req.params.file + '.title', function(err, key, value) {
-                title = !err ? value : null;
-                done();
-              });
-            },
-            function(done) {
-              db.fetch(req.params.file + '.description', function(err, key, value) {
-                description = !err ? value : null;
-                done();
-              });
-            }],
-            function(err) {
-              db.close(function(err) {
-                if(err) {
-                  console.log("[unqlite] cannot close database");
-                }
-              });
-
-              res.render('view', {
-                'fileName': req.params.file,
-                'content': data.toString('utf-8'),
-                'title': title,
-                'description': description
-              });
-            }
-          );
-        });
+  async.series([
+    function(done) {
+      db.hget(req.params.file, 'encrypted', function(err, reply) {
+        encrypted = (!err && reply == 'true') ? true : false;
+        done();
+      });
+    },
+    function(done) {
+      db.hget(req.params.file, 'title', function(err, reply) {
+        title = !err ? reply : null;
+        done();
+      });
+    },
+    function(done) {
+      db.hget(req.params.file, 'description', function(err, reply) {
+        description = !err ? reply : null;
+        done();
+      });
+    }],
+    function(err) {
+      if(req.device.type == 'bot' || (encrypted == false && _.include(['jpg', 'png,', 'gif', 'jpeg'], ext))) {
+        res.sendFile(path.resolve(filePath));
       } else {
-        res.send('Error: File not found');
+        fs.readFile(filePath, 'utf-8', function(err, data) {
+          if(!err) {
+            res.render('view', {
+              'fileName': req.params.file,
+              'content': data.toString('utf-8'),
+              'encrypted': encrypted,
+              'title': title,
+              'description': description
+            });
+          }
+          else {
+            res.send('Error: File not found');
+          }
+        });
       }
-    });
-  }
+    }
+  );
 });
 
 module.exports = router;
