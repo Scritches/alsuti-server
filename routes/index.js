@@ -44,7 +44,7 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
     .reverse();
 
     // set externalPath/title/description for each upload
-    var db = req.app.get('db');
+    var db = new unqlite.Database('alsuti.db');
     db.open(unqlite.OPEN_CREATE, function(err) {
       if(err) {
         console.log("[unqlite] cannot open database");
@@ -53,7 +53,7 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
 
       async.forEachSeries(uploads, function(u,done) {
         db.fetch(u.fileName + '.encrypted', function(err, key, value) {
-          u.encrypted = !err;
+          u.encrypted = !err && value == 'true';
           u.externalPath = (u.encrypted ? '/e/' : '/') + u.fileName;
           db.fetch(u.fileName + '.title', function(err, key, value) {
             u.title = !err ? value : null;
@@ -156,7 +156,7 @@ router.post('/upload', function(req, res) {
     }
   }
 
-  var db = req.app.get('db');
+  var db = new unqlite.Database('alsuti.db');
   db.open(unqlite.OPEN_CREATE, function(err) {
     if(err) {
       console.log("[unqlite] cannot open database");
@@ -216,7 +216,7 @@ router.get('/e/:file', function(req, res) {
         var title,
             description;
 
-        var db = req.app.get('db');
+        var db = new unqlite.Database('alsuti.db');
         db.open(unqlite.OPEN_CREATE, function(err) {
           if(err) {
             console.log("[unqlite] cannot open database");
@@ -273,7 +273,7 @@ router.get('/:file', function(req, res) {
         var title,
             description;
 
-        var db = req.app.get('db');
+        var db = new unqlite.Database('alsuti.db');
         db.open(unqlite.OPEN_CREATE, function(err) {
           if(err) {
             console.log("[unqlite] cannot open database");

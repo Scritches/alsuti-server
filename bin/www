@@ -1,12 +1,7 @@
 #!/usr/bin/env node
-var unqlite = require('unqlite');
 var app = require('../app');
 
-var db = new unqlite.Database('alsuti.db');
-
-app.set('db', db);
 app.set('port', process.env.PORT || 3067);
-
 var server = app.listen(app.get('port'), function() {
   console.log('Express server listening on port ' + server.address().port);
 });
@@ -14,6 +9,7 @@ var server = app.listen(app.get('port'), function() {
 var shutdown = function() {
   console.log("\b\bShutting down..");
   server.close();
+  process.exit(0);
 }
 
 process.on('SIGINT', shutdown);
