@@ -49,7 +49,7 @@ span.uploadTime {
     border: 1px solid #CCC;
 }
 #optionBar > * {
-    margin-right: 10px;
+    margin-right: 5px;
 }
 #optionBar:last-child {
     margin-right: 0px;
