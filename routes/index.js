@@ -16,27 +16,28 @@ if(_.has(process.env, 'ALSUTI_LISTINGS')) {
   }
 
   router.get('/', function(req, res) {
-    var dir = './files/',
-        uploads = fs.readdirSync(dir);
+    var dir = './files/';
 
-    // filter hidden
-    uploads = uploads.filter(function(fileName) {
-      return fileName.startsWith('.') == false;
-    })
-    // map into upload object
+    // get directory entries
+    var uploads = fs.readdirSync(dir)
+    // create upload object for each entry
     .map(function(fileName) {
       return {
         fileName: fileName,
-        // TODO: stop using mtime and store this info into database via /upload
-        uploadTime: fs.statSync(dir + fileName).mtime.getTime(),
+        stats: fs.statSync(dir + fileName),
+        // TODO: stop using mtime and store this info in database via /upload
         encrypted: false,
         title: null,
         description: null
       };
     })
+    // remove non-files and hidden stuff
+    .filter(function(u) {
+      return u.stats.isFile() && u.fileName.startsWith('.') == false;
+    })
     // sort by upload time
     .sort(function(a,b) {
-      return a.uploadTime - b.uploadTime;
+      return a.stats.mtime.getTime() - b.stats.mtime.getTime();
     })
     // reverse for chronological order
     .reverse();

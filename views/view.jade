@@ -1,7 +1,10 @@
 doctype html
 html
   head
-    title= title
+    -if(title != null)
+      title= title
+    -else
+      title= fileName
     -if(encrypted)
       link(rel='stylesheet', href='../stylesheets/style.css')
       script(type='text/javascript' src='../js/lib/jquery.min.js')
@@ -35,7 +38,7 @@ html
     div#optionBar
       div#decryption(style='display:none;')
         span#decryptionStatus
-          | Locked
+          | File Locked
         input(id='password' placeholder='Enter Password', type='password')
         button(onclick='decrypt()') Decrypt
       a#downloadLink(style='display:none;') Download

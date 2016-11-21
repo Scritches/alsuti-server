@@ -20,7 +20,7 @@ html
           a(class='uploadLink', href='/#{u.fileName}')= u.title
         -else
           a(class='uploadLink', href='/#{u.fileName}')= u.fileName
-        span(class='uploadTime')= moment(u.uploadTime).format("Y/MM/DD HH:mm:SS")
+        span(class='uploadTime')= moment(u.stats.mtime.getTime()).format("Y/MM/DD HH:mm:SS")
     center
       -if(page > 1)
         a(class='pageLink', href='?page=#{page - 1}')
