@@ -77,7 +77,10 @@ else if(argv[0] == 'mkdb') {
 
     if(user != null) {
       db.hset(uHash, 'user', user);
-      db.lpush(userHash + ':public', u.fileName);
+      if(_public)
+        db.lpush(userHash + ':public', u.fileName);
+      else
+        db.lpush(userHash + ':private', u.fileName);
     }
 
     db.hmset(uHash,
