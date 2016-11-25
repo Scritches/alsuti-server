@@ -35,12 +35,11 @@ catch(e) {
   console.log("Note: no favicon found");
 }
 
-//app.use(logger('dev'));
 app.use(device.capture({'parseUserAgent': true}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false, limit: '500mb' }));
 app.use(multer());
-//app.use(cookieParser());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // set up primary routes
