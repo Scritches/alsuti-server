@@ -18,8 +18,8 @@ if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
 
 var app = express();
 
-// make api key and endpoint accessible from handlers
-app.set('external_path', process.env.ALSUTI_ENDPOINT);
+// make instance accessible from /upload
+app.set('external_path', process.env.ALSUTI_INSTANCE);
 
 // view engine setup
 app.set('view engine', 'jade');
