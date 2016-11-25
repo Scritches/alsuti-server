@@ -33,7 +33,7 @@ span.lockFlag {
 }
 a.uploadLink {
 }
-span.uploadTime {
+span.uploadInfo {
   float: right;
 }
 .pageLink {
@@ -58,6 +58,9 @@ span.uploadTime {
 }
 
 /* decryption stuff */
+#decryption {
+  display: inline-block;
+}
 span#decryptionStatus {
   color: #FF0000;
   font-weight: bold;
@@ -71,9 +74,10 @@ span#decryptionStatus {
 }
 
 /* content */
-h2.title {
+h1#title {
+  text-align: center;
 }
-p.description {
+p#description {
 }
 code.hljs-line-numbers {
   border-right: 1px solid #CCC;

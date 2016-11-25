@@ -1,26 +1,40 @@
 #!/usr/bin/env node
 var _ = require('underscore')._,
     app = require('../app'),
+		fs = require('fs'),
+    http = require('http'),
+    https = require('https'),
     redis = require('redis');
 
 // database setup
 
 var db = redis.createClient();
-db.on('error', function(err) {
-  console.log("Error: " + err);
-});
+if(_.has(process.env, 'ALSUTI_DATABASE')) {
+  db.select(process.env.ALSUTI_DATABASE);
+}
 
 app.locals.db = db;
-if(_.has(process.env, 'DB')) {
-  db.select(process.env.DB);
-}
 
 // server setup
 
 var port = process.env.PORT || 3067;
-var server = app.listen(port, function() {
-  console.log('Express server listening on port ' + server.address().port);
-});
+
+var server;
+if(_.has(process.env, 'ALSUTI_TLS_ENABLED') &&
+   process.env.ALSUTI_TLS_ENABLED == 'yes' &&
+   _.has(process.env, 'ALSUTI_TLS_KEY') &&
+   _.has(process.env, 'ALSUTI_TLS_CERT'))
+{
+  var options = {
+    key: fs.readFileSync(process.env.ALSUTI_TLS_KEY).toString(),
+    cert: fs.readFileSync(process.env.ALSUTI_TLS_CERT).toString()
+  };
+
+  server = https.createServer(options, app).listen(port);
+}
+else {
+  server = http.createServer(app).listen(port);
+}
 
 // signal handler for clean shutdown
 

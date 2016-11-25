@@ -2,29 +2,30 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='./stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
   body
-    h1= title
+    h1#title= title
     center
-      h2
-        | Page #{page}
+      -if(uploads.length == 0)
+        span There's nothing here.
+      -else
+        h2 Page #{page}
     each u,i in uploads
       li(class='uploadListing')
         -if(u.encrypted)
-          span(class='lockFlag')
-            | L
+          span(class='lockFlag') L
         -else
-          span(class='lockFlag')
-            | &nbsp;
+          span(class='lockFlag') &nbsp;
         -if(u.title != null)
           a(class='uploadLink', href='/#{u.fileName}')= u.title
         -else
           a(class='uploadLink', href='/#{u.fileName}')= u.fileName
-        span(class='uploadTime')= moment(u.stats.mtime.getTime()).format("Y/MM/DD HH:mm:SS")
+        -if(showUser)
+          span(class='uploadInfo') #{u.time ? u.time.toString() : '(null)'} by #{u.user || '(null)'}
+        -else
+          span(class='uploadInfo') #{u.time ? u.time.toString() : '(null)'}
     center
       -if(page > 1)
-        a(class='pageLink', href='?page=#{page - 1}')
-          | Previous
+        a(class='pageLink', href='?page=#{page - 1}') Previous
       -if(lastPage == false)
-        a(class='pageLink', href='?page=#{page + 1}')
-          | Next
+        a(class='pageLink', href='?page=#{page + 1}') Next

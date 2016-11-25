@@ -34,7 +34,7 @@ function renderText(content) {
   });
 
   var a = $('#downloadLink');
-  a.attr('href', 'data:text/plain;utf-8,'+content);
+  a.attr('href', 'data:text/plain;utf-8,' + content);
   a.attr('download', fileName);
   a.show();
 
@@ -77,22 +77,25 @@ function loadOptions() {
   $('#lineNumbersCheckbox').prop('checked', lineNumbers == 'true');
 }
 
-function decrypt(pass) {
-  $('#decryptionStatus').text = 'Decrypting..';
-  $('#decryptionStatus').show();
+function decrypt(hashPass) {
+  var origText = $('#decryptButton').text();
+  $('#decryptButton').text = "Decrypting..";
 
-  var password = $('#password').val(),
+  var password = hashPass || $('#passwordEntry').val(),
       content = cipherText || $('#content').text(),
       splitFile = fileName.split('.'),
       ext = splitFile[splitFile.length-1].toLowerCase();
 
-  if(pass) {
-    password = pass;
+  var plain;
+  try {
+    plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
+  }
+  catch(err) {
+    $('#decryptionButton').text = origText;
+    return;
   }
 
-  var plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
-
-  $('#decryptionStatus').hide();
+  $('#decryption').hide();
 
   if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { // todo: split this out
     var a = $('#downloadButton');
@@ -104,7 +107,7 @@ function decrypt(pass) {
       image = plain.replace(/^YW5kcm9pZHN1Y2tz/,'');
     }
 
-    $('#image').attr('src', 'data:image/'+ ext +';base64,' + image);
+    $('#image').attr('src', 'data:image/' + ext +';base64,' + image);
     $('#image').show();
     $('#content').hide();
 
@@ -118,7 +121,7 @@ function decrypt(pass) {
 
     $('#content').hide();
 
-    a.attr('href', 'data:application/'+ ext +';base64,' + image);
+    a.attr('href', 'data:application/' + ext + ';base64,' + image);
     a.attr('download', fileName);
     a.show();
   }
