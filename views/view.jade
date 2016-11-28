@@ -33,8 +33,9 @@ html
           input#passwordEntry(placeholder='Enter Password' type='password')
           button#decryptButton(onclick='decrypt()') Decrypt
       a#downloadLink(style='display:none;') Download
-      label#lineNumbersLabel(style='display:none;') Show Line Numbers
+      label#lineNumbersLabel(style='display:none;')
         input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
+        | Show Line Numbers
       span(class='uploadInfo') Uploaded at #{time.toString()} by #{user}
     center
       img#image(style='display:none;')

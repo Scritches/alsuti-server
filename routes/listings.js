@@ -45,6 +45,14 @@ var publicListing = function(req, res) {
 var renderListing = function(req, res, listingHash, title, userListing) {
   var db = req.app.locals.db;
   db.llen(listingHash, function(err, len) {
+    if(userListing && err) {
+      res.render('error', {
+        'title': "Error",
+        'message': "No such user."
+      });
+      return;
+    }
+
     var page;
     if(_.has(req.query, 'page')) {
       page = parseInt(req.query['page']);
