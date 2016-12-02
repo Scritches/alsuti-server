@@ -12,7 +12,7 @@ The external url (without a trailing /) to your server. *Required.*
 The redis database to use. *Optional, but recommended*.
 
 ####ALSUTI_TLS_ENABLED
-When set to 'yes' the KEY and CERT variables above are used to configure TLS support. *Optional.*
+When set to 'yes' the KEY and CERT variables below are used to configure TLS support. *Optional.*
 
 ####ALSUTI_TLS_KEY
 TLS key. *Optional.*
