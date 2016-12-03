@@ -30,13 +30,13 @@ html
     div#optionBar
       -if(encrypted)
         div#decryption(style='display:none;')
-          input#passwordEntry(placeholder='Enter Password' type='password')
+          input#passwordEntry(placeholder='Password' type='password')
           button#decryptButton(onclick='decrypt()') Decrypt
       a#downloadLink(style='display:none;') Download
       label#lineNumbersLabel(style='display:none;')
         input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
         | Show Line Numbers
-      span(class='uploadInfo') Uploaded at #{time.toString()} by #{user}
+      span(class='uploadInfo') Uploaded at <i>#{time.toString()}</i> by <b>#{user}</b>
     center
       img#image(style='display:none;')
     pre

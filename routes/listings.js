@@ -1,51 +1,15 @@
 var _ = require('underscore'),
     async = require('async'),
     express = require('express'),
-    router = express.Router();
+    requireAuth = require('./userauth');
 
-// private upload listing handler
-router.get('/private', function(req, res) {
-  var db = req.app.locals.db,
-      sessionHash = 'session:' + req.cookies['session'];
+var router = express.Router();
 
-  db.hget(sessionHash, 'user', function(err, sessionUser) {
-    if(err) {
-      res.render('error', {
-        'title': "Authentication Required",
-        'message': "This doesn't work because you aren't logged in.",
-        'retryAuth': true
-      });
-
-      return;
-    }
-
-    var listingHash = 'user:' + sessionUser + ':private';
-    renderListing(req, res, listingHash, "Private Uploads", true);
-  });
-});
-
-// handler for public listings (global and user)
-var publicListing = function(req, res) {
-  if(_.has(req.params, 'user')) {
-    listingHash = req.params.user + ':public';
-    title = req.params.user.charAt(0).toUpperCase() +
-            req.params.user.slice(1) + "'s Public Uploads";
-    userListing = true;
-  }
-  else if(req.path == '/public') {
-    listingHash = 'public';
-    title = "Public Uploads";
-    userListing = false;
-  }
-
-  renderListing(req, res, listingHash, title, userListing);
-}
-
-// main listing renderer
-var renderListing = function(req, res, listingHash, title, userListing) {
-  var db = req.app.locals.db;
+// listing renderer
+function renderListing(req, res, listingHash, title, publicUserListing) {
+  var db = req.app.get('database');
   db.llen(listingHash, function(err, len) {
-    if(userListing && err) {
+    if(publicUserListing && err) {
       res.render('error', {
         'title': "Error",
         'message': "No such user."
@@ -79,21 +43,21 @@ var renderListing = function(req, res, listingHash, title, userListing) {
               'time': null,
               'user': null,
               'encrypted': false,
-              'public': true
+              'private': false
             };
 
             if(_.has(s, 'title'))
-              u.title = null;
+              u.title = s.title;
             if(_.has(s, 'description'))
-              u.description = null;
+              u.description = s.description;
             if(_.has(s, 'time'))
               u.time = new Date(parseInt(s.time));
             if(_.has(s, 'user'))
               u.user = s.user;
             if(_.has(s, 'encrypted'))
               u.encrypted = s.encrypted == 'true';
-            if(_.has(s, 'public'))
-              u.public = s.public;
+            if(_.has(s, 'unlisted'))
+              u.private = s.private == 'true';
 
             done(err, u);
           });
@@ -105,7 +69,7 @@ var renderListing = function(req, res, listingHash, title, userListing) {
             'uploads': uploads,
             'page': page,
             'lastPage': end >= len,
-            'showUser': userListing == false
+            'showUser': publicUserListing == false
           });
         }
       );
@@ -113,7 +77,22 @@ var renderListing = function(req, res, listingHash, title, userListing) {
   });
 }
 
-router.get('/public', publicListing);        // all public uploads
-router.get('/:user/public', publicListing);  // user-specific public uploads
+// private listings
+router.get('/private', requireAuth);
+router.get('/private', function(req, res) {
+  renderListing(req, res,
+                'user:' + req.sessionUser + ':private',
+                "Private Uploads", false);
+});
+
+// public listings
+router.get('/public', function(req, res) {
+  renderListing(req, res, 'public', "Public Uploads", false);
+});
+router.get('/user/:user/public', function(req, res) {
+  renderListing(req, res,
+               'user:' + req.params.user + ':public',
+               req.params.user + "'s Public Uploads", true);
+});
 
 module.exports = router;

@@ -1,5 +1,5 @@
 $(function() {
-  $("#password").keyup(function(event){
+  $("#passwordEntry").keyup(function(event) {
     if(event.keyCode == 13){
       decrypt();
     }

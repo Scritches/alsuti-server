@@ -3,17 +3,7 @@ var _ = require('underscore')._,
     app = require('../app'),
 		fs = require('fs'),
     http = require('http'),
-    https = require('https'),
-    redis = require('redis');
-
-// database setup
-
-var db = redis.createClient();
-if(_.has(process.env, 'ALSUTI_DATABASE')) {
-  db.select(process.env.ALSUTI_DATABASE);
-}
-
-app.locals.db = db;
+    https = require('https');
 
 // server setup
 
@@ -36,7 +26,7 @@ else {
   server = http.createServer(app).listen(port);
 }
 
-// signal handler for clean shutdown
+// signal handling for clean shutdown
 
 var shutdown = function() {
   console.log("\b\bShutting down..");

@@ -9,6 +9,7 @@ var _ = require('underscore')._,
     multer = require('multer'),
     path = require('path'),
     process = require('process'),
+    redis = require('redis'),
     sys = require('sys');
 
 if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
@@ -18,8 +19,19 @@ if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
 
 var app = express();
 
-// make instance accessible from /upload
-app.set('external_path', process.env.ALSUTI_INSTANCE);
+// database handle
+
+var db = redis.createClient();
+if(_.has(process.env, 'ALSUTI_DATABASE')) {
+  db.select(process.env.ALSUTI_DATABASE);
+}
+
+// app globals
+
+app.set('database', db);
+app.set('externalPath', process.env.ALSUTI_INSTANCE);
+app.set('cookieAge', 1000 * 60 * 60 * 24 * 7); // for a maximum of 7 days ..
+app.set('sessionAge', 1000 * 60 * 60 * 1);     // .. enforce a 1 hour activity timeout
 
 // view engine setup
 app.set('view engine', 'jade');
@@ -43,8 +55,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // set up primary routes
+app.use('/', require('./routes/users.js'));
 app.use('/', require('./routes/listings.js'));
-//app.use('/', require('./routes/users.js'));
 app.use('/', require('./routes/files.js'));
 
 // catch 404 and forward to error handler

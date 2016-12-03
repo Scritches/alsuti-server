@@ -7,17 +7,31 @@ a {
   color: #00B7FF;
 }
 
+/* common */
+span.uploadInfo {
+  float: right;
+}
+
+/* login stuff */
+#loginForm * {
+  display: block;
+  margin: 10px;
+}
+#loginForm * {
+  font-size: 14px;
+}
+
 /* listings */
 li.uploadListing {
-  font-size: 15px;
+  font-size: 14px;
   list-style: none;
   line-height: 30px;
 }
 li.uploadListing:nth-child(odd) {
-  background-color: #FFF;
+  background-color: #F8F8F8;
 }
 li.uploadListing:nth-child(even) {
-  background-color: #EEE;
+  background-color: #E0E0E0;
 }
 li.uploadListing > * {
   margin-left: 5px;
@@ -33,22 +47,39 @@ span.lockFlag {
 }
 a.uploadLink {
 }
-span.uploadInfo {
-  float: right;
+
+/* page stuff */
+.listingPageBar {
+  font-size: 14px;
+  margin: 10px;
+  text-align: center;
 }
-.pageLink {
-  font-size: 18px;
-  margin-right: 10px;
+.page {
+  display: inline-block;
+}
+a.pageLink {
+  color: #FF00B7;
+}
+.pageLink:first-child {
+  float: left;
 }
 .pageLink:last-child {
-  margin-right: 0;
+  float: right;
+}
+.insensitive {
+  color: #BBB;
+}
+.hidden {
+  visibility: hidden;
 }
 
-/* option bar */
+/* view option bar */
 #optionBar {
-    padding: 5px;
     background-color: rgb(240,240,240);
     border: 1px solid #CCC;
+    font-size: 14px;
+    line-height: 25px;
+    padding: 5px;
 }
 #optionBar > * {
     margin-right: 5px;
@@ -61,10 +92,6 @@ span.uploadInfo {
 #decryption {
   display: inline-block;
 }
-span#decryptionStatus {
-  color: #FF0000;
-  font-weight: bold;
-}
 #decryption > * {
   display: inline-block;
   margin-right: 5px;
@@ -72,12 +99,15 @@ span#decryptionStatus {
 #decryption > *:last-child {
   margin-right: 0px;
 }
+#decryption input#passwordEntry {
+  font-family: monospace;
+}
 
 /* content */
 h1#title {
-  text-align: center;
 }
 p#description {
+  font-size: 16px;
 }
 code.hljs-line-numbers {
   border-right: 1px solid #CCC;

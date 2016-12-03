@@ -1,0 +1,11 @@
+div(class='listingPageBar')
+  -if(page > 1)
+    a(class='pageLink', href='?page=#{page - 1}') Previous
+  -else
+    span(class='hidden pageLink') Previous
+  -if(uploads.length > 0)
+    span(class='page') Page #{page}
+  -if(lastPage == false)
+    a(class='pageLink', href='?page=#{page + 1}') Next
+  -else
+    span(class='hidden pageLink') Next

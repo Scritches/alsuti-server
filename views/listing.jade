@@ -1,15 +1,14 @@
 doctype html
 html
   head
-    title= title
+    title #{title} - Page #{page}
     link(rel='stylesheet', href='/stylesheets/style.css')
   body
     h1#title= title
-    center
-      -if(uploads.length == 0)
-        span There's nothing here.
-      -else
-        h2 Page #{page}
+    -if(uploads.length == 0)
+      span There's nothing here.
+    -else
+      include pageBar
     each u,i in uploads
       li(class='uploadListing')
         -if(u.encrypted)
@@ -21,11 +20,8 @@ html
         -else
           a(class='uploadLink', href='/#{u.fileName}')= u.fileName
         -if(showUser)
-          span(class='uploadInfo') #{u.time ? u.time.toString() : '(null)'} by #{u.user || '(null)'}
+          span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i> by <b>#{u.user || '(null)'}</b>
         -else
-          span(class='uploadInfo') #{u.time ? u.time.toString() : '(null)'}
-    center
-      -if(page > 1)
-        a(class='pageLink', href='?page=#{page - 1}') Previous
-      -if(lastPage == false)
-        a(class='pageLink', href='?page=#{page + 1}') Next
+          span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i>
+    -if(uploads.length > 0)
+      include pageBar
