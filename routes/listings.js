@@ -43,7 +43,6 @@ function renderListing(req, res, listingHash, title, publicUserListing) {
               'time': null,
               'user': null,
               'encrypted': false,
-              'private': false
             };
 
             if(_.has(s, 'title'))
@@ -56,8 +55,6 @@ function renderListing(req, res, listingHash, title, publicUserListing) {
               u.user = s.user;
             if(_.has(s, 'encrypted'))
               u.encrypted = s.encrypted == 'true';
-            if(_.has(s, 'unlisted'))
-              u.private = s.private == 'true';
 
             done(err, u);
           });
