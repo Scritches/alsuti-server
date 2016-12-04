@@ -1,3 +1,6 @@
+decryptError = false;
+decryptErrorColour = "#FF4040"
+
 $(function() {
   loadOptions();
 
@@ -6,9 +9,12 @@ $(function() {
     if(event.keyCode == 13) {
       decrypt();
     }
-    else {
-      pEntry.css('color', 'unset');
-      pEntry.css('font-weight', 'normal');
+    else if(decryptError) {
+      window.setTimeout(function() {
+        pEntry.css('color', 'unset');
+        pEntry.css('font-weight', 'normal');
+        decryptError = false;
+      }, 750);
     }
   });
 
@@ -87,10 +93,11 @@ function decrypt(hashPassword) {
       pEntry = $('#passwordEntry'),
       content = $('#content');
 
-  function wrongPassword() {
+  function notifyWrongPassword() {
+    decryptError = true;
     dButton.text = dButtonOldText;
     pEntryOldBackground = pEntry.css('background-color');
-    pEntry.css('color', '#FF0000');
+    pEntry.css('color', decryptErrorColour);
     pEntry.css('font-weight', 'bold');
   }
 
@@ -114,12 +121,12 @@ function decrypt(hashPassword) {
   try {
     plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
     if(!plain) {
-      wrongPassword();
+      notifyWrongPassword();
       return;
     }
   }
   catch(err) {
-    wrongPassword();
+    notifyWrongPassword();
     return;
   }
 
