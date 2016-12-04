@@ -26,8 +26,8 @@ function requireAuth(req, res, next) {
   }
   // authenticate session
   else if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
-    var sessionUser = req.cookies['sessionUser'],
-        clientSessionKey = req.cookies['sessionKey'],
+    var sessionUser = req.cookies.sessionUser,
+        clientSessionKey = req.cookies.sessionKey,
         userHash = 'user:' + sessionUser;
 
     db.hget(userHash, 'sessionKey', function(err, serverSessionKey) {
@@ -35,12 +35,12 @@ function requireAuth(req, res, next) {
         db.hget(userHash, 'sessionExpiry', function(err, sessionExpiry) {
           sessionExpiry = parseInt(sessionExpiry);
           if(!err && Date.now() < sessionExpiry) {
-            console.log("userauth: session is valid");
+            req.sessionUser = sessionUser;
+            console.log("userauth: user=" + req.sessionUser + " key=" + clientSessionKey);
             // reset the session's expiry date
             var newExpiry = Date.now() + req.app.get('sessionAge');
             db.hset(userHash, 'sessionExpiry', newExpiry);
             // set session user for other handlers to use
-            req.sessionUser = sessionUser;
             next();
           }
           else {

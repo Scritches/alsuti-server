@@ -1,4 +1,5 @@
-var express = require('express'),
+var _ = require('underscore'),
+    express = require('express'),
     shortid = require('shortid'),
     requireAuth = require('./userauth');
 
@@ -13,7 +14,7 @@ router.get('/login', function(req, res) {
 router.post('/login', requireAuth);
 router.post('/login', function(req, res) {
   var db = req.app.get('database');
-      userHash = 'user:' + req.sessionUser,
+      userHash = 'user:' + req.body.user,
       sessionKey = shortid.generate(),
       sessionExpiry = Date.now() + req.app.get('sessionAge');
 
@@ -31,19 +32,20 @@ router.post('/login', function(req, res) {
       res.cookie('sessionKey', sessionKey, cookieOptions);
 
       // redirect
-      var backURL = req.headers['Referer'] || '/';
-      res.redirect(backURL);
+      res.redirect('/');
     }
     else {
       res.render('error', {
-        'msg': "Database error"
+        'title': "Database Error",
+        'message': "Cannot store session."
       });
     }
   });
 });
 
 router.get('/logout', function(req, res) {
-  var redirPath = req.cookes['Referer'] || '/';
+  var redirPath = req.headers['Referer'] || '/';
+
   if(_.has(req.cookies, 'sessionUser') == false) {
     res.redirect(redirPath);
     return;
@@ -53,17 +55,15 @@ router.get('/logout', function(req, res) {
       userHash = 'user:' + req.cookies['sessionUser'];
 
   db.hdel(userHash, 'sessionKey', 'sessionExpiry');
+
+  var options = {
+    'expires': new Date(0),
+    'httpOnly': true
+  }
+
+  res.cookie("sessionUser", "", options);
+  res.cookie("sessionKey", "", options);
   res.redirect(redirPath);
-});
-
-router.get('/register/:code', function(req, res) {
-  // TODO
-  res.render('register');
-});
-
-router.post('/register/:code', function(req, res) {
-  // TODO
-  res.redirect('/');
 });
 
 module.exports = router;

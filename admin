@@ -33,10 +33,10 @@ if(argv[0] == 'users') {
     db.del(userHash + ':public');
     console.log(">> deleted user '" + argv[2] + "'");
   }
-
-  db.quit();
 }
 else if(argv[0] == 'mkdb') {
+  db.flushdb();
+
   var user = null,
       _public = false;
 
@@ -48,56 +48,63 @@ else if(argv[0] == 'mkdb') {
     }
   }
 
-  db.del('public');
-
-  var slugs = fs.readdirSync('files').filter(function(slug) {
-    return slug.startsWith(".") == false;
-  });
-
-  var uploads = slugs.map(function(slug) {
-    var filePath = 'files/' + slug;
-    return {
-      'fileName': slug,
-      'time': fs.statSync(filePath).mtime.getTime(),
-      'encrypted': b64m.test(fs.readFileSync(filePath, 'utf-8').toString()),
-      'public': _public
-    };
-  }).sort(function(a,b) {
-    return a.time - b.time;
-  });
-
-  for(var i=0; i < uploads.length; ++i) {
-    var u = uploads[i],
-        uHash = 'upload:' + u.fileName,
-        settings = [];
-
-    if(_public) {
-      db.lpush('public', u.fileName);
-    }
-
-    if(user != null) {
-      db.hset(uHash, 'user', user);
-      if(_public)
-        db.lpush(userHash + ':public', u.fileName);
-      else
-        db.lpush(userHash + ':private', u.fileName);
-    }
-
-    db.hmset(uHash,
-      'time', u.time,
-      'encrypted', u.encrypted ? 'true' : 'false'
-    );
-
-    console.log(u.fileName + ": " + "encrypted=" + (u.encrypted ? 'yes' : 'no') + ", time=" + u.time.toString());
-  }
-
-  if(_public) {
-    console.log("> public by default");
-  }
   if(user != null) {
-    console.log("> default user = " + user);
-  }
+    var slugs = fs.readdirSync('files').filter(function(slug) {
+      return slug.startsWith(".") == false;
+    });
 
-  console.log(">> database generated");
-  db.quit();
+    var uploads = slugs.map(function(slug) {
+      var filePath = 'files/' + slug;
+      return {
+        'fileName': slug,
+        'time': fs.statSync(filePath).mtime.getTime(),
+        'encrypted': b64m.test(fs.readFileSync(filePath, 'utf-8').toString()),
+      };
+    }).sort(function(a,b) {
+      return a.time - b.time;
+    });
+
+    for(var i=0; i < uploads.length; ++i) {
+      var u = uploads[i],
+          uHash = 'upload:' + u.fileName,
+          settings = [];
+
+      db.hmset(uHash,
+        'time', u.time,
+        'encrypted', u.encrypted ? 'true' : 'false',
+        'public', _public
+      );
+
+      if(user != null) {
+        db.hset(uHash, 'user', user);
+
+        // push to user upload lists
+        var userHash = 'user:' + user;
+        if(_public)
+          db.lpush(userHash + ':public', u.fileName);
+        else
+          db.lpush(userHash + ':private', u.fileName);
+      }
+
+      if(_public) {
+        db.lpush('public', u.fileName);
+      }
+
+      console.log(u.fileName + ": " + "encrypted=" + (u.encrypted ? 'yes' : 'no') + ", time=" + u.time.toString());
+    }
+
+    console.log(">> database generated");
+    console.log("Default user: " + user);
+    if(_public) {
+      console.log("All existing uploads aree set as PUBLIC.");
+    }
+    else {
+      console.log("All existing uploads are PRIVATE.");
+    }
+  }
+  else {
+    console.log("Error: you must specify a default user");
+  }
 }
+
+db.quit();

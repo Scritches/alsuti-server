@@ -7,8 +7,9 @@ a {
   color: #00B7FF;
 }
 
-/* common */
+/* common: listings,view */
 span.uploadInfo {
+  display: inline;
   float: right;
 }
 
@@ -19,6 +20,30 @@ span.uploadInfo {
 }
 #loginForm * {
   font-size: 14px;
+}
+.loginMessage.error {
+  color: #FF0000;
+}
+
+/* upload */
+.uploadInput {
+  display: block;
+  margin: 5px;
+}
+.uploadOption {
+  color: #000;
+  display: inline-block;
+  margin-left: 2.5px;
+  margin-right: 2.5px;
+  padding: 15px;
+}
+.uploadOption.selected {
+  background-color: #888;
+  color: #FFF;
+}
+#textInput {
+  width: 50%;
+  min-height: 200px;
 }
 
 /* listings */
@@ -49,10 +74,22 @@ a.uploadLink {
 }
 
 /* page stuff */
-.listingPageBar {
+#listingBar {
   font-size: 14px;
   margin: 10px;
   text-align: center;
+}
+#listingBarLeft {
+  display: inline-block;
+  float: left;
+  text-align: left;
+  width: 250px;
+}
+#listingBarRight {
+  display: inline-block;
+  float: right;
+  text-align: right;
+  width: 250px;
 }
 .page {
   display: inline-block;
@@ -60,32 +97,22 @@ a.uploadLink {
 a.pageLink {
   color: #FF00B7;
 }
-.pageLink:first-child {
-  float: left;
-}
-.pageLink:last-child {
-  float: right;
-}
-.insensitive {
-  color: #BBB;
-}
 .hidden {
   visibility: hidden;
 }
 
 /* view option bar */
 #optionBar {
-    background-color: rgb(240,240,240);
-    border: 1px solid #CCC;
-    font-size: 14px;
-    line-height: 25px;
-    padding: 5px;
+  background-color: rgb(240,240,240);
+  border: 1px solid #CCC;
+  font-size: 14px;
+  padding: 5px;
 }
 #optionBar > * {
-    margin-right: 5px;
+  margin-right: 10px;
 }
-#optionBar:last-child {
-    margin-right: 0px;
+#optionBar > *:last-child {
+  margin-right: 0px;
 }
 
 /* decryption stuff */
@@ -93,7 +120,6 @@ a.pageLink {
   display: inline-block;
 }
 #decryption > * {
-  display: inline-block;
   margin-right: 5px;
 }
 #decryption > *:last-child {
@@ -101,6 +127,11 @@ a.pageLink {
 }
 #decryption input#passwordEntry {
   font-family: monospace;
+}
+#decryptionStatus {
+  color: #FF0000;
+  display: inline;
+  font-weight: bold;
 }
 
 /* content */

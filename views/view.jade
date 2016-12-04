@@ -8,8 +8,8 @@ html
     link(rel='stylesheet' href='/stylesheets/style.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript' src='/js/lib/aes.js')
+    script(type='text/javascript' src='/js/decryption.js')
     script(type='text/javascript' src='/js/lib/js.cookie.js')
-    script(type='text/javascript' src='/js/main.js')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
     script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
     link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
@@ -29,7 +29,7 @@ html
       p#description= description
     div#optionBar
       -if(encrypted)
-        div#decryption(style='display:none;')
+        div#decryption
           input#passwordEntry(placeholder='Password' type='password')
           button#decryptButton(onclick='decrypt()') Decrypt
       a#downloadLink(style='display:none;') Download

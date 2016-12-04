@@ -1,0 +1,10 @@
+extends layout
+block content
+  center
+    -if(title != null)
+      h1#title= title
+    -else
+      h1#title= Info
+    -if(message != null)
+      p= message
+    a(href='#{returnPath || "/"}') Return

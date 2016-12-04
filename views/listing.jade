@@ -1,27 +1,23 @@
-doctype html
-html
-  head
-    title #{title} - Page #{page}
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    h1#title= title
-    -if(uploads.length == 0)
-      span There's nothing here.
-    -else
-      include pageBar
-    each u,i in uploads
-      li(class='uploadListing')
-        -if(u.encrypted)
-          span(class='lockFlag') L
-        -else
-          span(class='lockFlag') &nbsp;
-        -if(u.title != null)
-          a(class='uploadLink', href='/#{u.fileName}')= u.title
-        -else
-          a(class='uploadLink', href='/#{u.fileName}')= u.fileName
-        -if(showUser)
-          span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i> by <b>#{u.user || '(null)'}</b>
-        -else
-          span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i>
-    -if(uploads.length > 0)
-      include pageBar
+extends layout
+block content
+  h1#title= title
+  -if(uploads.length == 0)
+    span There's nothing here.
+  -else
+    include listingBar
+  each u,i in uploads
+    li(class='uploadListing')
+      -if(u.encrypted)
+        span(class='lockFlag') L
+      -else
+        span(class='lockFlag') &nbsp;
+      -if(u.title != null)
+        a(class='uploadLink', href='/#{u.fileName}')= u.title
+      -else
+        a(class='uploadLink', href='/#{u.fileName}')= u.fileName
+      -if(showUser)
+        span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i> by <b>#{u.user || '(null)'}</b>
+      -else
+        span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i>
+  -if(uploads.length > 0)
+    include listingBar

@@ -1,0 +1,8 @@
+extends layout
+block content
+  center
+    a(class='uploadOption' href='#' onclick='setTextUpload()') Text
+    a(class='uploadOption' href='#' onclick='setFileUpload()') File
+    input(class='uploadInput' type='file' style='display:none')#fileSelector
+    textarea(class='uploadInput' )#textInput
+    button(onclick='upload()') Upload
