@@ -48,10 +48,12 @@ a {
   min-height: 200px;
 }
 
-/* listings */
-li.uploadListing {
+/* upload listings */
+#uploadListingContainer {
   font-family: monospace;
   font-size: 14px;
+}
+li.uploadListing {
   list-style: none;
   line-height: 20px;
   padding: 5px;

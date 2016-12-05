@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 var _ = require('underscore')._,
-    app = require('../app'),
 		fs = require('fs'),
     http = require('http'),
-    https = require('https');
+    https = require('https'),
+    app = require('../app');
 
 // server setup
 
@@ -31,7 +31,7 @@ else {
 var shutdown = function() {
   console.log("\b\bShutting down..");
   server.close(function() {
-    db.quit();
+    app.get('database').quit();
   });
   process.exit(0);
 }

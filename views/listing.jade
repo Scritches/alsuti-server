@@ -8,27 +8,28 @@ html
     script(type='text/javascript' src='/js/time.js')
 body(onload='renderTimes();')
   h1#title= title
-  -if(uploads.length == 0)
-    span There's nothing here.
-  -else
-    include listingBar
-  each u,i in uploads
-    li(class='uploadListing')
-      -if(u.title != null)
-        -if(u.encrypted)
-          a(class='encrypted' href='/u.title}')= u.title
+  div#uploadListingContainer
+    -if(uploads.length == 0)
+      span There's nothing here.
+    -else
+      include listingBar
+    each u,i in uploads
+      li(class='uploadListing')
+        -if(u.title != null)
+          -if(u.encrypted)
+            a(class='encrypted' href='/u.title}')= u.title
+          -else
+            a(href='/u.title}')= u.title
         -else
-          a(href='/u.title}')= u.title
-      -else
-        -if(u.encrypted)
-          a(class='encrypted' href='/#{u.fileName}')= u.fileName
-        -else
-          a(href='/#{u.fileName}')= u.fileName
-      div#uploadDetails
-        -if(showUser)
-          | by 
-          span(class='uploadUser') <b>#{u.user}</b>
-        |  at 
-        span(class='uploadTime' style='display:none;')= u.time
-  -if(uploads.length > 0)
-    include listingBar
+          -if(u.encrypted)
+            a(class='encrypted' href='/#{u.fileName}')= u.fileName
+          -else
+            a(href='/#{u.fileName}')= u.fileName
+        div#uploadDetails
+          | at 
+          span(class='uploadTime' style='display:none;')= u.time
+          -if(showUser)
+            |  by 
+            span(class='uploadUser') <b>#{u.user}</b>
+    -if(uploads.length > 0)
+      include listingBar

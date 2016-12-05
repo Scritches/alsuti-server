@@ -20,6 +20,7 @@ $(function() {
   });
 
   if(encrypted) {
+    pEntry.focus();
     if(window.location.hash) {
       decrypt(window.location.hash.substr(1));
     }
