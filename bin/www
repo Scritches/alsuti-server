@@ -10,8 +10,8 @@ var _ = require('underscore')._,
 var port = process.env.PORT || 3067;
 
 var server;
-if(_.has(process.env, 'ALSUTI_TLS_ENABLED') &&
-   process.env.ALSUTI_TLS_ENABLED == 'yes' &&
+if(_.has(process.env, 'ALSUTI_TLS') &&
+   process.env.ALSUTI_TLS == 'yes' &&
    _.has(process.env, 'ALSUTI_TLS_KEY') &&
    _.has(process.env, 'ALSUTI_TLS_CERT'))
 {
