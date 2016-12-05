@@ -13,8 +13,8 @@ The redis database to use. *Optional, but recommended*.
 
 Make sure you set this correctly if you have other databases or else they will likely get clobbered.
 
-####ALSUTI_TLS_ENABLED
-When set to 'yes' the KEY and CERT variables below are used to configure TLS support. *Optional.*
+####ALSUTI_TLS
+When set to 'yes' the key and cert variables explained below are used to configure TLS. *Optional.*
 
 This isn't needed if your server is configured to proxy subdomain requests to alsuti via localhost. If not, keep in mind that plain HTTP is **inherently insecure**.
 
