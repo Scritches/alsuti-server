@@ -2,25 +2,28 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='./stylesheets/style.css')
-  body
-    center
-      h1= title
-      h2
-        | Page #{currentPage}
+    link(rel='stylesheet' href='/stylesheets/style.css')
+    script(type='text/javascript' src='/js/lib/jquery.min.js')
+    script(type='text/javascript' src='/js/lib/js.cookie.js')
+    script(type='text/javascript' src='/js/time.js')
+body(onload='renderTimes();')
+  h1#title= title
+  div#uploadListingContainer
+    -if(uploads.length == 0)
+      span There's nothing here.
+    -else
+      include listingBar
     each u,i in uploads
       li(class='uploadListing')
-        if u.title != null
-          a(href='#{u.externalPath}')= u.title
-        else
-          a(href='#{u.externalPath}')= u.fileName
-        if u.description != null
-          p(class='uploadDescription')= u.description
-        span(class='uploadTime')= moment(u.uploadTime).format("Y/MM/DD HH:mm:SS")
-    center
-      if currentPage > 1
-        a(class='pageLink', href='?page=#{currentPage - 1}')
-          | Previous
-      if lastPage == false
-        a(class='pageLink', href='?page=#{currentPage + 1}')
-          | Next
+        -if(u.encrypted)
+          a(class='encrypted' href='/#{u.fileName}')= u.title || u.fileName
+        -else
+          a(href='/#{u.fileName}')= u.title || u.fileName
+        div#uploadDetails
+          | at 
+          span(class='uploadTime' style='display:none;')= u.time
+          -if(showUser)
+            |  by 
+            span(class='uploadUser') <b>#{u.user}</b>
+    -if(uploads.length > 0)
+      include listingBar

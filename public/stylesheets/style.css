@@ -3,54 +3,150 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
+/* common */
 a {
   color: #00B7FF;
 }
-
-#optionBar {
-    padding: 5px;
-    background-color: rgb(240,240,240);
-    border: 1px solid #CCC;
+.error {
+  color: #FF2020;
+}
+#uploadDetails {
+  float: right;
+  display: inline;
 }
 
-#optionBar > * {
-    margin-right: 10px;
+/* login stuff */
+#loginForm * {
+  display: block;
+  margin: 10px;
+}
+#loginForm * {
+  font-size: 14px;
+}
+#loginMessage {
+  color: #FF2020;
 }
 
-#optionBar:last-child {
-    margin-right: 0px;
+/* upload */
+.uploadInput {
+  display: block;
+  margin: 5px;
+}
+.uploadOption {
+  color: #000;
+  display: inline-block;
+  margin-left: 2.5px;
+  margin-right: 2.5px;
+  padding: 15px;
+}
+.uploadOption.selected {
+  background-color: #888;
+  color: #FFF;
+}
+#textInput {
+  width: 50%;
+  min-height: 200px;
 }
 
+/* upload listings */
+#uploadListingContainer {
+  font-family: monospace;
+  font-size: 14px;
+}
 li.uploadListing {
-    list-style: none;
+  list-style: none;
+  line-height: 20px;
+  padding: 5px;
 }
-li.uploadListing:nth-child(even) {
-    background-color: #FFF;
+li.uploadListing a {
+  text-decoration: none;
+}
+li.uploadListing a.encrypted {
+  color: #FF2020;
 }
 li.uploadListing:nth-child(odd) {
-    background-color: #EEE;
+  background-color: #F4F4F4;
 }
-.uploadTime {
-    float: right;
-}
-
-.pageLink {
-    font-size: 18px;
-    margin-right: 10px
-}
-.pageLink:last-child {
-    margin-right: 0;
+li.uploadListing:nth-child(even) {
+  background-color: #DBDBDB;
 }
 
+/* page stuff */
+#listingBar {
+  font-size: 14px;
+  margin: 10px;
+  text-align: center;
+}
+#listingBarLeft {
+  display: inline-block;
+  float: left;
+  text-align: left;
+  width: 50px;
+}
+#listingBarRight {
+  display: inline-block;
+  float: right;
+  text-align: right;
+  width: 50px;
+}
+.page {
+  display: inline-block;
+}
+a.pageLink {
+  color: #FF00B7;
+}
+.hidden {
+  visibility: hidden;
+}
+
+/* view option bar */
+#optionBar {
+  background-color: rgb(240,240,240);
+  border: 1px solid #CCC;
+  font-size: 14px;
+  padding: 5px;
+}
+#optionBar > * {
+  margin-right: 10px;
+}
+#optionBar > *:last-child {
+  margin-right: 0px;
+}
+
+/* decryption stuff */
+#decryption {
+  display: inline-block;
+}
+#decryption > * {
+  margin-right: 5px;
+}
+#decryption > *:last-child {
+  margin-right: 0px;
+}
+#decryption input#passwordEntry {
+  font-family: monospace;
+}
+#decryptionStatus {
+  color: #FF0000;
+  display: inline;
+  font-weight: bold;
+}
+
+/* content */
+h1#title {
+}
+p#description {
+  font-size: 16px;
+}
 code.hljs-line-numbers {
-    border-right: 1px solid #CCC;
-    color: #999;
-    float: left;
-    text-align: right;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+  border-right: 1px solid #CCC;
+  color: #999;
+  float: left;
+  text-align: right;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }

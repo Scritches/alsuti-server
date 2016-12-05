@@ -1,0 +1,17 @@
+doctype html
+html
+  head
+    -if(title != null)
+      title= title
+    -else
+      title Info
+    link(rel='stylesheet' href='/stylesheets/style.css')
+body
+  center
+    -if(title != null)
+      h1#title= title
+    -else
+      h1#title= Info
+    -if(message != null)
+      p= message
+    a(href='#{returnPath || "/"}') Return

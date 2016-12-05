@@ -1,61 +1,68 @@
-var express = require('express');
-var fs = require('fs');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var multer = require('multer');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var _ = require('underscore')._;
-var process = require('process');
-var sys = require('sys');
-var device = require('express-device');
+var _ = require('underscore')._,
+    bodyParser = require('body-parser'),
+    cookieParser = require('cookie-parser'),
+    device = require('express-device'),
+    express = require('express'),
+    favicon = require('serve-favicon'),
+    fs = require('fs'),
+    logger = require('morgan'),
+    multer = require('multer'),
+    path = require('path'),
+    process = require('process'),
+    redis = require('redis'),
+    sys = require('sys');
 
-var routes = require('./routes/index');
-
-if(!_.has(process.env, 'ALSUTI_API_KEY')) {
-  console.log('You must set the ALSUTI_API_KEY environment variable');
-  process.exit(1);
-}
-if(!_.has(process.env, 'ALSUTI_ENDPOINT')) {
-  console.log('You must set the ALSUTI_ENDPOINT environment variable');
+if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
+  console.log('You must set the ALSUTI_INSTANCE environment variable');
   process.exit(1);
 }
 
 var app = express();
 
-// required for date formatting in listing template
-app.locals.moment = require('moment');
+// database handle
+
+var db = redis.createClient();
+if(_.has(process.env, 'ALSUTI_DATABASE')) {
+  db.select(process.env.ALSUTI_DATABASE);
+}
+
+db.on("error", function(err) {
+  console.log("Error: " + err);
+});
+
+// app globals
+
+app.set('database', db);
+app.set('externalPath', process.env.ALSUTI_INSTANCE);
+app.set('cookieAge', 1000 * 60 * 60 * 24 * 7); // for a maximum of 7 days ..
+app.set('sessionAge', 1000 * 60 * 60 * 1);     // .. enforce a 1 hour activity timeout
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('json spaces', 2);
 app.set('view engine', 'jade');
+app.set('views', path.join(__dirname, 'views'));
 
 // use favicon if it exists
 var faviconPath = __dirname + '/public/favicon.ico';
 try {
   fs.accessSync(faviconPath, fs.F_OK);
   app.use(favicon(faviconPath));
-} catch(e) {
-  console.log("Note: no favicon found in /public.");
+}
+catch(e) {
+  console.log("Note: no favicon found");
 }
 
-app.use(logger('dev'));
-app.use(device.capture({'parseUserAgent':true}));
+app.use(device.capture({'parseUserAgent': true}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false, limit: '500mb' }));
 app.use(multer());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Add some stuff to the req
-app.use(function(req, res, next) {
-  req.api_key = process.env.ALSUTI_API_KEY;
-  req.external_path = process.env.ALSUTI_ENDPOINT;
-  next();
-});
-
-app.use('/', routes);
+// set up primary routes
+app.use('/', require('./routes/users.js'));
+app.use('/', require('./routes/listings.js'));
+app.use('/', require('./routes/files.js'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -64,10 +71,7 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-// error handlers
-
-// development error handler
-// will print stacktrace
+// development error handler; prints stacktrace
 if(app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
@@ -78,8 +82,7 @@ if(app.get('env') === 'development') {
   });
 }
 
-// production error handler
-// no stacktraces leaked to user
+// production error handler; no stacktraces
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {

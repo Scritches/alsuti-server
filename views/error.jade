@@ -1,6 +1,19 @@
-extends layout
-
-block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+doctype html
+head
+  -if(title != null)
+    title= title
+  -else
+    title Error
+  link(rel='stylesheet' href='/stylesheets/style.css')
+body
+  -if(title)
+    h1#title= title
+  -else if(error.title)
+    h1#title= error.title
+  -else
+    h1#title= error.status
+  -if(message)
+    h2= message
+  -else if(error.message)
+    h2= error.message
+  pre= error.stack

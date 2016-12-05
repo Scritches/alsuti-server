@@ -1,9 +1,40 @@
 #!/usr/bin/env node
-var debug = require('debug')('server');
-var app = require('../app');
+var _ = require('underscore')._,
+		fs = require('fs'),
+    http = require('http'),
+    https = require('https'),
+    app = require('../app');
 
-app.set('port', process.env.PORT || 3067);
+// server setup
 
-var server = app.listen(app.get('port'), function() {
-  debug('Express server listening on port ' + server.address().port);
-});
+var port = process.env.PORT || 3067;
+
+var server;
+if(_.has(process.env, 'ALSUTI_TLS') &&
+   process.env.ALSUTI_TLS == 'yes' &&
+   _.has(process.env, 'ALSUTI_TLS_KEY') &&
+   _.has(process.env, 'ALSUTI_TLS_CERT'))
+{
+  var options = {
+    key: fs.readFileSync(process.env.ALSUTI_TLS_KEY).toString(),
+    cert: fs.readFileSync(process.env.ALSUTI_TLS_CERT).toString()
+  };
+
+  server = https.createServer(options, app).listen(port);
+}
+else {
+  server = http.createServer(app).listen(port);
+}
+
+// signal handling for clean shutdown
+
+var shutdown = function() {
+  console.log("\b\bShutting down..");
+  server.close(function() {
+    app.get('database').quit();
+  });
+  process.exit(0);
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

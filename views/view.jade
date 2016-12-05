@@ -1,45 +1,48 @@
 doctype html
 html
   head
-    title= title
-    -if(encrypted)
-      link(rel='stylesheet', href='../stylesheets/style.css')
-      script(type='text/javascript' src='../js/lib/jquery.min.js')
-      script(type='text/javascript' src='../js/lib/aes.js')
-      script(type='text/javascript' src='../js/lib/js.cookie.js')
-      script(type='text/javascript' src='../js/main.js')
-      script(type='text/javascript').
-        var encrypted=true;
-        var cipherText="!{content}";
+    -if(title != null)
+      title= title
     -else
-      link(rel='stylesheet', href='./stylesheets/style.css')
-      script(type='text/javascript' src='./js/lib/jquery.min.js')
-      script(type='text/javascript' src='./js/lib/aes.js')
-      script(type='text/javascript' src='./js/lib/js.cookie.js')
-      script(type='text/javascript' src='./js/main.js')
-      script(type='text/javascript').
-        var encrypted=false;
-    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
+      title= fileName
+    link(rel='stylesheet' href='/stylesheets/style.css')
     link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
-    -if(encrypted)
-      script(type='text/javascript' src='../js/lib/highlightjs-line-numbers.js')
-    -else
-      script(type='text/javascript' src='./js/lib/highlightjs-line-numbers.js')
+    script(type='text/javascript' src='/js/lib/jquery.min.js')
+    script(type='text/javascript' src='/js/lib/js.cookie.js')
+    script(type='text/javascript' src='/js/lib/aes.js')
+    script(type='text/javascript' src='/js/view.js')
+    script(type='text/javascript' src='/js/time.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
+    script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
     script(type='text/javascript').
-      var fileName="!{fileName}";
+      var fileName = "#{fileName}";
+    -if(encrypted)
+      script(type='text/javascript').
+        var encrypted = true;
+        var cipherText = "#{content}";
+    -else
+      script(type='text/javascript').
+        var encrypted = false;
   body
-    div#decryptThings(style='display:none;')
-      h1 Decrypt File
-      p Password:
-      input(id='password' type='password')
-      button#decryptButton(onclick='decrypt()') Decrypt
-    div#optionBar(style='display:none;')
-      a#downloadButton(style='display:none;') Download
+    -if(title != null)
+      h1#title= title
+    -if(description != null)
+      p#description= description
+    div#optionBar
+      -if(encrypted)
+        div#decryption
+          input#passwordEntry(placeholder='Password' type='password')
+          button#decryptButton(onclick='decrypt()') Decrypt
+      a#downloadLink(style='display:none;') Download
       label#lineNumbersLabel(style='display:none;')
         input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
         | Show Line Numbers
-    p#message(style='display:none')
+      div#uploadDetails
+        | Uploaded at 
+        span(class='uploadTime')= time
+        |  by 
+        span(class='uploadUser') <b>#{user}</b>
     center
-      img#image(style='display:none;width:80%;')
+      img#image(style='display:none;')
     pre
       code#content #{content}

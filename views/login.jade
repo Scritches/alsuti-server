@@ -1,0 +1,16 @@
+doctype html
+head
+  title Upload
+  link(rel='stylesheet' href='/stylesheets/style.css')
+  center
+    -if(title)
+      h1#title= title
+    -if(error)
+      p#loginMessage(class='error')= error
+    -else
+      p#loginMessage= message
+    form#loginForm(action='/login' method='post')
+      input(name='user' placeholder='User')#userEntry
+      input(name='password' placeholder='Password' type="password")#passwordEntry
+      input(name='returnPath' type='hidden' value='#{returnPath}')
+      button(type='submit') Log In
