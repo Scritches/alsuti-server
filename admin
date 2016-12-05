@@ -11,15 +11,15 @@ var db = redis.createClient(),
 //  base64 regex from http://stackoverflow.com/a/18967082
     b64m = new RegExp("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$");
 
-function addUser(name, password) {
+function setUser(name, password, cb) {
   var userHash = 'user:' + name,
       pHash = bcrypt.hashSync(password);
 
-  db.hset(userHash, 'password', pHash);
+  db.hset(userHash, 'password', pHash, cb);
 }
 
 function delUser(name) {
-	var userHash = 'user:' + name;
+  var userHash = 'user:' + name;
   db.del(userHash);
   db.del(userHash + ':public');
   db.del(userHash + ':private');
@@ -30,20 +30,20 @@ function main() {
     db.select(process.env.ALSUTI_DATABASE);
   }
 
-  if(argv[0] == 'adduser') {
+  if(argv[0] == 'setuser') {
     if(argv.length == 3) {
-      addUser(argv[1], argv[2]);
-      console.log("Added user '" + argv[1] + "' with password: " + argv[2]);
+      setUser(argv[1], argv[2]);
+      console.log("User '" + argv[1] + "' set with password: " + argv[2]);
     } else {
-      console.log("Error: adduser needs 2 arguments, " + (argv.length - 1) + " were given.");
+      console.log("Error: 'setuser' needs 2 arguments, " + (argv.length - 1) + " were given.");
     }
   }
   else if(argv[0] == 'deluser') {
     if(argv.length == 2) {
       delUser(argv[1]);
-      console.log("Deleted user '" + argv[1] + "'.");
+      console.log("User '" + argv[1] + "' deleted.");
     } else {
-      console.log("Error: deluser needs 1 argument, " + (argv.length - 1) + " were given.");
+      console.log("Error: 'deluser' needs 1 argument, " + (argv.length - 1) + " were given.");
     }
   }
   else if(argv[0] == 'mkdb') {
@@ -64,7 +64,7 @@ function main() {
     }
 
     if(user == null || password == null) {
-      console.log("mkdb: you must specify a default user and password.");
+      console.log("Error: you must specify a default user and password.");
       console.log("Example: ./admin mkdb user=someone password=something");
     }
     else {
