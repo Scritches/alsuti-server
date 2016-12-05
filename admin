@@ -69,7 +69,7 @@ function main() {
     }
     else {
       db.flushdb();            // ensure clean state
-      addUser(user, password); // add default user
+      setUser(user, password); // add default user
 
       var slugs = fs.readdirSync('files').filter(function(slug) {
         return slug.startsWith(".") == false;
