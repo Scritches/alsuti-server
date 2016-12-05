@@ -15,16 +15,10 @@ body(onload='renderTimes();')
       include listingBar
     each u,i in uploads
       li(class='uploadListing')
-        -if(u.title != null)
-          -if(u.encrypted)
-            a(class='encrypted' href='/u.title}')= u.title
-          -else
-            a(href='/u.title}')= u.title
+        -if(u.encrypted)
+          a(class='encrypted' href='/#{u.fileName}')= u.title || u.fileName
         -else
-          -if(u.encrypted)
-            a(class='encrypted' href='/#{u.fileName}')= u.fileName
-          -else
-            a(href='/#{u.fileName}')= u.fileName
+          a(href='/#{u.fileName}')= u.title || u.fileName
         div#uploadDetails
           | at 
           span(class='uploadTime' style='display:none;')= u.time
