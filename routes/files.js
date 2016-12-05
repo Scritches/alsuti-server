@@ -132,6 +132,9 @@ router.post('/delete', function(req, res) {
   });
 });
 
+router.post('/rename', function(req, res) {
+});
+
 router.get('/', requireAuth);
 router.get('/', function(req, res) {
   res.render('upload', {
@@ -219,8 +222,8 @@ router.get('/:file', function(req, res) {
 });
 
 // handle deprecated URLs for encrypted file view
-router.get('/e/:fileName', function(req, res) {
-  res.redirect(301, '/' + req.params.fileName);
+router.get('/e/:file', function(req, res) {
+  res.redirect(301, '/' + req.params.file);
 });
 
 module.exports = router;

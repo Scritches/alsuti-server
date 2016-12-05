@@ -1,8 +1,7 @@
 var _ = require('underscore'),
     express = require('express'),
     shortid = require('shortid'),
-    requireAuth = require('./userauth'),
-    qs = require('querystring');
+    requireAuth = require('./userauth');
 
 var router = express.Router();
 
