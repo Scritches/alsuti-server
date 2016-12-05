@@ -87,9 +87,14 @@ router.get('/public', function(req, res) {
   renderListing(req, res, 'public', "Public Uploads", false);
 });
 router.get('/user/:user/public', function(req, res) {
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
   renderListing(req, res,
                'user:' + req.params.user + ':public',
-               req.params.user + "'s Public Uploads", true);
+               capitalize(req.params.user) + "'s Public Uploads",
+               true);
 });
 
 module.exports = router;

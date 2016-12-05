@@ -58,7 +58,7 @@ function toggleLineNumbers() {
     pre.css('word-wrap', 'break-word');
     for(var i=0; i < wsAttrs.length; ++i) {
       pre.css('white-space', wsAttrs[i]);
-      if (pre.css('whitespace') == wsAttrs[i])
+      if(pre.css('white-space') == wsAttrs[i])
         break;
     }
   }

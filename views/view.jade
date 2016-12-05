@@ -6,13 +6,13 @@ html
     -else
       title= fileName
     link(rel='stylesheet' href='/stylesheets/style.css')
+    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript' src='/js/lib/aes.js')
     script(type='text/javascript' src='/js/decryption.js')
     script(type='text/javascript' src='/js/lib/js.cookie.js')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
     script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
-    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
     script(type='text/javascript').
       var fileName = "#{fileName}";
     -if(encrypted)

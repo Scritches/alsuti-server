@@ -11,100 +11,121 @@ var db = redis.createClient(),
 //  base64 regex from http://stackoverflow.com/a/18967082
     b64m = new RegExp("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$");
 
-if(_.has(process.env, 'ALSUTI_DATABASE')) {
-  db.select(process.env.ALSUTI_DATABASE);
+function addUser(name, password) {
+  var userHash = 'user:' + name,
+      pHash = bcrypt.hashSync(password);
+
+  db.hset(userHash, 'password', pHash);
 }
 
-if(argv[0] == 'users') {
-  if(argv.length != 4) {
-    console.log("4 arguments required, " + argv.length + " given.");
-    db.quit();
-    return;
-  }
-
-	var userHash = 'user:' + argv[2];
-  if(argv[1] == 'add') {
-    var passwordHash = bcrypt.hashSync(argv[3]);
-    db.hset(userHash, 'password', passwordHash);
-    process.stdout.write(">> added user '" + argv[2] + "'\n>> password hash: "+ passwordHash);
-  }
-  else if(argv[1] == 'del') {
-    db.del(userHash);
-    db.del(userHash + ':public');
-    console.log(">> deleted user '" + argv[2] + "'");
-  }
+function delUser(name) {
+	var userHash = 'user:' + name;
+  db.del(userHash);
+  db.del(userHash + ':public');
+  db.del(userHash + ':private');
 }
-else if(argv[0] == 'mkdb') {
-  db.flushdb();
 
-  var user = null,
-      _public = false;
+function main() {
+  if(_.has(process.env, 'ALSUTI_DATABASE')) {
+    db.select(process.env.ALSUTI_DATABASE);
+  }
 
-  for(var i=1; i < argv.length; ++i) {
-    if(argv[i].startsWith('user=')) {
-      user = argv[i].split('=')[1];
-    } else if (argv[i] == 'public') {
-      _public = true;
+  if(argv[0] == 'adduser') {
+    if(argv.length == 3) {
+      addUser(argv[1], argv[2]);
+      console.log("Added user '" + argv[1] + "' with password: " + argv[2]);
+    } else {
+      console.log("Error: adduser needs 2 arguments, " + (argv.length - 1) + " were given.");
     }
   }
+  else if(argv[0] == 'deluser') {
+    if(argv.length == 2) {
+      delUser(argv[1]);
+      console.log("Deleted user '" + argv[1] + "'.");
+    } else {
+      console.log("Error: deluser needs 1 argument, " + (argv.length - 1) + " were given.");
+    }
+  }
+  else if(argv[0] == 'mkdb') {
+    var user = null,
+        password = null,
+        _public = false;
 
-  if(user != null) {
-    var slugs = fs.readdirSync('files').filter(function(slug) {
-      return slug.startsWith(".") == false;
-    });
+    for(var i=1; i < argv.length; ++i) {
+      if(argv[i].startsWith('user=')) {
+        user = argv[i].split('=').slice(1).join();
+      }
+      else if(argv[i].startsWith('password=')) {
+        password = argv[i].split('=').slice(1).join();
+      }
+      else if(argv[i] == 'public') {
+        _public = true;
+      }
+    }
 
-    var uploads = slugs.map(function(slug) {
-      var filePath = 'files/' + slug;
-      return {
-        'fileName': slug,
-        'time': fs.statSync(filePath).mtime.getTime(),
-        'encrypted': b64m.test(fs.readFileSync(filePath, 'utf-8').toString()),
-      };
-    }).sort(function(a,b) {
-      return a.time - b.time;
-    });
+    if(user == null || password == null) {
+      console.log("mkdb: you must specify a default user and password.");
+      console.log("Example: ./admin mkdb user=someone password=something");
+    }
+    else {
+      db.flushdb();            // ensure clean state
+      addUser(user, password); // add default user
 
-    for(var i=0; i < uploads.length; ++i) {
-      var u = uploads[i],
-          uHash = 'upload:' + u.fileName,
-          settings = [];
+      var slugs = fs.readdirSync('files').filter(function(slug) {
+        return slug.startsWith(".") == false;
+      });
 
-      db.hmset(uHash,
-        'time', u.time,
-        'encrypted', u.encrypted ? 'true' : 'false',
-        'public', _public
-      );
+      var uploads = slugs.map(function(slug) {
+        var filePath = 'files/' + slug;
+        return {
+          'fileName': slug,
+          'time': fs.statSync(filePath).mtime.getTime(),
+          'encrypted': b64m.test(fs.readFileSync(filePath, 'utf-8').toString()),
+        };
+      }).sort(function(a,b) {
+        return a.time - b.time;
+      });
 
-      if(user != null) {
-        db.hset(uHash, 'user', user);
+      for(var i=0; i < uploads.length; ++i) {
+        var u = uploads[i],
+            uHash = 'upload:' + u.fileName,
+            settings = [];
+
+        db.hmset(uHash,
+          'user', user,
+          'time', u.time,
+          'encrypted', u.encrypted ? 'true' : 'false',
+          'public', _public
+        );
 
         // push to user upload lists
         var userHash = 'user:' + user;
-        if(_public)
+        if(_public) {
+          db.lpush('public', u.fileName);
           db.lpush(userHash + ':public', u.fileName);
-        else
+        } else {
           db.lpush(userHash + ':private', u.fileName);
+        }
+
+        console.log(u.fileName + ": time=" + u.time.toString() + (u.encrypted ? ', encrypted' : ''));
       }
+
+      console.log('');
+      console.log("User: " + user);
+      console.log("Password: " + password);
 
       if(_public) {
-        db.lpush('public', u.fileName);
+        console.log("All existing uploads are public.");
+      }
+      else {
+        console.log("All existing uploads are private.");
       }
 
-      console.log(u.fileName + ": " + "encrypted=" + (u.encrypted ? 'yes' : 'no') + ", time=" + u.time.toString());
+      console.log('');
     }
+  }
 
-    console.log(">> database generated");
-    console.log("Default user: " + user);
-    if(_public) {
-      console.log("All existing uploads aree set as PUBLIC.");
-    }
-    else {
-      console.log("All existing uploads are PRIVATE.");
-    }
-  }
-  else {
-    console.log("Error: you must specify a default user");
-  }
+  db.quit();
 }
 
-db.quit();
+main();

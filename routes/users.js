@@ -1,13 +1,15 @@
 var _ = require('underscore'),
     express = require('express'),
     shortid = require('shortid'),
-    requireAuth = require('./userauth');
+    requireAuth = require('./userauth'),
+    qs = require('querystring');
 
 var router = express.Router();
 
 router.get('/login', function(req, res) {
   res.render('login', {
-      'title': "Alsuti Login"
+      'title': "Alsuti Login",
+      'returnPath': qs.stringify(req.headers['Referer'] || '/')
   });
 });
 
@@ -32,7 +34,14 @@ router.post('/login', function(req, res) {
       res.cookie('sessionKey', sessionKey, cookieOptions);
 
       // redirect
-      res.redirect('/');
+      var returnPath;
+      if(_.has(req.body, 'returnPath')) {
+        returnPath = req.body.returnPath;
+      } else {
+        returnPath = '/';
+      }
+
+      res.redirect(returnPath);
     }
     else {
       res.render('error', {
@@ -44,7 +53,7 @@ router.post('/login', function(req, res) {
 });
 
 router.get('/logout', function(req, res) {
-  var redirPath = req.headers['Referer'] || '/';
+  var returnPath = req.headers['Referer'] || '/';
 
   if(_.has(req.cookies, 'sessionUser') == false) {
     res.redirect(redirPath);
@@ -52,7 +61,7 @@ router.get('/logout', function(req, res) {
   }
 
   var db = req.app.get('database'),
-      userHash = 'user:' + req.cookies['sessionUser'];
+      userHash = 'user:' + req.cookies.sessionUser;
 
   db.hdel(userHash, 'sessionKey', 'sessionExpiry');
 
@@ -63,7 +72,7 @@ router.get('/logout', function(req, res) {
 
   res.cookie("sessionUser", "", options);
   res.cookie("sessionKey", "", options);
-  res.redirect(redirPath);
+  res.redirect(returnPath);
 });
 
 module.exports = router;

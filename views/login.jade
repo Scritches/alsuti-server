@@ -8,6 +8,7 @@ block content
     -else
       p#loginMessage= message
     form#loginForm(action='/login' method='post')
-      input(name='user' placeholder='User Name')#userEntry
+      input(name='user' placeholder='User')#userEntry
       input(name='password' placeholder='Password' type="password")#passwordEntry
+      input(name='returnPath' type='hidden' value='#{returnPath}')
       button(type='submit') Log In

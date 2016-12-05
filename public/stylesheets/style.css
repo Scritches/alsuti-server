@@ -3,15 +3,18 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
+/* common */
 a {
   color: #00B7FF;
 }
-
-/* common: listings,view */
+.error {
+  color: #FF4040;
+}
 span.uploadInfo {
   display: inline;
   float: right;
 }
+/* end common*/
 
 /* login stuff */
 #loginForm * {
@@ -21,7 +24,7 @@ span.uploadInfo {
 #loginForm * {
   font-size: 14px;
 }
-.loginMessage.error {
+#loginMessage {
   color: #FF0000;
 }
 

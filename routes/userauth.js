@@ -4,21 +4,20 @@ var _ = require('underscore'),
 function requireAuth(req, res, next) {
   var db = req.app.get('database');
 
-  console.log("userauth: " + req.method + " " + req.path);
-
   // verify user/password and create session
   if(_.has(req.body, 'user') && _.has(req.body, 'password')) {
     var userHash = 'user:' + req.body.user;
     db.hget(userHash, 'password', function(err, pHash) {
       bcrypt.compare(req.body.password, pHash, function(err, result) {
-        if(!err && result == true) {
+        if(!err && result) {
           req.sessionUser = req.body.user;
           next();
         }
         else {
           res.status(401);
           res.render('login', {
-            'error': "Invalid user/password."
+            'error': "Invalid user/password",
+            'returnPath': req.path
           });
         }
       });
@@ -36,7 +35,6 @@ function requireAuth(req, res, next) {
           sessionExpiry = parseInt(sessionExpiry);
           if(!err && Date.now() < sessionExpiry) {
             req.sessionUser = sessionUser;
-            console.log("userauth: user=" + req.sessionUser + " key=" + clientSessionKey);
             // reset the session's expiry date
             var newExpiry = Date.now() + req.app.get('sessionAge');
             db.hset(userHash, 'sessionExpiry', newExpiry);
@@ -46,7 +44,8 @@ function requireAuth(req, res, next) {
           else {
             res.status(401);
             res.render('login', {
-              'error': "Session expired."
+              'error': "Session expired",
+              'returnPath': req.path
             });
           }
         })
@@ -54,7 +53,8 @@ function requireAuth(req, res, next) {
       else {
         res.status(401);
         res.render('login', {
-          'error': "Invalid session key."
+          'error': "Invalid session key",
+          'returnPath': req.path
         });
       }
     });
@@ -62,7 +62,8 @@ function requireAuth(req, res, next) {
   else {
     res.status(401);
     res.render('login', {
-      'error': "Authentication required."
+      'error': "Authentication required",
+      'returnPath': req.path
     });
   }
 }
