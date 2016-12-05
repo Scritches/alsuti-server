@@ -5,13 +5,6 @@ var _ = require('underscore'),
 
 var router = express.Router();
 
-router.get('/login', function(req, res) {
-  res.render('login', {
-      'title': "Alsuti Login",
-      'returnPath': qs.stringify(req.headers['Referer'] || '/')
-  });
-});
-
 router.post('/login', requireAuth);
 router.post('/login', function(req, res) {
   var db = req.app.get('database');

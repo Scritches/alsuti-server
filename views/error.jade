@@ -1,5 +1,11 @@
-extends layout
-block content
+doctype html
+head
+  -if(title != null)
+    title= title
+  -else
+    title Error
+  link(rel='stylesheet' href='/stylesheets/style.css')
+body
   -if(title)
     h1#title= title
   -else if(error.title)
