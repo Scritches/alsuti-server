@@ -1,8 +1,9 @@
 decryptError = false;
-decryptErrorColour = "#FF4040"
+decryptErrorColour = "#FF2020"
 
 $(function() {
   loadOptions();
+  renderTimes();
 
   var pEntry = $("#passwordEntry");
   pEntry.keyup(function(event) {
@@ -150,7 +151,7 @@ function decrypt(hashPassword) {
 
     dLink.attr('href', 'data:image/'+ ext +';base64,' + imageData);
     dLink.attr('download', fileName);
-    dLink.show()
+    dLink.show();
   }
   else if(ext == 'pdf') {
     content.hide();
@@ -165,4 +166,13 @@ function decrypt(hashPassword) {
   else {
     renderText(plain);
   }
+}
+
+function renderTimes() {
+  $('.uploadTime').each(function(i) {
+    console.log("TIMEZ - " + i)
+    var d = new Date(parseInt(this.text));
+    $(this).text(d.toLocaleString());
+    $(this).show();
+  });
 }

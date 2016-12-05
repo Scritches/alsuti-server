@@ -1,5 +1,12 @@
-extends layout
-block content
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet' href='/stylesheets/style.css')
+    script(type='text/javascript' src='/js/lib/jquery.min.js')
+    script(type='text/javascript' src='/js/lib/js.cookie.js')
+    script(type='text/javascript' src='/js/time.js')
+body(onload='renderTimes();')
   h1#title= title
   -if(uploads.length == 0)
     span There's nothing here.
@@ -17,9 +24,11 @@ block content
           a(class='encrypted' href='/#{u.fileName}')= u.fileName
         -else
           a(href='/#{u.fileName}')= u.fileName
-      -if(showUser)
-        span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i> by <b>#{u.user || '(null)'}</b>
-      -else
-        span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i>
+      div#uploadDetails
+        -if(showUser)
+          | by 
+          span(class='uploadUser') <b>#{u.user}</b>
+        |  at 
+        span(class='uploadTime' style='display:none;')= u.time
   -if(uploads.length > 0)
     include listingBar

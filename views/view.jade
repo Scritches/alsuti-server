@@ -8,9 +8,10 @@ html
     link(rel='stylesheet' href='/stylesheets/style.css')
     link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
-    script(type='text/javascript' src='/js/lib/aes.js')
-    script(type='text/javascript' src='/js/main.js')
     script(type='text/javascript' src='/js/lib/js.cookie.js')
+    script(type='text/javascript' src='/js/lib/aes.js')
+    script(type='text/javascript' src='/js/view.js')
+    script(type='text/javascript' src='/js/time.js')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
     script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
     script(type='text/javascript').
@@ -36,7 +37,11 @@ html
       label#lineNumbersLabel(style='display:none;')
         input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
         | Show Line Numbers
-      span(class='uploadInfo') Uploaded at <i>#{time.toString()}</i> by <b>#{user}</b>
+      div#uploadDetails
+        | Uploaded at 
+        span(class='uploadTime')= time
+        |  by 
+        span(class='uploadUser') <b>#{user}</b>
     center
       img#image(style='display:none;')
     pre

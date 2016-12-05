@@ -1,5 +1,11 @@
-extends layout
-block content
+doctype html
+html
+  head
+    -if(title != null)
+      title= title
+    -else
+      title= Info
+body
   center
     -if(title != null)
       h1#title= title

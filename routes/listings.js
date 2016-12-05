@@ -50,7 +50,7 @@ function renderListing(req, res, listingHash, title, publicUserListing) {
             if(_.has(s, 'description'))
               u.description = s.description;
             if(_.has(s, 'time'))
-              u.time = new Date(parseInt(s.time));
+              u.time = s.time;
             if(_.has(s, 'user'))
               u.user = s.user;
             if(_.has(s, 'encrypted'))

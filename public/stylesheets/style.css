@@ -10,11 +10,10 @@ a {
 .error {
   color: #FF2020;
 }
-span.uploadInfo {
-  display: inline;
+#uploadDetails {
   float: right;
+  display: inline;
 }
-/* end common*/
 
 /* login stuff */
 #loginForm * {
@@ -50,17 +49,18 @@ span.uploadInfo {
 }
 
 /* listings */
-a.encrypted {
-  color: #FF2020;
-}
-li.uploadListing a {
-  text-decoration: none;
-}
 li.uploadListing {
+  font-family: monospace;
   font-size: 14px;
   list-style: none;
   line-height: 20px;
   padding: 5px;
+}
+li.uploadListing a {
+  text-decoration: none;
+}
+li.uploadListing a.encrypted {
+  color: #FF2020;
 }
 li.uploadListing:nth-child(odd) {
   background-color: #F4F4F4;
@@ -79,13 +79,13 @@ li.uploadListing:nth-child(even) {
   display: inline-block;
   float: left;
   text-align: left;
-  width: 250px;
+  width: 50px;
 }
 #listingBarRight {
   display: inline-block;
   float: right;
   text-align: right;
-  width: 250px;
+  width: 50px;
 }
 .page {
   display: inline-block;

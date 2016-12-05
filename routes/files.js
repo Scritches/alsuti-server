@@ -88,6 +88,10 @@ router.post('/upload', function(req, res) {
   }
 });
 
+router.post('/rename', requireAuth);
+router.post('/rename', function(req, res) {
+});
+
 router.post('/delete', requireAuth);
 router.post('/delete', function(req, res) {
   res.setHeader('Content-Type', 'application/text');
@@ -103,7 +107,7 @@ router.post('/delete', function(req, res) {
 
   db.hmget(uHash, ['user', 'public'], function(err, data) {
     if(!err && data[0] != null) {
-      console.log("file is owned by " + data[0]);
+      // check if authorized user owns this file
       if(data[0] == req.sessionUser) {
         var userHash = 'user:' + data[0],
             filePath = __dirname + '/../files/' + fileName;
@@ -130,9 +134,6 @@ router.post('/delete', function(req, res) {
       res.send("Error: No such file.");
     }
   });
-});
-
-router.post('/rename', function(req, res) {
 });
 
 router.get('/', requireAuth);
@@ -167,7 +168,7 @@ router.get('/:file', function(req, res) {
           u.user = null;
 
         if(_.has(u, 'time'))
-          u.time = new Date(parseInt(u.time));
+          u.time = u.time;
         else
           u.time = null;
 
