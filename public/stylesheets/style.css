@@ -8,7 +8,7 @@ a {
   color: #00B7FF;
 }
 .error {
-  color: #FF4040;
+  color: #FF2020;
 }
 span.uploadInfo {
   display: inline;
@@ -25,7 +25,7 @@ span.uploadInfo {
   font-size: 14px;
 }
 #loginMessage {
-  color: #FF0000;
+  color: #FF2020;
 }
 
 /* upload */
@@ -50,30 +50,23 @@ span.uploadInfo {
 }
 
 /* listings */
+a.encrypted {
+  color: #FF2020;
+}
+li.uploadListing a {
+  text-decoration: none;
+}
 li.uploadListing {
   font-size: 14px;
   list-style: none;
-  line-height: 30px;
+  line-height: 20px;
+  padding: 5px;
 }
 li.uploadListing:nth-child(odd) {
-  background-color: #F8F8F8;
+  background-color: #F4F4F4;
 }
 li.uploadListing:nth-child(even) {
-  background-color: #E0E0E0;
-}
-li.uploadListing > * {
-  margin-left: 5px;
-  margin-right: 5px;
-}
-span.lockFlag {
-  color: #FF0000;
-  display: inline-block;
-  font-family: monospace;
-  font-weight: bold;
-  width: auto;
-  text-align: center;
-}
-a.uploadLink {
+  background-color: #DBDBDB;
 }
 
 /* page stuff */

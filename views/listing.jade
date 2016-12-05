@@ -7,14 +7,16 @@ block content
     include listingBar
   each u,i in uploads
     li(class='uploadListing')
-      -if(u.encrypted)
-        span(class='lockFlag') L
-      -else
-        span(class='lockFlag') &nbsp;
       -if(u.title != null)
-        a(class='uploadLink', href='/#{u.fileName}')= u.title
+        -if(u.encrypted)
+          a(class='encrypted' href='/u.title}')= u.title
+        -else
+          a(href='/u.title}')= u.title
       -else
-        a(class='uploadLink', href='/#{u.fileName}')= u.fileName
+        -if(u.encrypted)
+          a(class='encrypted' href='/#{u.fileName}')= u.fileName
+        -else
+          a(href='/#{u.fileName}')= u.fileName
       -if(showUser)
         span(class='uploadInfo') Uploaded at <i>#{u.time ? u.time.toString() : '(null)'}</i> by <b>#{u.user || '(null)'}</b>
       -else
