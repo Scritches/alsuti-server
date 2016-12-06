@@ -3,7 +3,6 @@ decryptErrorColour = "#FF2020"
 
 $(function() {
   loadOptions();
-  renderTimes();
 
   var pEntry = $("#passwordEntry");
   pEntry.keyup(function(event) {
@@ -43,8 +42,9 @@ function toggleLineNumbers() {
   pre = $('pre');
   if($('#lineNumbersCheckbox').prop('checked')) {
     // disable line wrapping
-    pre.css('word-wrap', 'normal');
-    pre.css('white-space', '');
+    pre.css('white-space', 'nowrap');
+    pre.css('overflow-wrap', '');
+    pre.css('word-wrap', 'none');
 
     // add line numbers
     $('code').each(function(i, block) {
@@ -56,13 +56,9 @@ function toggleLineNumbers() {
     $('code.hljs-line-numbers').remove();
 
     // re-enable line wrapping
-    wsAttrs = [ 'pre-wrap', '-moz-pre-wrap', '-pre-wrap', '-o-pre-wrap' ];
+    pre.css('overflow-wrap', 'break-word');
+    pre.css('white-space', 'normal');
     pre.css('word-wrap', 'break-word');
-    for(var i=0; i < wsAttrs.length; ++i) {
-      pre.css('white-space', wsAttrs[i]);
-      if(pre.css('white-space') == wsAttrs[i])
-        break;
-    }
   }
 }
 
@@ -93,15 +89,10 @@ function renderText(content) {
 function decrypt(hashPassword) {
   var dButton = $('#decryptButton'),
       pEntry = $('#passwordEntry'),
-      content = $('#content');
+      content = $('#content'),
+      dButtonOldText = dButton.text();
 
-  function notifyWrongPassword() {
-    decryptError = true;
-    dButton.text = dButtonOldText;
-    pEntryOldBackground = pEntry.css('background-color');
-    pEntry.css('color', decryptErrorColour);
-    pEntry.css('font-weight', 'bold');
-  }
+  dButton.text("Decrypting..");
 
   var password;
   if(hashPassword) {
@@ -114,10 +105,15 @@ function decrypt(hashPassword) {
 
   var eContent = cipherText || content.text(),
       splitFile = fileName.split('.'),
-      ext = splitFile[splitFile.length-1].toLowerCase(),
-      dButtonOldText = dButton.text();
+      ext = splitFile[splitFile.length-1].toLowerCase();
 
-  dButton.text = "Decrypting..";
+  function notifyWrongPassword() {
+    decryptError = true;
+    dButton.text(dButtonOldText);
+    pEntryOldBackground = pEntry.css('background-color');
+    pEntry.css('color', decryptErrorColour);
+    pEntry.css('font-weight', 'bold');
+  }
 
   var plain;
   try {
