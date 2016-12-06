@@ -112,7 +112,7 @@ function decrypt(hashPassword) {
     password = pEntry.val();
   }
 
-  var content = cipherText || content.text(),
+  var eData = cipherText || content.text(),
       splitFile = fileName.split('.'),
       ext = splitFile[splitFile.length-1].toLowerCase(),
       dButtonOldText = dButton.text();
@@ -121,7 +121,7 @@ function decrypt(hashPassword) {
 
   var plain;
   try {
-    plain = CryptoJS.AES.decrypt(content, password).toString(CryptoJS.enc.Utf8);
+    plain = CryptoJS.AES.decrypt(eData, password).toString(CryptoJS.enc.Utf8);
     if(!plain) {
       notifyWrongPassword();
       return;
@@ -144,7 +144,7 @@ function decrypt(hashPassword) {
       imageData = plain.replace(/^YW5kcm9pZHN1Y2tz/,'');
     }
 
-    var image = $('image'),
+    var image = $('#image'),
         dLink = $('#downloadLink');
 
     image.attr('src', 'data:image/' + ext +';base64,' + imageData);
