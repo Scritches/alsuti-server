@@ -112,7 +112,7 @@ function decrypt(hashPassword) {
     password = pEntry.val();
   }
 
-  var eData = cipherText || content.text(),
+  var eContent = cipherText || content.text(),
       splitFile = fileName.split('.'),
       ext = splitFile[splitFile.length-1].toLowerCase(),
       dButtonOldText = dButton.text();
@@ -121,7 +121,7 @@ function decrypt(hashPassword) {
 
   var plain;
   try {
-    plain = CryptoJS.AES.decrypt(eData, password).toString(CryptoJS.enc.Utf8);
+    plain = CryptoJS.AES.decrypt(eContent, password).toString(CryptoJS.enc.Utf8);
     if(!plain) {
       notifyWrongPassword();
       return;
@@ -135,7 +135,7 @@ function decrypt(hashPassword) {
   $('#decryption').hide();
 
   if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { // todo: split this out
-    content.hide();
+    content.remove();
 
     var imageData;
     if(!plain.match(/^YW5kcm9pZHN1Y2tz/)) {
@@ -155,7 +155,7 @@ function decrypt(hashPassword) {
     dLink.show();
   }
   else if(ext == 'pdf') {
-    content.hide();
+    content.remove();
 
     var dLink = $('#downloadLink'),
         imageData = btoa(plain);
