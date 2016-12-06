@@ -5,14 +5,35 @@ var _ = require('underscore'),
 
 var router = express.Router();
 
+router.get('/private', requireAuth);
+router.get('/private', function(req, res) {
+  renderListing(req, res, false,
+                'user:' + req.sessionUser + ':private',
+                "Private Uploads");
+});
+
+router.get('/public', function(req, res) {
+  renderListing(req, res, false, 'public', "Public Uploads");
+});
+
+router.get('/user/:user/public', function(req, res) {
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
+  renderListing(req, res, true,
+                'user:' + req.params.user + ':public',
+                capitalize(req.params.user) + "'s Public Uploads");
+});
+
 // listing renderer
-function renderListing(req, res, listingHash, title, publicUserListing) {
+function renderListing(req, res, publicUserListing, listingHash, title) {
   var db = req.app.get('database');
   db.llen(listingHash, function(err, len) {
     if(publicUserListing && err) {
-      res.render('error', {
+      res.render('info', {
         'title': "Error",
-        'message': "No such user."
+        'message': "No such user.",
       });
       return;
     }
@@ -31,31 +52,22 @@ function renderListing(req, res, listingHash, title, publicUserListing) {
         start = (page - 1) * listingsPerPage,
         end = start + listingsPerPage - 1;
 
-    db.lrange(listingHash, start, end, function(err, slugs) {
-      async.map(slugs,
+    db.lrange(listingHash, start, end, function(err, fileNames) {
+      async.map(fileNames,
         // transform each slug into an object
-        function(slug, done) {
-          db.hgetall('upload:' + slug, function(err, s) {
+        function(fileName, done) {
+          db.hgetall('upload:' + fileName, function(err, s) {
             var u = {
-              'fileName': slug,
-              'title': null,
-              'description': null,
-              'time': null,
-              'user': null,
-              'encrypted': false,
+              'fileName': fileName,
+              'title': s.title || null,
+              'description': s.description || null,
+              'time': s.time || null,
+              'user': s.user || null,
+              'encrypted': s.encrypted || 'false',
             };
 
-            if(_.has(s, 'title'))
-              u.title = s.title;
-            if(_.has(s, 'description'))
-              u.description = s.description;
-            if(_.has(s, 'time'))
-              u.time = s.time;
-            if(_.has(s, 'user'))
-              u.user = s.user;
-            if(_.has(s, 'encrypted'))
-              u.encrypted = s.encrypted == 'true';
-
+            // ensure encrypted flag is a boolean
+            u.encrypted = u.encrypted == 'true';
             done(err, u);
           });
         },
@@ -73,28 +85,5 @@ function renderListing(req, res, listingHash, title, publicUserListing) {
     });
   });
 }
-
-// private listings
-router.get('/private', requireAuth);
-router.get('/private', function(req, res) {
-  renderListing(req, res,
-                'user:' + req.sessionUser + ':private',
-                "Private Uploads", false);
-});
-
-// public listings
-router.get('/public', function(req, res) {
-  renderListing(req, res, 'public', "Public Uploads", false);
-});
-router.get('/user/:user/public', function(req, res) {
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1)
-  }
-
-  renderListing(req, res,
-               'user:' + req.params.user + ':public',
-               capitalize(req.params.user) + "'s Public Uploads",
-               true);
-});
 
 module.exports = router;

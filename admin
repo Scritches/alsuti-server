@@ -30,7 +30,10 @@ function main() {
     db.select(process.env.ALSUTI_DATABASE);
   }
 
-  if(argv[0] == 'setuser') {
+  if(argv[0] == 'flush') {
+    db.flushdb();
+  }
+  else if(argv[0] == 'setuser') {
     if(argv.length == 3) {
       setUser(argv[1], argv[2]);
       console.log("User '" + argv[1] + "' set with password: " + argv[2]);
@@ -68,7 +71,6 @@ function main() {
       console.log("Example: ./admin mkdb user=someone password=something");
     }
     else {
-      db.flushdb();            // ensure clean state
       setUser(user, password); // add default user
 
       var slugs = fs.readdirSync('files').filter(function(slug) {

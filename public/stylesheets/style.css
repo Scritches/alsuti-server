@@ -10,7 +10,7 @@ a {
 .error {
   color: #FF2020;
 }
-#uploadDetails {
+.uploadDetails {
   float: right;
   display: inline;
 }

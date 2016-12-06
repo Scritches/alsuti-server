@@ -59,6 +59,19 @@ app.use(multer());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// the flag added to the request by the handler below determines
+// whether json or html is returned by the server
+
+app.use(function(req, res, next) {
+  if(req.method == 'POST') {
+    req.apiRequest = req.body.api || false;
+  } else {
+    req.apiRequest = req.headers.api || false;
+  }
+
+  next();
+});
+
 // set up primary routes
 app.use('/', require('./routes/users.js'));
 app.use('/', require('./routes/listings.js'));

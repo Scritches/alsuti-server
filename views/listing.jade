@@ -19,9 +19,9 @@ body(onload='renderTimes();')
           a(class='encrypted' href='/#{u.fileName}')= u.title || u.fileName
         -else
           a(href='/#{u.fileName}')= u.title || u.fileName
-        div#uploadDetails
+        div.uploadDetails
           | at 
-          span(class='uploadTime' style='display:none;')= u.time
+          span(class='uploadTime')= u.time
           -if(showUser)
             |  by 
             span(class='uploadUser') <b>#{u.user}</b>

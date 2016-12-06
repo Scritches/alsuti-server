@@ -14,4 +14,5 @@ body
       h1#title= Info
     -if(message != null)
       p= message
-    a(href='#{returnPath || "/"}') Return
+    -if(returnPath != null)
+      a(href='#{returnPath}') Go Back

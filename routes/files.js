@@ -10,88 +10,175 @@ var _ = require('underscore')._,
 
 var router = express.Router();
 
+router.get('/', requireAuth);
+router.get('/', function(req, res) {
+  res.render('upload', {
+    'title': "Upload",
+    'sessionUser': req.sessionUser
+  });
+});
+
 router.post('/upload', requireAuth);
 router.post('/upload', function(req, res) {
   var localPath,
-      fileName;
-
-  res.setHeader('Content-Type', 'application/text');
+      ext,
+      fileName,
+      url;
 
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
-    fileName = shortid.generate() + '.' +
-					 _.last(req.files.fileupload.originalname.split('.'));
+    ext = _.last(req.files.fileupload.originalname.split('.'));
+    fileName = shortid.generate() + '.' + ext;
+    url = req.app.get('externalPath') + '/' + fileName;
 
     fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + fileName, data, function(err) {
-        res.send(req.app.get('externalPath') + '/' + fileName);
+        postWrite(err);
       });
     });
   }
   else if(_.has(req.body, 'uri')) {
     localPath = __dirname + '/../files/';
-    fileName = shortid.generate() + '.' + 
-					 _.last(req.body.uri.split('.')).replace(/\?.*$/,'').replace(/:.*$/,'');
+    ext = _.last(req.body.uri.split('.')).replace(/\?.*$/,'').replace(/:.*$/,'');
+    fileName = shortid.generate() + '.' + ext;
+    url = req.app.get('externalPath') + '/' + fileName;
 
-    request.get(req.body.uri).pipe(fs.createWriteStream(localPath + fileName))
+    request.get(req.body.uri) // ...
+      .pipe(fs.createWriteStream(localPath + fileName))
       .on('close', function() {
-        res.send(req.app.get('externalPath') + '/' + fileName);
+        postWrite(err);
       });
   }
   else if(_.has(req.body, 'content')) {
     localPath = __dirname + '/../files/';
+    ext = req.body.extension;
     fileName = shortid.generate() + '.' + req.body.extension;
+    url = req.app.get('externalPath') + '/' + fileName;
+
     fs.writeFile(localPath + fileName, req.body.content, function(err) {
-      res.send(req.app.get('externalPath') + '/' + fileName);
+      postWrite(err);
     });
   }
   else {
     res.status(400);
-    res.send("Error: Nothing was uploaded");
+    if(req.apiRequest) {
+      res.setHeader('Content-Type', 'application/json');
+      res.json({'error': "Nothing was uploaded"});
+    }
+    else {
+      res.redirect('/');
+    }
+
     return;
   }
 
-  // store metadata
+  function postWrite(err) {
+    if(err) {
+      fs.unlink(localPath + fileName, function(err) {
+        if(req.apiRequest) {
+          res.setHeader('Content-Type', 'application/json');
+          res.json({'error': "Cannot write file"});
+        }
+        else {
+          res.redirect('/');
+        }
+      });
+      return;
+    }
 
-  var db = req.app.get('database'),
-      uHash = 'upload:' + fileName,
-      userHash = 'user:' + req.sessionUser,
-      encrypted = _.has(req.body, 'encrypted') && req.body.encrypted == 'true',
-      _public = _.has(req.body, 'public') && req.body.public == 'true',
-      title = req.body.title || null,
-      description = req.body.description || null;
+    var db = req.app.get('database'),
+        uHash = 'upload:' + fileName,
+        userHash = 'user:' + req.sessionUser,
+        encrypted = _.has(req.body, 'encrypted') && req.body.encrypted == 'true',
+        _public = _.has(req.body, 'public') && req.body.public == 'true',
+        title = req.body.title || null,
+        description = req.body.description || null;
 
-  db.hmset(uHash,
-    'user', req.sessionUser,
-    'time', Date.now(),
-    'encrypted', encrypted,
-    'public', _public
-  );
+    async.series([
+      function(done) {
+        var pairs = [
+          'user', req.sessionUser,
+          'time', Date.now(),
+          'encrypted', encrypted,
+          'public', _public
+        ];
 
-  if(title != null) {
-    title = title.trim();
-    if(title.length > 0)
-      db.hset(uHash, 'title', title);
-  }
-  if(description != null) {
-    description = description.trim();
-    if(description.length > 0)
-      db.hset(uHash, 'description', description);
-  }
+        if(title != null) {
+          title = title.trim();
+          if(title.length > 0) {
+            pairs.push('title');
+            pairs.push(title);
+          }
+        }
 
-  if(_public) {
-    db.lpush('public', fileName);
-    db.lpush(userHash + ':public', fileName);
+        if(description != null) {
+          description = desc.trim();
+          if(desc.length > 0) {
+            pairs.push('description');
+            pairs.push(description);
+          }
+        }
+
+        db.hmset(uHash, pairs, function(err, reply) {
+          done(err);
+        });
+      },
+      function(done) {
+        if(_public) {
+          db.multi([
+            ['lpush', 'public', fileName],
+            ['lpush', userHash + ':public', fileName]
+          ]).exec(function(err, replies) {
+            done(err);
+          });
+        }
+        else {
+          db.lpush(userHash + ':private', fileName, function(err, reply) {
+            done(err);
+          });
+        }
+      }],
+      function(err) {
+        if(!err) {
+          // upload successful, return url
+          if(req.apiRequest) {
+            res.setHeader('Content-Type', 'application/json');
+            res.json({'url': url});
+          }
+          else {
+            res.status(302);
+            res.redirect(url);
+          }
+        }
+        else {
+          // database error, file still written
+          if(req.apiRequest) {
+            res.setHeader('Content-Type', 'application/json');
+            res.json({'error': "Database error"});
+          }
+          else {
+            res.redirect('/');
+          }
+        }
+      }
+    );
   }
-  else {
-    db.lpush(userHash + ':private', fileName);
-  }
+});
+/*
+router.get('/rename', requireAuth);
+router.get('/rename', function(req, res) {
+  res.render('rename', u);
 });
 
 router.post('/rename', requireAuth);
 router.post('/rename', function(req, res) {
 });
 
+router.get('/delete', requireAuth);
+router.get('/delete/:file', function(req, res) {
+  res.render('delete', u);
+}
+*/
 router.post('/delete', requireAuth);
 router.post('/delete', function(req, res) {
   res.setHeader('Content-Type', 'application/text');
@@ -136,15 +223,7 @@ router.post('/delete', function(req, res) {
   });
 });
 
-router.get('/', requireAuth);
-router.get('/', function(req, res) {
-  res.render('upload', {
-    'title': "Upload",
-    'sessionUser': req.sessionUser
-  });
-});
-
-router.get('/:file', function(req, res) {
+router.get('/:file', function(req, res, rf) {
   var u;
   async.series([
     function(done) {
@@ -177,6 +256,11 @@ router.get('/:file', function(req, res) {
         else
           u.encrypted = false;
 
+        if(_.has(u, 'public'))
+          u.public = u.public == 'true';
+        else
+          u.public = false;
+
         done();
       });
     }],
@@ -184,16 +268,21 @@ router.get('/:file', function(req, res) {
       if(u == null) {
         res.render('info', {
           'title': "Error",
-          'message': "File not found."
+          'message': "File not found.",
+          'returnPath': req.headers.referer || null
         });
         return;
       }
 
-			var filePath = __dirname + '/../files/' + req.params.file,
-					ext = _.last(req.params.file.split('.')).toLowerCase();
+      var filePath = __dirname + '/../files/' + req.params.file,
+          ext = _.last(req.params.file.split('.')).toLowerCase();
+
+      function isImage(ext) {
+        return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+      }
 
       if(req.device.type == 'bot' ||
-         (u.encrypted == false && _.include(['jpg', 'png', 'gif', 'jpeg'], ext)))
+         (u.encrypted == false && isImage(ext)))
       {
         res.sendFile(path.resolve(filePath));
       }
@@ -213,7 +302,8 @@ router.get('/:file', function(req, res) {
           else {
             res.render('info', {
               'title': "Error",
-              'message': "Cannot read file."
+              'message': "Cannot read file.",
+              'returnPath': req.headers.referer || null
             });
           }
         });
@@ -222,7 +312,7 @@ router.get('/:file', function(req, res) {
   );
 });
 
-// handle deprecated URLs for encrypted file view
+// handle deprecated encrypted views
 router.get('/e/:file', function(req, res) {
   res.redirect(301, '/' + req.params.file);
 });

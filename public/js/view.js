@@ -105,7 +105,7 @@ function decrypt(hashPassword) {
 
   var eContent = cipherText || content.text(),
       splitFile = fileName.split('.'),
-      ext = splitFile[splitFile.length-1].toLowerCase();
+      ext = splitFile[splitFile.length - 1].toLowerCase();
 
   function notifyWrongPassword() {
     decryptError = true;
@@ -130,7 +130,11 @@ function decrypt(hashPassword) {
 
   $('#decryption').hide();
 
-  if([ 'jpg', 'png', 'gif', 'jpeg' ].indexOf(ext) !== -1) { // todo: split this out
+  function isImage(ext) {
+    return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+  }
+
+  if(isImage(ext)) {
     content.remove();
 
     var imageData;

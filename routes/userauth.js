@@ -5,7 +5,10 @@ function requireAuth(req, res, next) {
   var db = req.app.get('database');
 
   // verify user/password and create session
-  if(_.has(req.body, 'user') && _.has(req.body, 'password')) {
+  if(req.method == 'POST' &&
+     _.has(req.body, 'user') &&
+     _.has(req.body, 'password'))
+  {
     var userHash = 'user:' + req.body.user;
     db.hget(userHash, 'password', function(err, pHash) {
       bcrypt.compare(req.body.password, pHash, function(err, result) {
@@ -15,16 +18,24 @@ function requireAuth(req, res, next) {
         }
         else {
           res.status(401);
-          res.render('login', {
-            'error': "Invalid user/password",
-            'returnPath': req.path
-          });
+          if(req.apiRequest) {
+            res.setHeader('Content-Type', 'application/json');
+            res.json({'error': "Invalid user/password"});
+          }
+          else {
+            res.render('login', {
+              'error': "Invalid user/password",
+              'returnPath': req.path
+            });
+          }
         }
       });
     });
   }
   // authenticate session
-  else if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
+  else if(_.has(req.cookies, 'sessionUser') &&
+          _.has(req.cookies, 'sessionKey'))
+  {
     var sessionUser = req.cookies.sessionUser,
         clientSessionKey = req.cookies.sessionKey,
         userHash = 'user:' + sessionUser;
@@ -34,37 +45,53 @@ function requireAuth(req, res, next) {
         db.hget(userHash, 'sessionExpiry', function(err, sessionExpiry) {
           sessionExpiry = parseInt(sessionExpiry);
           if(!err && Date.now() < sessionExpiry) {
-            req.sessionUser = sessionUser;
-            // reset the session's expiry date
             var newExpiry = Date.now() + req.app.get('sessionAge');
             db.hset(userHash, 'sessionExpiry', newExpiry);
-            // set session user for other handlers to use
+            req.sessionUser = sessionUser;
             next();
           }
           else {
             res.status(401);
-            res.render('login', {
-              'error': "Session expired",
-              'returnPath': req.path
-            });
+            if(req.apiRequest) {
+              res.setHeader('Content-Type', 'application/json');
+              res.json({'error': "Session expired"});
+            }
+            else {
+              res.render('login', {
+                'error': "Session expired",
+                'returnPath': req.path
+              });
+            }
           }
         })
       }
       else {
         res.status(401);
-        res.render('login', {
-          'error': "Invalid session key",
-          'returnPath': req.path
-        });
+        if(req.apiRequest) {
+          res.setHeader('Content-Type', 'application/json');
+          res.json({'error': "Invalid session key"});
+        }
+        else {
+          res.render('login', {
+            'error': "Invalid session key",
+            'returnPath': req.path
+          });
+        }
       }
     });
   }
   else {
     res.status(401);
-    res.render('login', {
-      'error': "Authentication required",
-      'returnPath': req.path
-    });
+    if(req.apiRequest) {
+      res.setHeader('Content-Type', 'application/json');
+      res.json({'error': "Authentication required"});
+    }
+    else {
+      res.render('login', {
+        'error': "Authentication required",
+        'returnPath': req.path
+      });
+    }
   }
 }
 
