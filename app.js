@@ -64,9 +64,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
   if(req.method == 'POST') {
-    req.apiRequest = req.body.api || false;
+    req.apiRequest = Boolean(req.body.api) || false;
   } else {
-    req.apiRequest = req.headers.api || false;
+    req.apiRequest = Boolean(req.headers.api) || false;
   }
 
   next();

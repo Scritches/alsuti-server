@@ -10,15 +10,20 @@ router.post('/login', requireAuth);
 router.post('/login', function(req, res) {
   var db = req.app.get('database');
       userHash = 'user:' + req.body.user,
-      sessionKey = shortid.generate(),
-      sessionExpiry = Date.now() + req.app.get('sessionAge');
+      sessionKey = shortid.generate();
+
+  var sessionExpiry;
+  if(_.has(req.body, 'noExpiry') && req.body.noExpiry) {
+    sessionExpiry = 'never';
+  } else {
+    sessionExpiry = Date.now() + req.app.get('sessionAge');
+  }
 
   // store sessionKey in database
   db.hmset(userHash, ['sessionKey', sessionKey, 'sessionExpiry', sessionExpiry],
   function(err, reply) {
     if(!err) {
       var cookieOptions = {
-        maxAge: req.app.get('cookieAge'),
         httpOnly: true
       };
 
@@ -30,6 +35,9 @@ router.post('/login', function(req, res) {
         });
       }
       else {
+        if(sessionExpiry != 'never')
+          cookieOptions.maxAge = req.app.get('cookieAge');
+
         // set session cookies
         res.cookie('sessionUser', req.sessionUser, cookieOptions);
         res.cookie('sessionKey', sessionKey, cookieOptions);
@@ -48,12 +56,12 @@ router.post('/login', function(req, res) {
     else {
       if(req.apiRequest) {
         res.setHeader('Content-Type', 'application/json');
-        res.json({'error': "Database error"});
+        res.json({'error': "Database error."});
       }
       else {
         res.render('info', {
           'title': "Database Error",
-          'message': "Cannot store session"
+          'message': "Cannot initiate session."
         });
       }
     }
@@ -78,27 +86,6 @@ router.get('/logout', function(req, res) {
 
   db.hdel(userHash, 'sessionKey', 'sessionExpiry');
   res.redirect(req.headers.referer || '/');
-});
-
-router.post('/auth', function(req, res) {
-});
-
-// generic api logout
-router.post('/deauth', requireAuth);
-router.post('/deauth', function(req, res) {
-  if(_.has(req.body, 'api') && req.body.api) {
-    res.setHeader('Content-Type', 'application/json');
-
-    var db = req.app.get('database'),
-        userHash = 'user:' + req.body.user;
-
-    db.hdel(userHash, 'sessionKey', 'sessionExpiry');
-    res.json({'success': "Logged out"});
-  }
-  else {
-    res.setHeader('Content-Type', 'application/text');
-    res.send("This is only meant for API requests");
-  }
 });
 
 module.exports = router;

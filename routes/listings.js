@@ -1,7 +1,8 @@
 var _ = require('underscore'),
     async = require('async'),
     express = require('express'),
-    requireAuth = require('./userauth');
+    requireAuth = require('./userauth'),
+    isTrue = require('./truthiness');
 
 var router = express.Router();
 
@@ -63,11 +64,9 @@ function renderListing(req, res, publicUserListing, listingHash, title) {
               'description': s.description || null,
               'time': s.time || null,
               'user': s.user || null,
-              'encrypted': s.encrypted || 'false',
+              'encrypted': isTrue(s.encrypted) || false,
             };
 
-            // ensure encrypted flag is a boolean
-            u.encrypted = u.encrypted == 'true';
             done(err, u);
           });
         },

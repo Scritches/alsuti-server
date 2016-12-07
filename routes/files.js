@@ -6,7 +6,8 @@ var _ = require('underscore')._,
     path = require('path'),
     request = require('request'),
     shortid = require('shortid'),
-    requireAuth = require('./userauth');
+    requireAuth = require('./userauth'),
+    isTrue = require('./truthiness');
 
 var router = express.Router();
 
@@ -63,7 +64,7 @@ router.post('/upload', function(req, res) {
     res.status(400);
     if(req.apiRequest) {
       res.setHeader('Content-Type', 'application/json');
-      res.json({'error': "Nothing was uploaded"});
+      res.json({'error': "Nothing was uploaded."});
     }
     else {
       res.redirect('/');
@@ -74,23 +75,21 @@ router.post('/upload', function(req, res) {
 
   function postWrite(err) {
     if(err) {
-      fs.unlink(localPath + fileName, function(err) {
-        if(req.apiRequest) {
-          res.setHeader('Content-Type', 'application/json');
-          res.json({'error': "Cannot write file"});
-        }
-        else {
-          res.redirect('/');
-        }
-      });
+      if(req.apiRequest) {
+        res.setHeader('Content-Type', 'application/json');
+        res.json({'error': "Cannot write file."});
+      }
+      else {
+        res.redirect('/');
+      }
       return;
     }
 
     var db = req.app.get('database'),
         uHash = 'upload:' + fileName,
         userHash = 'user:' + req.sessionUser,
-        encrypted = _.has(req.body, 'encrypted') && req.body.encrypted == 'true',
-        _public = _.has(req.body, 'public') && req.body.public == 'true',
+        encrypted = isTrue(req.body.encrypted) || false,
+        _public = isTrue(req.body.public) || false,
         title = req.body.title || null,
         description = req.body.description || null;
 
@@ -152,13 +151,15 @@ router.post('/upload', function(req, res) {
         }
         else {
           // database error, file still written
-          if(req.apiRequest) {
-            res.setHeader('Content-Type', 'application/json');
-            res.json({'error': "Database error"});
-          }
-          else {
-            res.redirect('/');
-          }
+          fs.unlink(localPath + fileName, function(err) {
+            if(req.apiRequest) {
+              res.setHeader('Content-Type', 'application/json');
+              res.json({'error': "Database error."});
+            }
+            else {
+              res.redirect('/');
+            }
+          });
         }
       }
     );
@@ -181,11 +182,19 @@ router.get('/delete/:file', function(req, res) {
 */
 router.post('/delete', requireAuth);
 router.post('/delete', function(req, res) {
-  res.setHeader('Content-Type', 'application/text');
-
   var fileName = req.body.file || null;
   if(fileName == null) {
-    res.send("Error: No file specified.");
+    if(req.apiRequest) {
+      res.setHeader('Content-Type', 'application/json');
+      res.json({'error': "No file specified."});
+    }
+    else {
+      res.status(400);
+      res.render('info', {
+        'title': "Error",
+        'message': "No file specified."
+      });
+    }
     return;
   }
 
@@ -193,32 +202,50 @@ router.post('/delete', function(req, res) {
       uHash = 'upload:' + fileName;
 
   db.hmget(uHash, ['user', 'public'], function(err, data) {
-    if(!err && data[0] != null) {
+    if(!err) {
       // check if authorized user owns this file
       if(data[0] == req.sessionUser) {
         var userHash = 'user:' + data[0],
             filePath = __dirname + '/../files/' + fileName;
 
-        // delete metadata
-        db.del(uHash);
-        if(data[1] == 'true') {
-          db.lrem('public', 1, fileName);
-          db.lrem(userHash + ':public', 1, fileName);
+        // delete file and then the metadata
+        fs.unlink(filePath, function(err) {
+          db.del(uHash);
+          if(isTrue(data[1])) {
+            db.lrem('public', 1, fileName);
+            db.lrem(userHash + ':public', 1, fileName);
+          }
+          else {
+            db.lrem(userHash + ':private', 1, fileName);
+          }
+        });
+
+        if(req.apiRequest) {
+          res.setHeader('Content-Type', 'application/json');
+          res.json({'success': "File deleted."});
         }
         else {
-          db.lrem(userHash + ':private', 1, fileName);
+          res.redirect(req.body.returnPath || '/');
         }
-
-        fs.unlink(filePath, function(err) {
-          res.send("Success: File deleted.");
-        });
       }
       else {
-        res.send("Error: Not authorized.");
+        if(req.apiRequest) {
+          res.setHeader('Content-Type', 'application/json');
+          res.json({'error': "Not authorized."});
+        }
+        else {
+          res.redirect(req.body.returnPath || '/');
+        }
       }
     }
     else {
-      res.send("Error: No such file.");
+      if(req.apiRequest) {
+        res.setHeader('Content-Type', 'application/json');
+        res.json({'error': "No such file."});
+      }
+      else {
+        res.redirect(req.body.returnPath || '/');
+      }
     }
   });
 });
@@ -228,7 +255,7 @@ router.get('/:file', function(req, res, rf) {
   async.series([
     function(done) {
       var db = req.app.get('database'),
-          uHash = 'upload:' + req.params['file'];
+          uHash = 'upload:' + req.params.file;
 
       db.hgetall(uHash, function(err, obj) {
         if(err != null || obj == null) {
@@ -251,26 +278,25 @@ router.get('/:file', function(req, res, rf) {
         else
           u.time = null;
 
-        if(_.has(u, 'encrypted'))
-          u.encrypted = u.encrypted == 'true';
-        else
-          u.encrypted = false;
-
-        if(_.has(u, 'public'))
-          u.public = u.public == 'true';
-        else
-          u.public = false;
+        u.encrypted = isTrue(u.encrypted) || false;
+        u.public = isTrue(u.public) || false;
 
         done();
       });
     }],
     function(err) {
       if(u == null) {
-        res.render('info', {
-          'title': "Error",
-          'message': "File not found.",
-          'returnPath': req.headers.referer || null
-        });
+        if(req.apiRequest) {
+          res.setHeader('Content-Type', 'application/json');
+          res.json({'error': "File not found."});
+        }
+        else {
+          res.render('info', {
+            'title': "Error",
+            'message': "File not found.",
+            'returnPath': req.headers.referer || null
+          });
+        }
         return;
       }
 
@@ -300,11 +326,17 @@ router.get('/:file', function(req, res, rf) {
             });
           }
           else {
-            res.render('info', {
-              'title': "Error",
-              'message': "Cannot read file.",
-              'returnPath': req.headers.referer || null
-            });
+            if(req.apiRequest) {
+              res.setHeader('Content-Type', 'application/json');
+              res.json({'error': "Cannot read file."});
+            }
+            else {
+              res.render('info', {
+                'title': "Error",
+                'message': "Cannot read file.",
+                'returnPath': req.headers.referer || null
+              });
+            }
           }
         });
       }
