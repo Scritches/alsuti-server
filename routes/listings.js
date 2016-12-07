@@ -72,13 +72,19 @@ function renderListing(req, res, publicUserListing, listingHash, title) {
         },
         // render when all slugs are transformed
         function(err, uploads) {
-          res.render('listing', {
-            'title': title,
-            'uploads': uploads,
-            'page': page,
-            'lastPage': end >= len,
-            'showUser': publicUserListing == false
-          });
+          if(req.apiRequest) {
+            res.json(uploads);
+            res.setHeader('Content-Type', 'application/json');
+          }
+          else {
+            res.render('listing', {
+              'title': title,
+              'uploads': uploads,
+              'page': page,
+              'lastPage': end >= len,
+              'showUser': publicUserListing == false
+            });
+          }
         }
       );
     });

@@ -32,11 +32,11 @@ html
       -if(encrypted)
         div#decryption
           input#passwordEntry(placeholder='Password' type='password')
-          button#decryptButton(type='button' onclick='decrypt()') Decrypt
+          button#decryptButton(onclick='decrypt();') Decrypt
       a#downloadLink(style='display:none;') Download
       label#lineNumbersLabel(style='display:none;')
         input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
-        | Show Line Numbers
+        | Line Numbers
       div.uploadDetails
         | Uploaded at 
         span(class='uploadTime')= time
@@ -47,4 +47,7 @@ html
     center
       img#image(style='display:none;')
     pre
-      code#content #{content}
+      -if(encrypted)
+        code#content(style='display:none;') #{content}
+      -else
+        code#content #{content}

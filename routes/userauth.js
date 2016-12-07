@@ -20,7 +20,10 @@ function requireAuth(req, res, next) {
           res.status(401);
           if(req.apiRequest) {
             res.setHeader('Content-Type', 'application/json');
-            res.json({'error': "Invalid user/password"});
+            res.json({
+              'error': true,
+              'message': "Invalid user/password"
+            });
           }
           else {
             res.render('login', {
@@ -58,7 +61,10 @@ function requireAuth(req, res, next) {
               res.status(401);
               if(req.apiRequest) {
                 res.setHeader('Content-Type', 'application/json');
-                res.json({'error': "Session expired."});
+                res.json({
+                  'error': true,
+                  'message': "Session expired."
+                });
               }
               else {
                 res.render('login', {
@@ -71,7 +77,10 @@ function requireAuth(req, res, next) {
           else {
             if(req.apiRequest) {
               res.setHeader('Content-Type', 'application/json');
-              res.json({'error': "Database error."});
+              res.json({
+                'error': true,
+                'message': "Database error."
+              });
             }
             else {
               res.render('info', {
@@ -87,7 +96,10 @@ function requireAuth(req, res, next) {
         res.status(401);
         if(req.apiRequest) {
           res.setHeader('Content-Type', 'application/json');
-          res.json({'error': "Invalid session key."});
+          res.json({
+            'error': true,
+            'message': "Invalid session key."
+          });
         }
         else {
           res.render('login', {
@@ -102,7 +114,10 @@ function requireAuth(req, res, next) {
     res.status(401);
     if(req.apiRequest) {
       res.setHeader('Content-Type', 'application/json');
-      res.json({'error': "Authentication required."});
+      res.json({
+        'error': true,
+        'message': "Authentication required."
+      });
     }
     else {
       res.render('login', {

@@ -142,7 +142,10 @@ router.post('/upload', function(req, res) {
           // upload successful, return url
           if(req.apiRequest) {
             res.setHeader('Content-Type', 'application/json');
-            res.json({'url': url});
+            res.json({
+              'error': false,
+              'url': url
+            });
           }
           else {
             res.status(302);
@@ -154,7 +157,10 @@ router.post('/upload', function(req, res) {
           fs.unlink(localPath + fileName, function(err) {
             if(req.apiRequest) {
               res.setHeader('Content-Type', 'application/json');
-              res.json({'error': "Database error."});
+              res.json({
+                'error': true,
+                'message': "Database error."
+              });
             }
             else {
               res.redirect('/');
@@ -186,7 +192,10 @@ router.post('/delete', function(req, res) {
   if(fileName == null) {
     if(req.apiRequest) {
       res.setHeader('Content-Type', 'application/json');
-      res.json({'error': "No file specified."});
+      res.json({
+        'error': true,
+        'message': "No file specified."
+      });
     }
     else {
       res.status(400);
@@ -222,7 +231,10 @@ router.post('/delete', function(req, res) {
 
         if(req.apiRequest) {
           res.setHeader('Content-Type', 'application/json');
-          res.json({'success': "File deleted."});
+          res.json({
+            'error': false,
+            'message': "File deleted."
+          });
         }
         else {
           res.redirect(req.body.returnPath || '/');
@@ -231,7 +243,10 @@ router.post('/delete', function(req, res) {
       else {
         if(req.apiRequest) {
           res.setHeader('Content-Type', 'application/json');
-          res.json({'error': "Not authorized."});
+          res.json({
+            'error': true,
+            'message': "Not authorized."
+          });
         }
         else {
           res.redirect(req.body.returnPath || '/');
@@ -241,7 +256,10 @@ router.post('/delete', function(req, res) {
     else {
       if(req.apiRequest) {
         res.setHeader('Content-Type', 'application/json');
-        res.json({'error': "No such file."});
+        res.json({
+          'error': true,
+          'message': "No such file."
+        });
       }
       else {
         res.redirect(req.body.returnPath || '/');
@@ -288,7 +306,10 @@ router.get('/:file', function(req, res, rf) {
       if(u == null) {
         if(req.apiRequest) {
           res.setHeader('Content-Type', 'application/json');
-          res.json({'error': "File not found."});
+          res.json({
+            'error': true,
+            'message': "File not found."
+          });
         }
         else {
           res.render('info', {
@@ -328,7 +349,10 @@ router.get('/:file', function(req, res, rf) {
           else {
             if(req.apiRequest) {
               res.setHeader('Content-Type', 'application/json');
-              res.json({'error': "Cannot read file."});
+              res.json({
+                'error': true,
+                'message': "Cannot read file."
+              });
             }
             else {
               res.render('info', {

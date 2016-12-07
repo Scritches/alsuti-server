@@ -2,21 +2,10 @@ decryptError = false;
 decryptErrorColour = "#FF2020"
 
 $(function() {
-  loadOptions();
+  var pEntry = $('#passwordEntry'),
+      dButton = $('#decryptButton');
 
-  var pEntry = $("#passwordEntry");
-  pEntry.keyup(function(event) {
-    if(event.keyCode == 13) {
-      decrypt();
-    }
-    else if(decryptError) {
-      window.setTimeout(function() {
-        pEntry.css('color', 'unset');
-        pEntry.css('font-weight', 'normal');
-        decryptError = false;
-      }, 750);
-    }
-  });
+  loadOptions();
 
   if(encrypted) {
     pEntry.focus();
@@ -26,26 +15,41 @@ $(function() {
   } else {
     renderText($('#content').text());
   }
+
+  pEntry.keyup(function(event) {
+    if(event.keyCode == 13 && decryptError == false && pEntry.val().length > 0) {
+      decrypt();
+    }
+  });
+
+  pEntry.on('input', function() {
+    if(decryptError) {
+      window.setTimeout(function() {
+        decryptError = false;
+        pEntry.css('color', 'unset');
+        pEntry.css('font-weight', 'normal');
+        dButton.text('Decrypt');
+        dButton.attr('disabled', false);
+      }, 750);
+    }
+  });
 });
 
 function saveOptions() {
-  Cookies.set('lineNumbers', $('#lineNumbersCheckbox').prop('checked'),
+  Cookies.set('lineNumbers', $('#lineNumbersCheckbox').prop('checked') ? 'on' : 'off',
               { expires: 365, path: '/' });
 }
 
 function loadOptions() {
-  var lineNumbers = Cookies.get('lineNumbers');
-  $('#lineNumbersCheckbox').prop('checked', lineNumbers == 'true');
+  var lineNumbersState = Cookies.get('lineNumbers') == 'on';
+  $('#lineNumbersCheckbox').prop('checked', lineNumbersState);
 }
 
 function toggleLineNumbers() {
   pre = $('pre');
   if($('#lineNumbersCheckbox').prop('checked')) {
     // disable line wrapping
-    pre.css('white-space', 'nowrap');
-    pre.css('overflow-wrap', '');
-    pre.css('word-wrap', 'none');
-
+    pre.css('white-space', 'pre');
     // add line numbers
     $('code').each(function(i, block) {
       hljs.lineNumbersBlock(block);
@@ -54,11 +58,8 @@ function toggleLineNumbers() {
   else {
     // remove line numbers
     $('code.hljs-line-numbers').remove();
-
     // re-enable line wrapping
-    pre.css('overflow-wrap', 'break-word');
-    pre.css('white-space', 'normal');
-    pre.css('word-wrap', 'break-word');
+    pre.css('white-space', 'pre-wrap');
   }
 }
 
@@ -87,12 +88,9 @@ function renderText(content) {
 }
 
 function decrypt(hashPassword) {
-  var dButton = $('#decryptButton'),
-      pEntry = $('#passwordEntry'),
-      content = $('#content'),
-      dButtonOldText = dButton.text();
-
-  dButton.text("Decrypting..");
+  var pEntry = $('#passwordEntry'),
+      dButton = $('#decryptButton'),
+      content = $('#content');
 
   var password;
   if(hashPassword) {
@@ -107,24 +105,21 @@ function decrypt(hashPassword) {
       splitFile = fileName.split('.'),
       ext = splitFile[splitFile.length - 1].toLowerCase();
 
-  function notifyWrongPassword() {
-    decryptError = true;
-    dButton.text(dButtonOldText);
-    pEntryOldBackground = pEntry.css('background-color');
-    pEntry.css('color', decryptErrorColour);
-    pEntry.css('font-weight', 'bold');
-  }
-
-  var plain;
-  try {
-    plain = CryptoJS.AES.decrypt(eContent, password).toString(CryptoJS.enc.Utf8);
-    if(!plain) {
-      notifyWrongPassword();
-      return;
+  function tryDecrypt() {
+    try {
+      return CryptoJS.AES.decrypt(eContent, password).toString(CryptoJS.enc.Utf8);
+    } catch(err) {
+      return null;
     }
   }
-  catch(err) {
-    notifyWrongPassword();
+
+  var plain = tryDecrypt();
+  if(plain == null) {
+    decryptError = true;
+    pEntry.css('color', decryptErrorColour);
+    pEntry.css('font-weight', 'bold');
+    dButton.text("Try Again");
+    dButton.attr('disabled', true);
     return;
   }
 
@@ -166,6 +161,7 @@ function decrypt(hashPassword) {
   }
   else {
     renderText(plain);
+    content.show();
   }
 }
 
