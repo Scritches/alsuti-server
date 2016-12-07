@@ -2,7 +2,7 @@ var _ = require('underscore'),
     async = require('async'),
     express = require('express'),
     requireAuth = require('./userauth'),
-    isTrue = require('./truthiness');
+    isTrue = require('../truthiness');
 
 var router = express.Router();
 

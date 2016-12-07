@@ -10,7 +10,8 @@ var _ = require('underscore')._,
     path = require('path'),
     process = require('process'),
     redis = require('redis'),
-    sys = require('sys');
+    sys = require('sys'),
+    isTrue = require('./truthiness.js');
 
 if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
   console.log('You must set the ALSUTI_INSTANCE environment variable');
@@ -64,9 +65,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
   if(req.method == 'POST') {
-    req.apiRequest = Boolean(req.body.api) || false;
+    req.apiRequest = isTrue(req.body.api) || false;
   } else {
-    req.apiRequest = Boolean(req.headers.api) || false;
+    req.apiRequest = isTrue(req.headers.api) || false;
   }
 
   next();

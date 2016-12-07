@@ -7,7 +7,7 @@ var _ = require('underscore')._,
     request = require('request'),
     shortid = require('shortid'),
     requireAuth = require('./userauth'),
-    isTrue = require('./truthiness');
+    isTrue = require('../truthiness');
 
 var router = express.Router();
 
