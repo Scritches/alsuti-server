@@ -5,25 +5,49 @@ html
     link(rel='stylesheet' href='/stylesheets/style.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript' src='/js/lib/js.cookie.js')
+    script(type='text/javascript' src='/js/listing.js')
     script(type='text/javascript' src='/js/time.js')
 body(onload='renderTimes();')
   h1#title= title
-  div#uploadListingContainer
-    -if(uploads.length == 0)
-      span There's nothing here.
+  div#optionBar
+    div#listingCountContainer(style='display:none;')
+      | Show 
+      select#listingCount(onchange='updateListing();')
+        option 5
+        option 10
+        option 15
+        option 20
+        option 25
+        option 30
+        option 35
+        option 40
+        option 45
+        option 50
+      |  uploads per page
+    script(type='text/javascript').
+      $('#listingCount').val('#{count}');
+      $('#listingCountContainer').show();
+    -if(authorized)
+      a.floatRight(href='/logout') Log Out
     -else
-      include listingBar
-    each u,i in uploads
-      li(class='uploadListing')
-        -if(u.encrypted)
-          a(class='encrypted' href='/#{u.fileName}')= u.title || u.fileName
-        -else
-          a(href='/#{u.fileName}')= u.title || u.fileName
-        div.uploadDetails
-          | at 
-          span(class='uploadTime')= u.time
-          -if(showUser)
-            |  by 
-            span(class='uploadUser') <b>#{u.user}</b>
-    -if(uploads.length > 0)
-      include listingBar
+      a.floatRight(href='/login') Log In
+  -if(uploads.length == 0)
+    span There's nothing here.
+  -else
+    table#uploadListing(border='0' cellpadding='7px' cellspacing='0')
+      each u,i in uploads
+        tr
+          td
+            -if(u.encrypted)
+              a(class='encrypted' href='/#{u.fileName}')= u.title || u.fileName
+            -else
+              a(href='/#{u.fileName}')= u.title || u.fileName
+          td(style='display:none;')
+            span(class='uploadTime')= u.time
+          -if(showUserColumn)
+            td
+              a(href='/user/#{u.user}')= u.user
+          -if(u.isOwner)
+            td
+              a(href='/delete/#{u.fileName}') Delete
+    include listingBar

@@ -9,8 +9,8 @@ head
       p#loginMessage(class='error')= error
     -else
       p#loginMessage= message
-    form#loginForm(action='/login' method='post')
+    form#loginForm(method='post' action='/login')
       input(name='user' placeholder='User')#userEntry
-      input(name='password' placeholder='Password' type="password")#passwordEntry
-      input(name='returnPath' type='hidden' value='#{returnPath}')
+      input(type='password' name='password' placeholder='Password')#passwordEntry
+      input(type='hidden' name='returnPath' value='#{returnPath}')
       button(type='submit') Log In

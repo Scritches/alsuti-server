@@ -1,6 +1,15 @@
 decryptError = false;
 decryptErrorColour = "#FF2020"
 
+function fileExtension(fileName) {
+  return fileName.match(/\.[a-z0-9]+$/i)[0].substr(1) || null;
+}
+
+function isImage(ext) {
+  return ['gif', 'jpg', 'jpeg',
+          'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+}
+
 $(function() {
   var pEntry = $('#passwordEntry'),
       dButton = $('#decryptButton');
@@ -10,10 +19,12 @@ $(function() {
   if(encrypted) {
     pEntry.focus();
     if(window.location.hash) {
-      decrypt(window.location.hash.substr(1));
+      pEntry.val(window.location.hash.substr(1));
+      decrypt();
     }
-  } else {
-    renderText($('#content').text());
+  }
+  else {
+    renderText(null, fileExtension(fileName));
   }
 
   pEntry.keyup(function(event) {
@@ -28,7 +39,6 @@ $(function() {
         decryptError = false;
         pEntry.css('color', 'unset');
         pEntry.css('font-weight', 'normal');
-        dButton.text('Decrypt');
         dButton.attr('disabled', false);
       }, 750);
     }
@@ -57,17 +67,74 @@ function toggleLineNumbers() {
   }
   else {
     // remove line numbers
-    $('code.hljs-line-numbers').remove();
+    $('code.hljs-line-numbers').each(function(i, block) {
+      $(block).remove();
+    });
     // re-enable line wrapping
     pre.css('white-space', 'pre-wrap');
   }
 }
 
-function renderText(content) {
-  var splitFile = fileName.split('.'),
-      ext = splitFile[splitFile.length-1].toLowerCase();
+function decrypt() {
+  var pEntry = $('#passwordEntry'),
+      password = pEntry.val(),
+      ext = fileExtension(fileName);
 
-  $('#content').text(content);
+  function tryDecrypt() {
+    try {
+      return CryptoJS.AES.decrypt(cipherText, password).toString(CryptoJS.enc.Utf8);
+    } catch(err) {
+      return null;
+    }
+  }
+
+  var decrypted = tryDecrypt();
+  if(decrypted == null) {
+    decryptError = true;
+    pEntry.css('color', decryptErrorColour)
+    pEntry.css('font-weight', 'bold');
+    $('#decryptButton').attr('disabled', true);
+    return;
+  }
+
+  $('#decryption').remove();
+
+  if(isImage(ext)) {
+    renderImage(decrypted, ext);
+  } else {
+    renderText(decrypted, ext);
+  }
+}
+
+function renderImage(data, ext) {
+  if(!data.match(/^YW5kcm9pZHN1Y2tz/)) {
+    data = btoa(data);
+  } else {
+    data = data.replace(/^YW5kcm9pZHN1Y2tz/,'');
+  }
+
+  var dLink = $('#downloadLink'),
+      image = $('#image');
+
+  image.attr('src', 'data:image/' + ext +';base64,' + data);
+  image.show();
+
+  dLink.attr('href', 'data:image/'+ ext +';base64,' + data);
+  dLink.show();
+}
+
+function renderText(decryptedText, ext) {
+  if(decryptedText != null) {
+    var content = $('#content');
+    content.text(decryptedText);
+    content.show();
+
+    var dLink = $('#downloadLink');
+    dLink.attr('href', 'data:text/plain;utf-8,' + content.text());
+
+    $('#lineNumbers').show();
+  }
+
   $('code').each(function(i, block) {
     block.className = ext;
     if(ext == 'txt' || ext == 'log') {
@@ -78,98 +145,4 @@ function renderText(content) {
   });
 
   toggleLineNumbers();
-
-  var a = $('#downloadLink');
-  a.attr('href', 'data:text/plain;utf-8,' + content);
-  a.attr('download', fileName);
-  a.show();
-
-  $('#lineNumbersLabel').show();
-}
-
-function decrypt(hashPassword) {
-  var pEntry = $('#passwordEntry'),
-      dButton = $('#decryptButton'),
-      content = $('#content');
-
-  var password;
-  if(hashPassword) {
-    password = hashPassword;
-    pEntry.val(window.location.hash.substr(1));
-  }
-  else {
-    password = pEntry.val();
-  }
-
-  var eContent = cipherText || content.text(),
-      splitFile = fileName.split('.'),
-      ext = splitFile[splitFile.length - 1].toLowerCase();
-
-  function tryDecrypt() {
-    try {
-      return CryptoJS.AES.decrypt(eContent, password).toString(CryptoJS.enc.Utf8);
-    } catch(err) {
-      return null;
-    }
-  }
-
-  var plain = tryDecrypt();
-  if(plain == null) {
-    decryptError = true;
-    pEntry.css('color', decryptErrorColour);
-    pEntry.css('font-weight', 'bold');
-    dButton.text("Try Again");
-    dButton.attr('disabled', true);
-    return;
-  }
-
-  $('#decryption').hide();
-
-  function isImage(ext) {
-    return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
-  }
-
-  if(isImage(ext)) {
-    content.remove();
-
-    var imageData;
-    if(!plain.match(/^YW5kcm9pZHN1Y2tz/)) {
-      imageData = btoa(plain);
-    } else {
-      imageData = plain.replace(/^YW5kcm9pZHN1Y2tz/,'');
-    }
-
-    var image = $('#image'),
-        dLink = $('#downloadLink');
-
-    image.attr('src', 'data:image/' + ext +';base64,' + imageData);
-    image.show();
-
-    dLink.attr('href', 'data:image/'+ ext +';base64,' + imageData);
-    dLink.attr('download', fileName);
-    dLink.show();
-  }
-  else if(ext == 'pdf') {
-    content.remove();
-
-    var dLink = $('#downloadLink'),
-        imageData = btoa(plain);
-
-    dLink.attr('href', 'data:application/' + ext + ';base64,' + imageData);
-    dLink.attr('download', fileName);
-    dLink.show();
-  }
-  else {
-    renderText(plain);
-    content.show();
-  }
-}
-
-function renderTimes() {
-  $('.uploadTime').each(function(i) {
-    console.log("TIMEZ - " + i)
-    var d = new Date(parseInt(this.text));
-    $(this).text(d.toLocaleString());
-    $(this).show();
-  });
 }

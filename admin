@@ -90,10 +90,10 @@ function main() {
 
       for(var i=0; i < uploads.length; ++i) {
         var u = uploads[i],
-            uHash = 'upload:' + u.fileName,
+            fHash = 'file:' + u.fileName,
             settings = [];
 
-        db.hmset(uHash,
+        db.hmset(fHash,
           'user', user,
           'time', u.time,
           'encrypted', u.encrypted ? 'true' : 'false',
@@ -103,10 +103,10 @@ function main() {
         // push to user upload lists
         var userHash = 'user:' + user;
         if(_public) {
-          db.lpush('public', u.fileName);
-          db.lpush(userHash + ':public', u.fileName);
+          db.zadd('public', u.time, u.fileName);
+          db.zadd(userHash + ':public', u.time, u.fileName);
         } else {
-          db.lpush(userHash + ':private', u.fileName);
+          db.zadd(userHash + ':private', u.time, u.fileName);
         }
 
         console.log(u.fileName + ": time=" + u.time.toString() + (u.encrypted ? ', encrypted' : ''));

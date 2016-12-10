@@ -1,63 +1,80 @@
 var _ = require('underscore'),
     async = require('async'),
     express = require('express'),
-    requireAuth = require('./userauth'),
+    auth = require('./userauth'),
     isTrue = require('../truthiness');
 
 var router = express.Router();
 
-router.get('/private', requireAuth);
+router.get('/private', auth.required);
 router.get('/private', function(req, res) {
-  renderListing(req, res, false,
-                'user:' + req.sessionUser + ':private',
-                "Private Uploads");
+  renderListing(req, res, 'user:' + req.sessionUser + ':private',
+                "Private Uploads", false);
 });
 
 router.get('/public', function(req, res) {
-  renderListing(req, res, false, 'public', "Public Uploads");
+  renderListing(req, res, 'public', "Public Uploads", true);
 });
 
-router.get('/user/:user/public', function(req, res) {
+router.get('/user/:user', function(req, res) {
   function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1)
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  renderListing(req, res, true,
-                'user:' + req.params.user + ':public',
-                capitalize(req.params.user) + "'s Public Uploads");
-});
-
-// listing renderer
-function renderListing(req, res, publicUserListing, listingHash, title) {
   var db = req.app.get('database');
-  db.llen(listingHash, function(err, len) {
-    if(publicUserListing && err) {
+  db.exists('user:' + req.params.user, function(err, exists) {
+    if(exists) {
+      renderListing(req, res, 'user:' + req.params.user + ':public',
+                    capitalize(req.params.user) + "'s Public Uploads",
+                    false);
+    }
+    else {
       res.render('info', {
         'title': "Error",
         'message': "No such user.",
       });
-      return;
     }
+  });
 
-    var page;
-    if(_.has(req.query, 'page')) {
-      page = parseInt(req.query['page']);
-      if(page < 1)
-        page = 1;
-    }
-    else {
+});
+
+// listing renderer
+function renderListing(req, res, zHash, title, showUserColumn) {
+  var page;
+  if(_.has(req.query, 'page')) {
+    page = parseInt(req.query['page']);
+    if(page < 1)
       page = 1;
-    }
+  }
+  else {
+    page = 1;
+  }
 
-    var listingsPerPage = parseInt(process.env.ALSUTI_LISTINGS) || 25,
-        start = (page - 1) * listingsPerPage,
-        end = start + listingsPerPage - 1;
+  var db = req.app.get('database'),
+      count = req.query.count || 15,
+      start = count * (page - 1),
+      end = (start + count) - 1;
 
-    db.lrange(listingHash, start, end, function(err, fileNames) {
+  var m = db.multi();
+
+  m.zcount(zHash, '-inf', '+inf');
+  m.zrevrange(zHash, start, end);
+
+  m.exec(function(err, replies) {
+    if(!err) {
+      var len = replies[0],
+          fileNames = replies[1];
+
       async.map(fileNames,
         // transform each slug into an object
         function(fileName, done) {
-          db.hgetall('upload:' + fileName, function(err, s) {
+          db.hgetall('file:' + fileName, function(err, s) {
+            if(err || s == null) {
+              console.log(fileName);
+              done(err, null);
+              return;
+            }
+
             var u = {
               'fileName': fileName,
               'title': s.title || null,
@@ -65,6 +82,7 @@ function renderListing(req, res, publicUserListing, listingHash, title) {
               'time': s.time || null,
               'user': s.user || null,
               'encrypted': isTrue(s.encrypted) || false,
+              'isOwner': req.authAs(this.user),
             };
 
             done(err, u);
@@ -78,16 +96,24 @@ function renderListing(req, res, publicUserListing, listingHash, title) {
           }
           else {
             res.render('listing', {
+              'authorized': req.auth(),
               'title': title,
               'uploads': uploads,
+              'count': count,
               'page': page,
               'lastPage': end >= len,
-              'showUser': publicUserListing == false
+              'showUserColumn': showUserColumn
             });
           }
         }
       );
-    });
+    }
+    else {
+      res.render('info', {
+        'title': "Database Error",
+        'message': "Cannot render listing."
+      });
+    }
   });
 }
 

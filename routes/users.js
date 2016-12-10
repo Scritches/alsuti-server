@@ -1,12 +1,23 @@
 var _ = require('underscore'),
     express = require('express'),
     shortid = require('shortid'),
-    requireAuth = require('./userauth');
+    auth = require('./userauth');
 
 var router = express.Router();
 
-// login handler. provides a user/token pair to the client.
-router.post('/login', requireAuth);
+router.get('/login', function(req, res) {
+  if(req.auth()) {
+    res.redirect(req.headers.referer || '/');
+    return;
+  }
+
+  res.render('login', {
+    'title': "Log In",
+    'returnPath': req.headers.referer || '/'
+  });
+});
+
+router.post('/login', auth.required);
 router.post('/login', function(req, res) {
   var db = req.app.get('database');
       userHash = 'user:' + req.body.user,
@@ -28,7 +39,7 @@ router.post('/login', function(req, res) {
       };
 
       if(req.apiRequest) {
-        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Type', "application/json");
         res.json({
           'sessionUser': req.sessionUser,
           'sessionKey': sessionKey
@@ -69,19 +80,21 @@ router.post('/login', function(req, res) {
 });
 
 // web logout
-router.get('/logout', requireAuth);
+router.get('/logout', auth.required);
 router.get('/logout', function(req, res) {
   var db = req.app.get('database'),
       userHash = 'user:' + req.cookies.sessionUser;
 
-  if(_.has(req.cookies, 'sessionUser')) {
+  if(_.has(req.cookies, 'sessionUser') ||
+     _.has(req.cookies, 'sessionKey'))
+  {
     var options = {
       'expires': new Date(0),
       'httpOnly': true
     }
 
-    res.cookie("sessionUser", "", options);
-    res.cookie("sessionKey", "", options);
+    res.cookie('sessionUser', '', options);
+    res.cookie('sessionKey', '', options);
   }
 
   db.hdel(userHash, 'sessionKey', 'sessionExpiry');

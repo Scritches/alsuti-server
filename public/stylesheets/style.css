@@ -1,5 +1,5 @@
 body {
-  padding: 50px;
+  padding: 10px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
@@ -10,9 +10,26 @@ a {
 .error {
   color: #FF2020;
 }
-.uploadDetails {
-  float: right;
+.alignRight {
+  text-align: right;
+}
+.floatRight {
+  clear: left;
   display: inline;
+  float: right;
+}
+
+/* generic */
+h1#title {
+  margin: 0px;
+  margin-bottom: 5px;
+}
+p#description {
+  margin: 5px 0px 5px;
+}
+p#uploadDetails {
+  font-size: 90%;
+  margin: 10px 0px 10px;
 }
 
 /* login stuff */
@@ -48,30 +65,43 @@ a {
   min-height: 200px;
 }
 
+/* editing */
+form#editForm,
+form#deleteForm {
+  margin: 15px;
+}
+form#editForm > * {
+  display: block;
+  margin: 5px;
+}
+
+form#editForm input[type=text] {
+  width: 250px;
+}
+
 /* upload listings */
-#uploadListingContainer {
+div#listingCountContainer {
+  display: inline-block;
+}
+table#uploadListing {
   font-family: monospace;
   font-size: 14px;
 }
-li.uploadListing {
-  list-style: none;
-  line-height: 20px;
-  padding: 5px;
+table#uploadListing tr:nth-child(odd) {
+  background-color: #F8F8F8;
 }
-li.uploadListing a {
-  text-decoration: none;
+table#uploadListing tr:nth-child(even) {
+  background-color: #E8E8E8;
 }
-li.uploadListing a.encrypted {
-  color: #FF2020;
+table#uploadListing tr td:first-child {
+  width: 100%;
 }
-li.uploadListing:nth-child(odd) {
-  background-color: #F4F4F4;
-}
-li.uploadListing:nth-child(even) {
-  background-color: #DBDBDB;
+table#uploadListing tr td:not(:first-child) {
+  white-space: nowrap;
+  text-align: right;
 }
 
-/* page stuff */
+/* listings */
 #listingBar {
   font-size: 14px;
   margin: 10px;
@@ -99,14 +129,15 @@ a.pageLink {
   visibility: hidden;
 }
 
-/* view option bar */
+/* view options */
 #optionBar {
   background-color: rgb(240,240,240);
   border: 1px solid #CCC;
   font-size: 14px;
-  line-height: 30px;
+  margin-top: 10px;
   margin-bottom: 10px;
-  padding: 5px;
+  padding: 10px;
+  overflow: auto;
 }
 #optionBar > * {
   margin-right: 10px;
@@ -125,23 +156,11 @@ a.pageLink {
 #decryption > *:last-child {
   margin-right: 0px;
 }
-#decryption input#passwordEntry {
-  font-family: monospace;
-}
 
-/* content */
-h1#title {
-}
-p#description {
-  font-size: 16px;
-}
-pre {
-  width: inherit;
-}
+/* text content */
 code.hljs-line-numbers {
   border-right: 1px solid #CCC;
   color: #999;
-  float: left;
   text-align: right;
   user-select: none;
   -webkit-touch-callout: none;

@@ -15,7 +15,7 @@ html
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
     script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
     script(type='text/javascript').
-      var fileName = "#{fileName}";
+      var fileName = '#{fileName}';
     -if(encrypted)
       script(type='text/javascript').
         var encrypted = true;
@@ -28,26 +28,49 @@ html
       h1#title= title
     -if(description != null)
       p#description= description
+    p#uploadDetails(style='display:none;')
+      | Uploaded on 
+      span(class='uploadTime')= time
+      |  by 
+      span(class='uploadUser') <b>#{user}</b>
     div#optionBar
       -if(encrypted)
         div#decryption
           input#passwordEntry(placeholder='Password' type='password')
           button#decryptButton(onclick='decrypt();') Decrypt
-      a#downloadLink(style='display:none;') Download
-      label#lineNumbersLabel(style='display:none;')
-        input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
-        | Line Numbers
-      div.uploadDetails
-        | Uploaded at 
-        span(class='uploadTime')= time
-        |  by 
-        span(class='uploadUser') <b>#{user}</b>
-      script(type='text/javascript').
-        renderTimes();
-    center
-      img#image(style='display:none;')
-    pre
-      -if(encrypted)
-        code#content(style='display:none;') #{content}
+      -if(encrypted == false)
+        a#downloadLink(href='/raw/#{fileName}' download='#{fileName}') Download
       -else
-        code#content #{content}
+        a#downloadLink(download='#{fileName}') Download
+      -if(isOwner)
+        a#deleteLink(href='/edit/#{fileName}') Edit
+        a#deleteLink(href='/delete/#{fileName}') Delete
+      -if(image == false)
+        -if(encrypted)
+          label#lineNumbers(style='display:none;')
+            input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
+            | Line Numbers
+        -else
+          label#lineNumbers
+            input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
+            | Line Numbers
+      -if(authorized)
+        a.floatRight(href='/logout') Log Out
+      -else
+        a.floatRight(href='/login') Log In
+    script(type='text/javascript').
+      renderTimes();
+    -if(encrypted)
+      -if(image)
+        center
+          img#image(style='display:none;' width:'auth')
+      -else
+        pre
+          code#content(style='display:none;')
+    -else
+      -if(image)
+        center
+          img#image(src='/raw/#{fileName}' width='auto')
+      -else
+        pre
+          code#content= content

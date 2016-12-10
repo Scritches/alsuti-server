@@ -60,10 +60,24 @@ app.use(multer());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// the flag added to the request by the handler below determines
-// whether json or html is returned by the server
-
+// authentication and api response helpers
 app.use(function(req, res, next) {
+  req.auth = function() {
+    return _.has(this, 'sessionUser');
+  }
+
+  req.authAs = function(user) {
+    return _.has(this, 'sessionUser') && user == this.sessionUser;
+  }.bind(req);
+
+  res.api = function(err, msg) {
+    this.setHeader('Content-Type', "application/json");
+    this.json({
+      'error': err,
+      'message': msg
+    });
+  }.bind(res);
+
   if(req.method == 'POST') {
     req.apiRequest = isTrue(req.body.api) || false;
   } else {

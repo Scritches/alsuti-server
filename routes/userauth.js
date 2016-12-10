@@ -1,15 +1,41 @@
 var _ = require('underscore'),
     bcrypt = require('bcrypt-nodejs');
 
-function requireAuth(req, res, next) {
-  var db = req.app.get('database');
+function optional(req, res, next) {
+  var db = req.app.get('database'),
+      sessionUser = req.cookies.sessionUser,
+      clientSessionKey = req.cookies.sessionKey,
+      userHash = 'user:' + sessionUser;
 
+  db.hget(userHash, 'sessionKey', function(err, serverSessionKey) {
+    if(!err && clientSessionKey == serverSessionKey) {
+      db.hget(userHash, 'sessionExpiry', function(err, sessionExpiry) {
+        if(!err) {
+          if(sessionExpiry == 'never') {
+            req.sessionUser = sessionUser;
+          }
+          else if(Date.now() < parseInt(sessionExpiry)) {
+            var newExpiry = Date.now() + req.app.get('sessionAge');
+            db.hset(userHash, 'sessionExpiry', newExpiry);
+            req.sessionUser = sessionUser;
+          }
+
+          next();
+        }
+      });
+    }
+  });
+}
+
+function required(req, res, next) {
   // verify user/password and create session
   if(req.method == 'POST' &&
      _.has(req.body, 'user') &&
      _.has(req.body, 'password'))
   {
-    var userHash = 'user:' + req.body.user;
+    var db = req.app.get('database'),
+        userHash = 'user:' + req.body.user;
+
     db.hget(userHash, 'password', function(err, pHash) {
       bcrypt.compare(req.body.password, pHash, function(err, result) {
         if(!err && result != null) {
@@ -39,7 +65,8 @@ function requireAuth(req, res, next) {
   else if(_.has(req.cookies, 'sessionUser') &&
           _.has(req.cookies, 'sessionKey'))
   {
-    var sessionUser = req.cookies.sessionUser,
+    var db = req.app.get('database'),
+        sessionUser = req.cookies.sessionUser,
         clientSessionKey = req.cookies.sessionKey,
         userHash = 'user:' + sessionUser;
 
@@ -128,4 +155,7 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = requireAuth;
+module.exports = {
+  'optional': optional,
+  'required': required
+};

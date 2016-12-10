@@ -1,13 +1,13 @@
 div(id='listingBar')
   div#listingBarLeft
     -if(page > 1)
-      a(class='pageLink', href='?page=#{page - 1}') Previous
+      a(class='pageLink', href='?page=#{page - 1}&count=#{count}') Previous
     -else
       span(class='hidden pageLink') Previous
   -if(uploads.length > 0)
     span(class='page') Page #{page}
   div#listingBarRight
     -if(lastPage == false)
-      a(class='pageLink', href='?page=#{page + 1}') Next
+      a(class='pageLink', href='?page=#{page + 1}&count=#{count}') Next
     -else
       span(class='hidden pageLink') Next

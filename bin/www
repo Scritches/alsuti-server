@@ -7,7 +7,7 @@ var _ = require('underscore')._,
 
 // server setup
 
-var port = process.env.PORT || 3070;
+var port = process.env.PORT || 3067;
 
 var server;
 if(_.has(process.env, 'ALSUTI_TLS') &&

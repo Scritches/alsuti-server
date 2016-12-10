@@ -1,0 +1,21 @@
+doctype html
+head
+  title Edit #{('"' + title + '"') || fileName}
+  link(rel='stylesheet' href='/stylesheets/style.css')
+  script(type='text/javascript' src='/js/lib/jquery.min.js')
+body
+  center
+    h1#title #{fileName}
+    form#editForm(method='post' action='/edit')
+      input(type='hidden' name='file' value='#{fileName}')
+      input(type='hidden' name='returnPath' value='#{returnPath}')
+      input(type='text', placeholder='Title', name='title' value="#{title || ''}")
+      input(type='text', placeholder='Description', name='description' value="#{description || ''}")
+      label
+        -if(public)
+          input(type='checkbox', name='public' value='yes' checked)
+        -else
+          input(type='checkbox', name='public' value='yes')
+        | Public
+      button Save
+    a(href='#{returnPath}') Go Back

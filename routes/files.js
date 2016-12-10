@@ -6,12 +6,12 @@ var _ = require('underscore')._,
     path = require('path'),
     request = require('request'),
     shortid = require('shortid'),
-    requireAuth = require('./userauth'),
+    auth = require('./userauth'),
     isTrue = require('../truthiness');
 
 var router = express.Router();
 
-router.get('/', requireAuth);
+router.get('/', auth.required);
 router.get('/', function(req, res) {
   res.render('upload', {
     'title': "Upload",
@@ -19,7 +19,7 @@ router.get('/', function(req, res) {
   });
 });
 
-router.post('/upload', requireAuth);
+router.post('/upload', auth.required);
 router.post('/upload', function(req, res) {
   var localPath,
       ext,
@@ -63,10 +63,8 @@ router.post('/upload', function(req, res) {
   else {
     res.status(400);
     if(req.apiRequest) {
-      res.setHeader('Content-Type', 'application/json');
-      res.json({'error': "Nothing was uploaded."});
-    }
-    else {
+      req.api(true, "Nothing was uploaded.");
+    } else {
       res.redirect('/');
     }
 
@@ -76,131 +74,269 @@ router.post('/upload', function(req, res) {
   function postWrite(err) {
     if(err) {
       if(req.apiRequest) {
-        res.setHeader('Content-Type', 'application/json');
-        res.json({'error': "Cannot write file."});
+        res.api(true, "Cannot write file.");
+      } else {
+        res.render('info', {
+          'title': "Upload Error",
+          'message': "Cannot write file."
+        });
       }
-      else {
-        res.redirect('/');
-      }
+
       return;
     }
 
     var db = req.app.get('database'),
-        uHash = 'upload:' + fileName,
+        m = db.multi(),
+        fHash = 'file:' + fileName,
         userHash = 'user:' + req.sessionUser,
-        encrypted = isTrue(req.body.encrypted) || false,
-        _public = isTrue(req.body.public) || false,
+        time = Date.now(),
         title = req.body.title || null,
-        description = req.body.description || null;
+        desc = req.body.description || null,
+        encrypted = isTrue(req.body.encrypted) || false,
+        _public = isTrue(req.body.public) || false;
 
-    async.series([
-      function(done) {
-        var pairs = [
-          'user', req.sessionUser,
-          'time', Date.now(),
-          'encrypted', encrypted,
-          'public', _public
-        ];
+    var metadata = {
+      'user': req.sessionUser,
+      'time': time,
+      'encrypted': encrypted,
+      'public': _public
+    };
 
-        if(title != null) {
-          title = title.trim();
-          if(title.length > 0) {
-            pairs.push('title');
-            pairs.push(title);
-          }
-        }
+    if(title != null) {
+      title = title.trim();
+      if(title.length > 0) {
+        metadata.titie = title;
+      }
+    }
 
-        if(description != null) {
-          description = desc.trim();
-          if(desc.length > 0) {
-            pairs.push('description');
-            pairs.push(description);
-          }
-        }
+    if(desc != null) {
+      desc = desc.trim();
+      if(desc.length > 0) {
+        metadata.description = desc;
+      }
+    }
 
-        db.hmset(uHash, pairs, function(err, reply) {
-          done(err);
-        });
-      },
-      function(done) {
-        if(_public) {
-          db.multi([
-            ['lpush', 'public', fileName],
-            ['lpush', userHash + ':public', fileName]
-          ]).exec(function(err, replies) {
-            done(err);
-          });
-        }
-        else {
-          db.lpush(userHash + ':private', fileName, function(err, reply) {
-            done(err);
-          });
-        }
-      }],
-      function(err) {
-        if(!err) {
-          // upload successful, return url
-          if(req.apiRequest) {
-            res.setHeader('Content-Type', 'application/json');
-            res.json({
-              'error': false,
-              'url': url
-            });
-          }
-          else {
-            res.status(302);
-            res.redirect(url);
-          }
-        }
-        else {
-          // database error, file still written
-          fs.unlink(localPath + fileName, function(err) {
-            if(req.apiRequest) {
-              res.setHeader('Content-Type', 'application/json');
-              res.json({
-                'error': true,
-                'message': "Database error."
-              });
-            }
-            else {
-              res.redirect('/');
-            }
-          });
+    console.log(fHash);
+    console.log(metadata);
+    m.hmset(fHash, metadata);
+
+    if(_public) {
+      m.zadd('public', time, fileName);
+      m.zadd(userHash + ':public', time, fileName);
+    }
+    else {
+      m.zadd(userHash + ':private', time, fileName);
+    }
+
+    m.exec(function(err, replies) {
+      if(!err) {
+        // upload successful, return url
+        if(req.apiRequest) {
+          res.api(false, url);
+        } else {
+          res.status(302);
+          res.redirect(url);
         }
       }
-    );
+      else {
+        // database error, file still written
+        fs.unlink(localPath + fileName, function(err) {
+          if(req.apiRequest) {
+            res.api(true, "Database error.");
+          } else {
+            res.redirect('/');
+          }
+        });
+      }
+    });
   }
 });
-/*
-router.get('/rename', requireAuth);
-router.get('/rename', function(req, res) {
-  res.render('rename', u);
-});
 
-router.post('/rename', requireAuth);
-router.post('/rename', function(req, res) {
-});
+router.get('/edit/:file', auth.required);
+router.get('/edit/:file', function(req, res) {
+  var db = req.app.get('database'),
+           fHash = 'file:' + req.params.file;
 
-router.get('/delete', requireAuth);
-router.get('/delete/:file', function(req, res) {
-  res.render('delete', u);
-}
-*/
-router.post('/delete', requireAuth);
-router.post('/delete', function(req, res) {
-  var fileName = req.body.file || null;
-  if(fileName == null) {
-    if(req.apiRequest) {
-      res.setHeader('Content-Type', 'application/json');
-      res.json({
-        'error': true,
-        'message': "No file specified."
+  db.hmget(fHash, ['title', 'description', 'public'], function(err, data) {
+    if(!err) {
+      res.render('edit', {
+        'fileName': req.params.file,
+        'title': data[0],
+        'description': data[1],
+        'public': isTrue(data[2]),
+        'returnPath': '/' + req.params.file
       });
     }
     else {
-      res.status(400);
       res.render('info', {
         'title': "Error",
+        'message': "No such file.",
+      });
+    }
+  });
+});
+
+router.post('/edit', auth.required);
+router.post('/edit', function(req, res) {
+  if(_.has(req.body, 'file') == false) {
+    if(req.apiRequest) {
+      res.api(true, "No file specified.");
+    } else {
+      res.render('info', {
+        'title': "Client Error",
+        'message': "No file specified."
+      });
+    }
+
+    return;
+  }
+
+  var db = req.app.get('database'),
+      fileName = req.body.file,
+      fHash = 'file:' + fileName,
+      returnPath = req.body.returnPath || ('/' + fileName);
+
+  db.hmget(fHash, ['user', 'time', 'title', 'description', 'public'], function(err, data) {
+    if(!err) {
+      var user = data[0];
+      if(req.authAs(user)) {
+        var m = db.multi(),
+            time = data[1],
+            title = data[2],
+            desc = data[3],
+            _public = isTrue(data[4]);
+            newTitle = req.body.title.trim() || null,
+            newDesc = req.body.description.trim() || null,
+            nowPublic = isTrue(req.body.public) || false;
+
+        if(newTitle != title) {
+          if(newTitle != null && newTitle.length > 0) {
+            m.hset(fHash, 'title', newTitle);
+          } else {
+            m.hdel(fHash, 'title');
+          }
+        }
+
+        if(newDesc != desc) {
+          if(newDesc != null && newDesc.length > 0) {
+            m.hset(fHash, 'description', newDesc);
+          } else {
+            m.hdel(fHash, 'description');
+          }
+        }
+
+        if(nowPublic != _public) {
+          // update public flag
+          m.hset(fHash, 'public', nowPublic);
+          if(nowPublic) {
+            m.zrem('user:' + user + ':private', fileName);
+            m.zadd('public', time, fileName);
+            m.zadd('user:' + user + ':public', time, fileName);
+          } else {
+            m.zrem('public', fileName);
+            m.zrem('user:' + user + ':public', fileName);
+            m.zadd('user:' + user + ':private', time, fileName);
+          }
+        }
+
+        m.exec(function(err, replies) {
+          if(!err) {
+            if(req.apiRequest) {
+              res.setHeader('Content-Type', 'application/json');
+              res.json({
+                'error': false,
+                'file': fileName,
+                'success': "File edited successfully."
+              });
+            }
+            else {
+              res.redirect(returnPath);
+            }
+          }
+          else {
+            if(req.apiRequest) {
+              res.api(true, "Database error.");
+            } else {
+              res.render('info', {
+                'title': "Database Error",
+                'message': "Failed to edit file details.",
+                'returnPath': returnPath
+              });
+            }
+          }
+        });
+      }
+      else {
+        if(req.apiRequest) {
+          res.api(true, "You are not allowed to edit this file.");
+        } else {
+          res.render('info', {
+            'title': "Not Authorized",
+            'message': "You are not allowed to edit this file.",
+            'returnPath': returnPath
+          });
+        }
+      }
+    }
+    else {
+      if(req.apiRequest) {
+        res.api(true, "No such file.");
+      }
+      else {
+        res.render('info', {
+          'title': 'Error',
+          'message': "No such file.",
+          'returnPath': req.headers.referer || '/'
+        });
+      }
+    }
+  });
+});
+
+router.get('/delete/:file', auth.required);
+router.get('/delete/:file', function(req, res) {
+  var db = req.app.get('database'),
+      fileName = req.params.file,
+      fHash = 'file:' + fileName;
+
+  db.hmget(fHash, ['title', 'user', 'public'], function(err, data) {
+    if(!err) {
+      if(req.authAs(data[1])) {
+        res.render('delete', {
+          'fileName': fileName,
+          'title': data[0],
+          'user': data[1],
+          'public': isTrue(data[2]),
+          'returnPath': req.headers.referer || '/'
+        });
+      }
+      else {
+        res.render('info', {
+          'title': "Not Authorized",
+          'message': "You are not allowed to delete this file.",
+          'returnPath': req.headers.referer || ('/' + fileName)
+        });
+      }
+    }
+    else {
+      res.render('info', {
+        'title': "Error",
+        'message': "No such file.",
+        'returnPath': req.headers.referer || '/'
+      });
+    }
+  });
+});
+
+router.post('/delete', auth.required);
+router.post('/delete', function(req, res) {
+  if(_.has(req.body, 'file') == false) {
+    if(req.apiRequest) {
+      res.api(true, "No file specified.");
+    } else {
+      res.status(400);
+      res.render('info', {
+        'title': "Client Error",
         'message': "No file specified."
       });
     }
@@ -208,164 +344,143 @@ router.post('/delete', function(req, res) {
   }
 
   var db = req.app.get('database'),
-      uHash = 'upload:' + fileName;
+      fileName = req.body.file || null,
+      filePath = __dirname + '/../files/' + fileName;
+      fHash = 'file:' + fileName;
 
-  db.hmget(uHash, ['user', 'public'], function(err, data) {
+  db.hmget(fHash, ['user', 'public'], function(err, data) {
     if(!err) {
-      // check if authorized user owns this file
-      if(data[0] == req.sessionUser) {
-        var userHash = 'user:' + data[0],
-            filePath = __dirname + '/../files/' + fileName;
-
-        // delete file and then the metadata
+      if(req.authAs(data[0])) {
+        // delete file
         fs.unlink(filePath, function(err) {
-          db.del(uHash);
+          var m = db.multi(),
+              userHash = 'user:' + data[0];
+
+          // delete metadata
+
+          m.del(fHash);
           if(isTrue(data[1])) {
-            db.lrem('public', 1, fileName);
-            db.lrem(userHash + ':public', 1, fileName);
+            m.zrem('public', fileName);
+            m.zrem(userHash + ':public', fileName);
           }
           else {
-            db.lrem(userHash + ':private', 1, fileName);
+            m.zrem(userHash + ':private', fileName);
           }
-        });
 
-        if(req.apiRequest) {
-          res.setHeader('Content-Type', 'application/json');
-          res.json({
-            'error': false,
-            'message': "File deleted."
+          m.exec(function(err, replies) {
+            if(!err) {
+              if(req.apiRequest) {
+                res.api(false, "File deleted.");
+              } else {
+                res.redirect(req.body.returnPath || '/');
+              }
+            }
+            else {
+              if(req.apiRequest) {
+                res.api(true, "Database error.");
+              } else {
+                res.render('info', {
+                  'title': "Database Error",
+                  'message': "Something went wrong."
+                });
+              }
+            }
           });
-        }
-        else {
-          res.redirect(req.body.returnPath || '/');
-        }
+        });
       }
       else {
         if(req.apiRequest) {
-          res.setHeader('Content-Type', 'application/json');
-          res.json({
-            'error': true,
-            'message': "Not authorized."
-          });
-        }
-        else {
+          res.api(true, "Not authorized.");
+        } else {
           res.redirect(req.body.returnPath || '/');
         }
       }
     }
     else {
       if(req.apiRequest) {
-        res.setHeader('Content-Type', 'application/json');
-        res.json({
-          'error': true,
-          'message': "No such file."
-        });
-      }
-      else {
+        res.api(true, "No such file.");
+      } else {
         res.redirect(req.body.returnPath || '/');
       }
     }
   });
 });
 
+router.get('/:file', auth.optional);
 router.get('/:file', function(req, res, rf) {
-  var u;
-  async.series([
-    function(done) {
-      var db = req.app.get('database'),
-          uHash = 'upload:' + req.params.file;
+  var db = req.app.get('database'),
+      fHash = 'file:' + req.params.file;
 
-      db.hgetall(uHash, function(err, obj) {
-        if(err != null || obj == null) {
-          u = null;
-          done(err);
-          return;
-        }
+  db.hgetall(fHash, function(err, u) {
+    if(!err && u != null) {
+      for(k in ['title', 'description', 'user', 'time']) {
+        if(_.has(u,k) == false)
+          u[k] = null;
+      }
 
-        u = obj;
+      u.encrypted = isTrue(u.encrypted) || false;
+      u.public = isTrue(u.public) || false;
 
-        if(_.has(u, 'title') == false)
-          u.title = null;
-        if(_.has(u, 'description') == false)
-          u.description = null;
-        if(_.has(u, 'user') == false)
-          u.user = null;
+      var filePath = path.resolve(__dirname + '/../files/' + req.params.file),
+          ext = _.last(req.params.file.split('.')).toLowerCase();
 
-        if(_.has(u, 'time'))
-          u.time = u.time;
-        else
-          u.time = null;
+      fs.readFile(filePath, 'utf-8', function(err, data) {
+        if(!err) {
+          function isImage(ext) {
+            return ['gif', 'jpg', 'jpeg',
+                    'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+          }
 
-        u.encrypted = isTrue(u.encrypted) || false;
-        u.public = isTrue(u.public) || false;
-
-        done();
-      });
-    }],
-    function(err) {
-      if(u == null) {
-        if(req.apiRequest) {
-          res.setHeader('Content-Type', 'application/json');
-          res.json({
-            'error': true,
-            'message': "File not found."
+          res.render('view', {
+            'authorized': req.auth(),
+            'isOwner': req.authAs(u.user),
+            'image': isImage(ext),
+            'fileName': req.params.file,
+            'title': u.title,
+            'description': u.description,
+            'user': u.user,
+            'time': u.time,
+            'encrypted': u.encrypted,
+            'content': data.toString('utf-8')
           });
         }
         else {
-          res.render('info', {
-            'title': "Error",
-            'message': "File not found.",
-            'returnPath': req.headers.referer || null
-          });
-        }
-        return;
-      }
-
-      var filePath = __dirname + '/../files/' + req.params.file,
-          ext = _.last(req.params.file.split('.')).toLowerCase();
-
-      function isImage(ext) {
-        return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
-      }
-
-      if(req.device.type == 'bot' ||
-         (u.encrypted == false && isImage(ext)))
-      {
-        res.sendFile(path.resolve(filePath));
-      }
-      else {
-        fs.readFile(filePath, 'utf-8', function(err, data) {
-          if(!err) {
-            res.render('view', {
-              'fileName': req.params.file,
-              'title': u.title,
-              'description': u.description,
-              'user': u.user,
-              'time': u.time,
-              'encrypted': u.encrypted,
-              'content': data.toString('utf-8')
+          if(req.apiRequest) {
+            res.api(true, "Cannot read file.");
+          } else {
+            res.render('info', {
+              'title': "Error",
+              'message': "Cannot read file.",
+              'returnPath': req.headers.referer || null
             });
           }
-          else {
-            if(req.apiRequest) {
-              res.setHeader('Content-Type', 'application/json');
-              res.json({
-                'error': true,
-                'message': "Cannot read file."
-              });
-            }
-            else {
-              res.render('info', {
-                'title': "Error",
-                'message': "Cannot read file.",
-                'returnPath': req.headers.referer || null
-              });
-            }
-          }
+        }
+      });
+    }
+    else {
+      if(req.apiRequest) {
+        res.api(true, "No such file.");
+      } else {
+        res.render('info', {
+          'title': "Error",
+          'message': "No such file.",
+          'returnPath': req.headers.referer || null
         });
       }
     }
-  );
+  });
+});
+
+// used for displaying unencrypted text/images in web view
+router.get('/raw/:file', function(req, res) {
+  var filePath = path.resolve(__dirname + '/../files/' + req.params.file);
+  fs.access(filePath, function(err) {
+    if(!err) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404);
+    }
+  });
 });
 
 // handle deprecated encrypted views
