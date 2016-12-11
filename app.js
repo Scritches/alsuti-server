@@ -62,26 +62,52 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // authentication and api response helpers
 app.use(function(req, res, next) {
-  req.auth = function() {
-    return _.has(this, 'sessionUser');
-  }
-
-  req.authAs = function(user) {
-    return _.has(this, 'sessionUser') && user == this.sessionUser;
-  }.bind(req);
-
-  res.api = function(err, msg) {
-    this.setHeader('Content-Type', "application/json");
-    this.json({
-      'error': err,
-      'message': msg
-    });
-  }.bind(res);
-
+  // api request flag
   if(req.method == 'POST') {
     req.apiRequest = isTrue(req.body.api) || false;
   } else {
     req.apiRequest = isTrue(req.headers.api) || false;
+  }
+
+  // api response helper
+  res.api = function(err, data) {
+    data.error = err;
+    this.setHeader('Content-Type', "application/json");
+    this.json(data);
+  }.bind(res);
+
+  req.session = {
+    'user': null,
+    'auth': function(user) {
+      if(typeof user === 'undefined') {
+        return this.user != null;
+      } else {
+        return this.user != null && this.user == user;
+      }
+    },
+  };
+
+  if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
+    var db = req.app.get('database'),
+        sessionUser = req.cookies.sessionUser,
+        sessionKey = req.cookies.sessionKey,
+        userHash = 'user:' + sessionUser;
+
+    db.hmget(userHash, ['sessionKey', 'sessionExpiry'], function(err, data) {
+      if(!err && sessionKey == data[0]) {
+        if(data[1] == 'never') {
+          req.session.user = sessionUser;
+        }
+        else {
+          var now = Date.now();
+          if(now < parseInt(data[1])) {
+            var newExpiry = now + req.app.get('sessionAge');
+            db.hset(userHash, 'sessionExpiry', newExpiry);
+            req.session.user = sessionUser;
+          }
+        }
+      }
+    });
   }
 
   next();

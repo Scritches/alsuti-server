@@ -1,11 +1,11 @@
 doctype html
 head
-  title Edit #{('"' + title + '"') || fileName}
+  title Edit #{fileName}
   link(rel='stylesheet' href='/stylesheets/style.css')
   script(type='text/javascript' src='/js/lib/jquery.min.js')
 body
   center
-    h1#title #{fileName}
+    h1#title #{title || fileName}
     form#editForm(method='post' action='/edit')
       input(type='hidden' name='file' value='#{fileName}')
       input(type='hidden' name='returnPath' value='#{returnPath}')

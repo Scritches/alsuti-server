@@ -8,12 +8,12 @@ var router = express.Router();
 
 router.get('/private', auth.required);
 router.get('/private', function(req, res) {
-  renderListing(req, res, 'user:' + req.sessionUser + ':private',
-                "Private Uploads", false);
+  renderListing(req, res, 'user:' + req.session.user + ':private',
+                "Private Uploads", 'private');
 });
 
 router.get('/public', function(req, res) {
-  renderListing(req, res, 'public', "Public Uploads", true);
+  renderListing(req, res, 'public', "Public Uploads", 'public');
 });
 
 router.get('/user/:user', function(req, res) {
@@ -26,7 +26,7 @@ router.get('/user/:user', function(req, res) {
     if(exists) {
       renderListing(req, res, 'user:' + req.params.user + ':public',
                     capitalize(req.params.user) + "'s Public Uploads",
-                    false);
+                    'userPublic');
     }
     else {
       res.render('info', {
@@ -39,7 +39,7 @@ router.get('/user/:user', function(req, res) {
 });
 
 // listing renderer
-function renderListing(req, res, zHash, title, showUserColumn) {
+function renderListing(req, res, zHash, title, listingType) {
   var page;
   if(_.has(req.query, 'page')) {
     page = parseInt(req.query['page']);
@@ -51,7 +51,7 @@ function renderListing(req, res, zHash, title, showUserColumn) {
   }
 
   var db = req.app.get('database'),
-      count = req.query.count || 15,
+      count = parseInt(req.query.count) || 15,
       start = count * (page - 1),
       end = (start + count) - 1;
 
@@ -62,7 +62,7 @@ function renderListing(req, res, zHash, title, showUserColumn) {
 
   m.exec(function(err, replies) {
     if(!err) {
-      var len = replies[0],
+      var len = parseInt(replies[0]),
           fileNames = replies[1];
 
       async.map(fileNames,
@@ -82,7 +82,6 @@ function renderListing(req, res, zHash, title, showUserColumn) {
               'time': s.time || null,
               'user': s.user || null,
               'encrypted': isTrue(s.encrypted) || false,
-              'isOwner': req.authAs(this.user),
             };
 
             done(err, u);
@@ -91,28 +90,30 @@ function renderListing(req, res, zHash, title, showUserColumn) {
         // render when all slugs are transformed
         function(err, uploads) {
           if(req.apiRequest) {
-            res.json(uploads);
-            res.setHeader('Content-Type', 'application/json');
-          }
-          else {
+            res.api(false, {'uploads': uploads});
+          } else {
             res.render('listing', {
-              'authorized': req.auth(),
+              'session': req.session,
               'title': title,
               'uploads': uploads,
               'count': count,
               'page': page,
-              'lastPage': end >= len,
-              'showUserColumn': showUserColumn
+              'lastPage': end >= (len - 1),
+              'listingType': listingType
             });
           }
         }
       );
     }
     else {
-      res.render('info', {
-        'title': "Database Error",
-        'message': "Cannot render listing."
-      });
+      if(req.apiRequest) {
+        res.api(true, {'message': "Database error."});
+      } else {
+        res.render('info', {
+          'title': "Database Error",
+          'message': "Cannot render listing."
+        });
+      }
     }
   });
 }

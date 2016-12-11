@@ -1,34 +1,7 @@
 var _ = require('underscore'),
     bcrypt = require('bcrypt-nodejs');
 
-function optional(req, res, next) {
-  var db = req.app.get('database'),
-      sessionUser = req.cookies.sessionUser,
-      clientSessionKey = req.cookies.sessionKey,
-      userHash = 'user:' + sessionUser;
-
-  db.hget(userHash, 'sessionKey', function(err, serverSessionKey) {
-    if(!err && clientSessionKey == serverSessionKey) {
-      db.hget(userHash, 'sessionExpiry', function(err, sessionExpiry) {
-        if(!err) {
-          if(sessionExpiry == 'never') {
-            req.sessionUser = sessionUser;
-          }
-          else if(Date.now() < parseInt(sessionExpiry)) {
-            var newExpiry = Date.now() + req.app.get('sessionAge');
-            db.hset(userHash, 'sessionExpiry', newExpiry);
-            req.sessionUser = sessionUser;
-          }
-
-          next();
-        }
-      });
-    }
-  });
-}
-
-function required(req, res, next) {
-  // verify user/password and create session
+module.exports.required = function(req, res, next) {
   if(req.method == 'POST' &&
      _.has(req.body, 'user') &&
      _.has(req.body, 'password'))
@@ -39,7 +12,7 @@ function required(req, res, next) {
     db.hget(userHash, 'password', function(err, pHash) {
       bcrypt.compare(req.body.password, pHash, function(err, result) {
         if(!err && result != null) {
-          req.sessionUser = req.body.user;
+          req.session.user = req.body.user;
           next();
         }
         else {
@@ -61,39 +34,45 @@ function required(req, res, next) {
       });
     });
   }
-  // authenticate session
-  else if(_.has(req.cookies, 'sessionUser') &&
-          _.has(req.cookies, 'sessionKey'))
-  {
+  else if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
     var db = req.app.get('database'),
         sessionUser = req.cookies.sessionUser,
-        clientSessionKey = req.cookies.sessionKey,
+        sessionKey = req.cookies.sessionKey,
         userHash = 'user:' + sessionUser;
 
-    db.hget(userHash, 'sessionKey', function(err, serverSessionKey) {
-      if(!err && clientSessionKey == serverSessionKey) {
-        db.hget(userHash, 'sessionExpiry', function(err, sessionExpiry) {
-          if(!err) {
-            if(sessionExpiry == 'never') {
-              req.sessionUser = sessionUser;
-              next();
-            }
-            else if(Date.now() < parseInt(sessionExpiry)) {
-              var newExpiry = Date.now() + req.app.get('sessionAge');
-              db.hset(userHash, 'sessionExpiry', newExpiry);
-              req.sessionUser = sessionUser;
-              next();
+    db.hmget(userHash, ['sessionKey', 'sessionExpiry'], function(err, data) {
+      if(!err) {
+        if(sessionKey == data[0]) {
+          if(data[1] == 'never') {
+            req.session.user = sessionUser;
+            next();
+          }
+          else {
+            var now = Date.now();
+            if(now < parseInt(data[1])) {
+              var newExpiry = now + req.app.get('sessionAge');
+              db.hset(userHash, 'sessionExpiry', newExpiry, function(err, reply) {
+                if(!err) {
+                  req.session.user = sessionUser;
+                  next();
+                }
+                else {
+                  if(req.apiRequest) {
+                    res.api(true, {'message': "Database error."});
+                  } else {
+                    res.render('info', {
+                      'title': "Database Error",
+                      'message': "Cannot update session data."
+                    });
+                  }
+                }
+              });
             }
             else {
               res.status(401);
               if(req.apiRequest) {
-                res.setHeader('Content-Type', 'application/json');
-                res.json({
-                  'error': true,
-                  'message': "Session expired."
-                });
-              }
-              else {
+                res.api(true, {'message': "Session expired."});
+              } else {
                 res.render('login', {
                   'error': "Session expired.",
                   'returnPath': req.path != '/logout' ? req.path : '/'
@@ -101,37 +80,27 @@ function required(req, res, next) {
               }
             }
           }
-          else {
-            if(req.apiRequest) {
-              res.setHeader('Content-Type', 'application/json');
-              res.json({
-                'error': true,
-                'message': "Database error."
-              });
-            }
-            else {
-              res.render('info', {
-                'title': "Database Error",
-                'message': "Cannot get session data.",
-                'returnPath': req.path
-              });
-            }
-          }
-        })
-      }
-      else {
-        res.status(401);
-        if(req.apiRequest) {
-          res.setHeader('Content-Type', 'application/json');
-          res.json({
-            'error': true,
-            'message': "Invalid session key."
-          });
         }
         else {
-          res.render('login', {
-            'error': "Invalid session key.",
-            'returnPath': req.path != '/logout' ? req.path : '/'
+          res.status(401);
+          if(req.apiRequest) {
+            res.api(true, {'message': "Invalid session key."});
+          } else {
+            res.render('login', {
+              'error': "Invalid session key.",
+              'returnPath': req.path != '/logout' ? req.path : '/'
+            });
+          }
+        }
+      }
+      else {
+        if(req.apiRequest) {
+          res.api(true, {'message': "Database error."});
+        } else {
+          res.render('info', {
+            'title': "Database Error",
+            'message': "Cannot get session data.",
+            'returnPath': req.path
           });
         }
       }
@@ -140,13 +109,9 @@ function required(req, res, next) {
   else {
     res.status(401);
     if(req.apiRequest) {
-      res.setHeader('Content-Type', 'application/json');
-      res.json({
-        'error': true,
-        'message': "Authentication required."
-      });
-    }
-    else {
+      res.api(true, "Authentication required.");
+      res.api(true, {'message': "Authentication required."});
+    } else {
       res.render('login', {
         'error': "Authentication required.",
         'returnPath': req.path
@@ -154,8 +119,3 @@ function required(req, res, next) {
     }
   }
 }
-
-module.exports = {
-  'optional': optional,
-  'required': required
-};

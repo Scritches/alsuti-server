@@ -6,7 +6,7 @@ var _ = require('underscore'),
 var router = express.Router();
 
 router.get('/login', function(req, res) {
-  if(req.auth()) {
+  if(req.session.auth()) {
     res.redirect(req.headers.referer || '/');
     return;
   }
@@ -30,27 +30,29 @@ router.post('/login', function(req, res) {
     sessionExpiry = Date.now() + req.app.get('sessionAge');
   }
 
+  var sessionData = {
+    'sessionKey': sessionKey,
+    'sessionExpiry': sessionExpiry
+  };
+
   // store sessionKey in database
-  db.hmset(userHash, ['sessionKey', sessionKey, 'sessionExpiry', sessionExpiry],
-  function(err, reply) {
+  db.hmset(userHash, sessionData, function(err, reply) {
     if(!err) {
       var cookieOptions = {
         httpOnly: true
       };
 
       if(req.apiRequest) {
-        res.setHeader('Content-Type', "application/json");
-        res.json({
-          'sessionUser': req.sessionUser,
+        res.api(false, {
+          'sessionUser': req.session.user,
           'sessionKey': sessionKey
         });
-      }
-      else {
+      } else {
         if(sessionExpiry != 'never')
           cookieOptions.maxAge = req.app.get('cookieAge');
 
         // set session cookies
-        res.cookie('sessionUser', req.sessionUser, cookieOptions);
+        res.cookie('sessionUser', req.session.user, cookieOptions);
         res.cookie('sessionKey', sessionKey, cookieOptions);
 
         // redirect
@@ -66,13 +68,11 @@ router.post('/login', function(req, res) {
     }
     else {
       if(req.apiRequest) {
-        res.setHeader('Content-Type', 'application/json');
-        res.json({'error': "Database error."});
-      }
-      else {
+        res.api(true, "Database error.");
+      } else {
         res.render('info', {
           'title': "Database Error",
-          'message': "Cannot initiate session."
+          'message': "Cannot store session data."
         });
       }
     }

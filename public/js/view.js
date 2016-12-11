@@ -1,15 +1,6 @@
 decryptError = false;
 decryptErrorColour = "#FF2020"
 
-function fileExtension(fileName) {
-  return fileName.match(/\.[a-z0-9]+$/i)[0].substr(1) || null;
-}
-
-function isImage(ext) {
-  return ['gif', 'jpg', 'jpeg',
-          'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
-}
-
 $(function() {
   var pEntry = $('#passwordEntry'),
       dButton = $('#decryptButton');
@@ -23,8 +14,8 @@ $(function() {
       decrypt();
     }
   }
-  else {
-    renderText(null, fileExtension(fileName));
+  else if (isImage == false) {
+    renderText(null);
   }
 
   pEntry.keyup(function(event) {
@@ -56,12 +47,14 @@ function loadOptions() {
 }
 
 function toggleLineNumbers() {
-  pre = $('pre');
+  var code = $('code');
   if($('#lineNumbersCheckbox').prop('checked')) {
     // disable line wrapping
-    pre.css('white-space', 'pre');
+    code.css('white-space', 'pre');
+    code.css('overflow-wrap', '');
+
     // add line numbers
-    $('code').each(function(i, block) {
+    code.each(function(i, block) {
       hljs.lineNumbersBlock(block);
     });
   }
@@ -71,14 +64,14 @@ function toggleLineNumbers() {
       $(block).remove();
     });
     // re-enable line wrapping
-    pre.css('white-space', 'pre-wrap');
+    code.css('white-space', 'pre-wrap');
+    code.css('overflow-wrap', 'break-word');
   }
 }
 
 function decrypt() {
   var pEntry = $('#passwordEntry'),
-      password = pEntry.val(),
-      ext = fileExtension(fileName);
+      password = pEntry.val();
 
   function tryDecrypt() {
     try {
@@ -98,15 +91,18 @@ function decrypt() {
   }
 
   $('#decryption').remove();
+  render(decrypted);
+}
 
-  if(isImage(ext)) {
-    renderImage(decrypted, ext);
+function render(data) {
+  if(isImage) {
+    renderImage(data);
   } else {
-    renderText(decrypted, ext);
+    renderText(data);
   }
 }
 
-function renderImage(data, ext) {
+function renderImage(data) {
   if(!data.match(/^YW5kcm9pZHN1Y2tz/)) {
     data = btoa(data);
   } else {
@@ -116,28 +112,31 @@ function renderImage(data, ext) {
   var dLink = $('#downloadLink'),
       image = $('#image');
 
-  image.attr('src', 'data:image/' + ext +';base64,' + data);
+  dLink.attr('href', 'data:image/'+ fileExt +';base64,' + data);
+  image.attr('src', 'data:image/' + fileExt +';base64,' + data);
   image.show();
-
-  dLink.attr('href', 'data:image/'+ ext +';base64,' + data);
-  dLink.show();
 }
 
-function renderText(decryptedText, ext) {
-  if(decryptedText != null) {
-    var content = $('#content');
-    content.text(decryptedText);
+function renderText(data) {
+  if(data != null) {
+    var content = $('#content'),
+        dLink = $('#downloadLink');
+
+    content.text(data);
     content.show();
 
-    var dLink = $('#downloadLink');
-    dLink.attr('href', 'data:text/plain;utf-8,' + content.text());
+    if(fileExt == 'txt' || fileExt == 'log') {
+      dLink.attr('href', 'data:text/plain;utf-8,' + data);
+    } else {
+      dLink.attr('href', 'data:application/' + fileExt + ';binary,' + data);
+    }
 
     $('#lineNumbers').show();
   }
 
   $('code').each(function(i, block) {
-    block.className = ext;
-    if(ext == 'txt' || ext == 'log') {
+    block.className = fileExt;
+    if(fileExt == 'txt' || fileExt == 'log' || fileExt == null) {
       block.className = 'hljs txt';
     } else {
       hljs.highlightBlock(block);

@@ -10,6 +10,9 @@ a {
 .error {
   color: #FF2020;
 }
+.encrypted {
+  color: #FF2020;
+}
 .alignRight {
   text-align: right;
 }
@@ -163,9 +166,15 @@ code.hljs-line-numbers {
   color: #999;
   text-align: right;
   user-select: none;
+  white-space: pre;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+}
+
+/* images */
+img#image {
+  max-width: 100%;
 }

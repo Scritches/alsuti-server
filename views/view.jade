@@ -15,11 +15,10 @@ html
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
     script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
     script(type='text/javascript').
-      var fileName = '#{fileName}';
+      var fileName = '#{fileName}', fileExt = '#{fileExt}', isImage = #{isImage};
     -if(encrypted)
       script(type='text/javascript').
-        var encrypted = true;
-        var cipherText = "#{content}";
+        var encrypted = true, cipherText = "#{content}";
     -else
       script(type='text/javascript').
         var encrypted = false;
@@ -38,14 +37,11 @@ html
         div#decryption
           input#passwordEntry(placeholder='Password' type='password')
           button#decryptButton(onclick='decrypt();') Decrypt
-      -if(encrypted == false)
-        a#downloadLink(href='/raw/#{fileName}' download='#{fileName}') Download
-      -else
-        a#downloadLink(download='#{fileName}') Download
-      -if(isOwner)
+      a#downloadLink(href='/raw/#{fileName}' download='#{fileName}') Download
+      -if(session.auth(user))
         a#deleteLink(href='/edit/#{fileName}') Edit
         a#deleteLink(href='/delete/#{fileName}') Delete
-      -if(image == false)
+      -if(isImage == false)
         -if(encrypted)
           label#lineNumbers(style='display:none;')
             input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
@@ -54,23 +50,22 @@ html
           label#lineNumbers
             input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
             | Line Numbers
-      -if(authorized)
+      -if(session.auth())
         a.floatRight(href='/logout') Log Out
       -else
         a.floatRight(href='/login') Log In
     script(type='text/javascript').
       renderTimes();
     -if(encrypted)
-      -if(image)
+      -if(isImage)
         center
-          img#image(style='display:none;' width:'auth')
+          img#image(style='display:none;')
       -else
-        pre
-          code#content(style='display:none;')
+        code#content(style='display:none;')
     -else
-      -if(image)
+      -if(isImage)
         center
-          img#image(src='/raw/#{fileName}' width='auto')
+          a(href='/raw/#{fileName}')
+            img#image(src='/raw/#{fileName}')
       -else
-        pre
-          code#content= content
+        code#content= content

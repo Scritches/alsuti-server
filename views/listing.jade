@@ -10,6 +10,13 @@ html
 body(onload='renderTimes();')
   h1#title= title
   div#optionBar
+    -if(listingType == 'public')
+      a(href='/private') Private
+    -else if(listingType == 'private')
+      a(href='/public') Public
+    -else
+      a(href='/private') Private
+      a(href='/public') Public
     div#listingCountContainer(style='display:none;')
       | Show 
       select#listingCount(onchange='updateListing();')
@@ -23,11 +30,11 @@ body(onload='renderTimes();')
         option 40
         option 45
         option 50
-      |  uploads per page
+      |  files per page
     script(type='text/javascript').
       $('#listingCount').val('#{count}');
       $('#listingCountContainer').show();
-    -if(authorized)
+    -if(session.auth())
       a.floatRight(href='/logout') Log Out
     -else
       a.floatRight(href='/login') Log In
@@ -42,12 +49,29 @@ body(onload='renderTimes();')
               a(class='encrypted' href='/#{u.fileName}')= u.title || u.fileName
             -else
               a(href='/#{u.fileName}')= u.title || u.fileName
-          td(style='display:none;')
-            span(class='uploadTime')= u.time
-          -if(showUserColumn)
+          -if(session.auth(u.user))
             td
-              a(href='/user/#{u.user}')= u.user
-          -if(u.isOwner)
+              a(href='/edit/#{u.fileName}') Edit
             td
               a(href='/delete/#{u.fileName}') Delete
-    include listingBar
+          -else
+            td
+            td
+          td(style='display:none;')
+            span(class='uploadTime')= u.time
+          -if(listingType == 'public')
+            td
+              a(href='/user/#{u.user}')= u.user
+    div(id='listingBar')
+      div#listingBarLeft
+        -if(page > 1)
+          a(class='pageLink', href='?page=#{page - 1}&count=#{count}') Previous
+        -else
+          span(class='hidden pageLink') Previous
+      -if(uploads.length > 0)
+        span(class='page') Page #{page}
+      div#listingBarRight
+        -if(lastPage == false)
+          a(class='pageLink', href='?page=#{page + 1}&count=#{count}') Next
+        -else
+          span(class='hidden pageLink') Next

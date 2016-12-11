@@ -28,24 +28,24 @@ router.post('/upload', function(req, res) {
 
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
-    ext = _.last(req.files.fileupload.originalname.split('.'));
+    ext = req.files.fileupload.originalname.match(/\.([a-z0-9]+)$/i)[1] || 'bin';
     fileName = shortid.generate() + '.' + ext;
     url = req.app.get('externalPath') + '/' + fileName;
 
     fs.readFile(req.files.fileupload.path, function(err, data) {
-      fs.writeFile(localPath + fileName, data, function(err) {
+      fs.writeFile(localPath + fileName, data, {'encoding':'binary'}, function(err) {
         postWrite(err);
       });
     });
   }
   else if(_.has(req.body, 'uri')) {
     localPath = __dirname + '/../files/';
-    ext = _.last(req.body.uri.split('.')).replace(/\?.*$/,'').replace(/:.*$/,'');
+    ext = req.body.uri.match(/\.([a-z0-9]+)\?\S*$/i)[1] || 'bin';
     fileName = shortid.generate() + '.' + ext;
     url = req.app.get('externalPath') + '/' + fileName;
 
     request.get(req.body.uri) // ...
-      .pipe(fs.createWriteStream(localPath + fileName))
+      .pipe(fs.createWriteStream(localPath + fileName, {'defaultEncoding':'binary'}))
       .on('close', function() {
         postWrite(err);
       });
@@ -56,14 +56,14 @@ router.post('/upload', function(req, res) {
     fileName = shortid.generate() + '.' + req.body.extension;
     url = req.app.get('externalPath') + '/' + fileName;
 
-    fs.writeFile(localPath + fileName, req.body.content, function(err) {
+    fs.writeFile(localPath + fileName, req.body.content, {'encoding':'binary'}, function(err) {
       postWrite(err);
     });
   }
   else {
     res.status(400);
     if(req.apiRequest) {
-      req.api(true, "Nothing was uploaded.");
+      req.api(true, {'message': "Nothing was uploaded."});
     } else {
       res.redirect('/');
     }
@@ -74,7 +74,7 @@ router.post('/upload', function(req, res) {
   function postWrite(err) {
     if(err) {
       if(req.apiRequest) {
-        res.api(true, "Cannot write file.");
+        res.api(true, {'message': "Cannot write file."});
       } else {
         res.render('info', {
           'title': "Upload Error",
@@ -85,39 +85,35 @@ router.post('/upload', function(req, res) {
       return;
     }
 
-    var db = req.app.get('database'),
+    var time = Date.now(),
+        db = req.app.get('database'),
         m = db.multi(),
         fHash = 'file:' + fileName,
-        userHash = 'user:' + req.sessionUser,
-        time = Date.now(),
-        title = req.body.title || null,
-        desc = req.body.description || null,
+        userHash = 'user:' + req.session.user,
         encrypted = isTrue(req.body.encrypted) || false,
         _public = isTrue(req.body.public) || false;
 
-    var metadata = {
-      'user': req.sessionUser,
-      'time': time,
-      'encrypted': encrypted,
-      'public': _public
-    };
+    var metadata = [
+      'user', req.session.user,
+      'time', time,
+      'encrypted', encrypted,
+      'public', _public
+    ];
 
-    if(title != null) {
-      title = title.trim();
+    if(_.has(req.body, 'title') && req.body.title != null) {
+      var title = req.body.title.trim();
       if(title.length > 0) {
-        metadata.titie = title;
+        metadata.concat(['title', title]);
       }
     }
 
-    if(desc != null) {
-      desc = desc.trim();
+    if(_.has(req.body, 'description') && req.body.description != null) {
+      var desc = req.body.description.trim();
       if(desc.length > 0) {
-        metadata.description = desc;
+        metadata.concat(['description', desc])
       }
     }
 
-    console.log(fHash);
-    console.log(metadata);
     m.hmset(fHash, metadata);
 
     if(_public) {
@@ -132,17 +128,17 @@ router.post('/upload', function(req, res) {
       if(!err) {
         // upload successful, return url
         if(req.apiRequest) {
-          res.api(false, url);
+          res.api(false, {'url': url});
         } else {
           res.status(302);
           res.redirect(url);
         }
       }
       else {
-        // database error, file still written
+        // database error, get rid of file
         fs.unlink(localPath + fileName, function(err) {
           if(req.apiRequest) {
-            res.api(true, "Database error.");
+            res.api(true, {'message': "Database error."});
           } else {
             res.redirect('/');
           }
@@ -157,15 +153,23 @@ router.get('/edit/:file', function(req, res) {
   var db = req.app.get('database'),
            fHash = 'file:' + req.params.file;
 
-  db.hmget(fHash, ['title', 'description', 'public'], function(err, data) {
+  db.hmget(fHash, ['user', 'title', 'description', 'public'], function(err, data) {
     if(!err) {
-      res.render('edit', {
-        'fileName': req.params.file,
-        'title': data[0],
-        'description': data[1],
-        'public': isTrue(data[2]),
-        'returnPath': '/' + req.params.file
-      });
+      if(req.session.auth(data[0])) {
+        res.render('edit', {
+          'fileName': req.params.file,
+          'title': data[1],
+          'description': data[2],
+          'public': isTrue(data[3]),
+          'returnPath': req.headers.referer || ('/' + req.params.file)
+        });
+      }
+      else {
+        res.render('info', {
+          'title': "Not Authorized",
+          'message': "You are not allowed to edit this file."
+        });
+      }
     }
     else {
       res.render('info', {
@@ -180,7 +184,7 @@ router.post('/edit', auth.required);
 router.post('/edit', function(req, res) {
   if(_.has(req.body, 'file') == false) {
     if(req.apiRequest) {
-      res.api(true, "No file specified.");
+      res.api(true, {'message': "No file specified."});
     } else {
       res.render('info', {
         'title': "Client Error",
@@ -199,7 +203,7 @@ router.post('/edit', function(req, res) {
   db.hmget(fHash, ['user', 'time', 'title', 'description', 'public'], function(err, data) {
     if(!err) {
       var user = data[0];
-      if(req.authAs(user)) {
+      if(req.session.auth(user)) {
         var m = db.multi(),
             time = data[1],
             title = data[2],
@@ -242,20 +246,14 @@ router.post('/edit', function(req, res) {
         m.exec(function(err, replies) {
           if(!err) {
             if(req.apiRequest) {
-              res.setHeader('Content-Type', 'application/json');
-              res.json({
-                'error': false,
-                'file': fileName,
-                'success': "File edited successfully."
-              });
-            }
-            else {
+              res.api(false, {'message': "File edited successfully."});
+            } else {
               res.redirect(returnPath);
             }
           }
           else {
             if(req.apiRequest) {
-              res.api(true, "Database error.");
+              res.api(true, {'message': "Database error."});
             } else {
               res.render('info', {
                 'title': "Database Error",
@@ -268,7 +266,7 @@ router.post('/edit', function(req, res) {
       }
       else {
         if(req.apiRequest) {
-          res.api(true, "You are not allowed to edit this file.");
+          res.api(true, {'message': "You are not allowed to edit this file."});
         } else {
           res.render('info', {
             'title': "Not Authorized",
@@ -280,7 +278,7 @@ router.post('/edit', function(req, res) {
     }
     else {
       if(req.apiRequest) {
-        res.api(true, "No such file.");
+        res.api(true, {'message': "No such file."});
       }
       else {
         res.render('info', {
@@ -301,13 +299,14 @@ router.get('/delete/:file', function(req, res) {
 
   db.hmget(fHash, ['title', 'user', 'public'], function(err, data) {
     if(!err) {
-      if(req.authAs(data[1])) {
+      if(req.session.auth(data[1])) {
         res.render('delete', {
           'fileName': fileName,
           'title': data[0],
           'user': data[1],
           'public': isTrue(data[2]),
-          'returnPath': req.headers.referer || '/'
+          'returnPath': req.headers.referer || ('/' + fileName),
+          'delReturnPath': isTrue(data[2]) ? '/user/' + data[1] : '/private'
         });
       }
       else {
@@ -332,7 +331,7 @@ router.post('/delete', auth.required);
 router.post('/delete', function(req, res) {
   if(_.has(req.body, 'file') == false) {
     if(req.apiRequest) {
-      res.api(true, "No file specified.");
+      res.api(true, {'message': "No file specified."});
     } else {
       res.status(400);
       res.render('info', {
@@ -350,7 +349,7 @@ router.post('/delete', function(req, res) {
 
   db.hmget(fHash, ['user', 'public'], function(err, data) {
     if(!err) {
-      if(req.authAs(data[0])) {
+      if(req.session.auth(data[0])) {
         // delete file
         fs.unlink(filePath, function(err) {
           var m = db.multi(),
@@ -370,14 +369,14 @@ router.post('/delete', function(req, res) {
           m.exec(function(err, replies) {
             if(!err) {
               if(req.apiRequest) {
-                res.api(false, "File deleted.");
+                res.api(false, {'message': "File deleted."});
               } else {
                 res.redirect(req.body.returnPath || '/');
               }
             }
             else {
               if(req.apiRequest) {
-                res.api(true, "Database error.");
+                res.api(true, {'message': "Database error."});
               } else {
                 res.render('info', {
                   'title': "Database Error",
@@ -390,7 +389,7 @@ router.post('/delete', function(req, res) {
       }
       else {
         if(req.apiRequest) {
-          res.api(true, "Not authorized.");
+          res.api(true, {'message': "Not authorized."});
         } else {
           res.redirect(req.body.returnPath || '/');
         }
@@ -398,7 +397,7 @@ router.post('/delete', function(req, res) {
     }
     else {
       if(req.apiRequest) {
-        res.api(true, "No such file.");
+        res.api(true, {'message': "No such file."});
       } else {
         res.redirect(req.body.returnPath || '/');
       }
@@ -406,10 +405,10 @@ router.post('/delete', function(req, res) {
   });
 });
 
-router.get('/:file', auth.optional);
 router.get('/:file', function(req, res, rf) {
   var db = req.app.get('database'),
-      fHash = 'file:' + req.params.file;
+      fileName = req.params.file,
+      fHash = 'file:' + fileName;
 
   db.hgetall(fHash, function(err, u) {
     if(!err && u != null) {
@@ -421,21 +420,20 @@ router.get('/:file', function(req, res, rf) {
       u.encrypted = isTrue(u.encrypted) || false;
       u.public = isTrue(u.public) || false;
 
-      var filePath = path.resolve(__dirname + '/../files/' + req.params.file),
-          ext = _.last(req.params.file.split('.')).toLowerCase();
+      var filePath = path.resolve(__dirname + '/../files/' + fileName),
+          fileExt = fileName.match(/\.[a-z0-9]+$/i)[0].substr(1) || null;
+
+      function isImage(ext) {
+        return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+      }
 
       fs.readFile(filePath, 'utf-8', function(err, data) {
         if(!err) {
-          function isImage(ext) {
-            return ['gif', 'jpg', 'jpeg',
-                    'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
-          }
-
           res.render('view', {
-            'authorized': req.auth(),
-            'isOwner': req.authAs(u.user),
-            'image': isImage(ext),
-            'fileName': req.params.file,
+            'session': req.session,
+            'isImage': isImage(fileExt),
+            'fileName': fileName,
+            'fileExt': fileExt,
             'title': u.title,
             'description': u.description,
             'user': u.user,
