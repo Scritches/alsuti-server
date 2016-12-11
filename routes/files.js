@@ -63,7 +63,7 @@ router.post('/upload', function(req, res) {
   else {
     res.status(400);
     if(req.apiRequest) {
-      req.api(true, {'message': "Nothing was uploaded."});
+      res.api(true, {'message': "Nothing was uploaded."});
     } else {
       res.redirect('/');
     }
