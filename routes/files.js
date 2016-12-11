@@ -33,7 +33,7 @@ router.post('/upload', function(req, res) {
     url = req.app.get('externalPath') + '/' + fileName;
 
     fs.readFile(req.files.fileupload.path, function(err, data) {
-      fs.writeFile(localPath + fileName, data, {'encoding':'binary'}, function(err) {
+      fs.writeFile(localPath + fileName, data, function(err) {
         postWrite(err);
       });
     });
@@ -45,7 +45,7 @@ router.post('/upload', function(req, res) {
     url = req.app.get('externalPath') + '/' + fileName;
 
     request.get(req.body.uri) // ...
-      .pipe(fs.createWriteStream(localPath + fileName, {'defaultEncoding':'binary'}))
+      .pipe(fs.createWriteStream(localPath + fileName))
       .on('close', function() {
         postWrite(err);
       });
@@ -56,7 +56,7 @@ router.post('/upload', function(req, res) {
     fileName = shortid.generate() + '.' + req.body.extension;
     url = req.app.get('externalPath') + '/' + fileName;
 
-    fs.writeFile(localPath + fileName, req.body.content, {'encoding':'binary'}, function(err) {
+    fs.writeFile(localPath + fileName, req.body.content, function(err) {
       postWrite(err);
     });
   }
@@ -103,14 +103,14 @@ router.post('/upload', function(req, res) {
     if(_.has(req.body, 'title') && req.body.title != null) {
       var title = req.body.title.trim();
       if(title.length > 0) {
-        metadata.concat(['title', title]);
+        metadata = metadata.concat(['title', title]);
       }
     }
 
     if(_.has(req.body, 'description') && req.body.description != null) {
       var desc = req.body.description.trim();
       if(desc.length > 0) {
-        metadata.concat(['description', desc])
+        metadata = metadata.concat(['description', desc])
       }
     }
 
@@ -427,7 +427,7 @@ router.get('/:file', function(req, res, rf) {
         return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
       }
 
-      fs.readFile(filePath, 'utf-8', function(err, data) {
+      fs.readFile(filePath, function(err, data) {
         if(!err) {
           res.render('view', {
             'session': req.session,
@@ -439,7 +439,7 @@ router.get('/:file', function(req, res, rf) {
             'user': u.user,
             'time': u.time,
             'encrypted': u.encrypted,
-            'content': data.toString('utf-8')
+            'content': data.toString()
           });
         }
         else {
