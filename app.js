@@ -34,7 +34,6 @@ db.on("error", function(err) {
 // app globals
 
 app.set('database', db);
-app.set('externalPath', process.env.ALSUTI_INSTANCE);
 app.set('cookieAge', 1000 * 60 * 60 * 24 * 7); // for a maximum of 7 days ..
 app.set('sessionAge', 1000 * 60 * 60 * 1);     // .. enforce a 1 hour activity timeout
 

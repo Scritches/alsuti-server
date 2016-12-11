@@ -23,15 +23,12 @@ router.post('/upload', auth.required);
 router.post('/upload', function(req, res) {
   var localPath,
       ext,
-      fileName,
-      url;
+      fileName;
 
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
     ext = req.files.fileupload.originalname.match(/\.([a-z0-9]+)$/i)[1] || 'bin';
     fileName = shortid.generate() + '.' + ext;
-    url = req.app.get('externalPath') + '/' + fileName;
-
     fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + fileName, data, function(err) {
         postWrite(err);
@@ -42,8 +39,6 @@ router.post('/upload', function(req, res) {
     localPath = __dirname + '/../files/';
     ext = req.body.uri.match(/\.([a-z0-9]+)\?\S*$/i)[1] || 'bin';
     fileName = shortid.generate() + '.' + ext;
-    url = req.app.get('externalPath') + '/' + fileName;
-
     request.get(req.body.uri) // ...
       .pipe(fs.createWriteStream(localPath + fileName))
       .on('close', function() {
@@ -54,8 +49,6 @@ router.post('/upload', function(req, res) {
     localPath = __dirname + '/../files/';
     ext = req.body.extension;
     fileName = shortid.generate() + '.' + req.body.extension;
-    url = req.app.get('externalPath') + '/' + fileName;
-
     fs.writeFile(localPath + fileName, req.body.content, function(err) {
       postWrite(err);
     });
@@ -103,14 +96,16 @@ router.post('/upload', function(req, res) {
     if(_.has(req.body, 'title') && req.body.title != null) {
       var title = req.body.title.trim();
       if(title.length > 0) {
-        metadata = metadata.concat(['title', title]);
+        metadata.push('title');
+        metadata.push(title);
       }
     }
 
     if(_.has(req.body, 'description') && req.body.description != null) {
       var desc = req.body.description.trim();
       if(desc.length > 0) {
-        metadata = metadata.concat(['description', desc])
+        metadata.push('description');
+        metadata.push(desc);
       }
     }
 
@@ -128,7 +123,7 @@ router.post('/upload', function(req, res) {
       if(!err) {
         // upload successful, return url
         if(req.apiRequest) {
-          res.api(false, {'url': url});
+          res.api(false, {'fileName': fileName});
         } else {
           res.status(302);
           res.redirect(url);
