@@ -5,9 +5,6 @@ The alsuti server component
 
 **1)** Set the following environment variables:
 
-####ALSUTI_INSTANCE
-The external url to your server without a trailing slash. *Required.*
-
 ####ALSUTI_DATABASE
 The redis database to use. *Optional, but recommended*.
 
