@@ -1,7 +1,7 @@
 var _ = require('underscore'),
     bcrypt = require('bcrypt-nodejs');
 
-module.exports.required = function(req, res, next) {
+function authRequired(req, res, next) {
   if(req.method == 'POST' &&
      _.has(req.body, 'user') &&
      _.has(req.body, 'password'))
@@ -119,3 +119,5 @@ module.exports.required = function(req, res, next) {
     }
   }
 }
+
+module.exports.required = authRequired;

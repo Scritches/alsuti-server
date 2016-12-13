@@ -1,7 +1,7 @@
 var _ = require('underscore'),
     async = require('async'),
     express = require('express'),
-    auth = require('./userauth'),
+    auth = require('./auth'),
     isTrue = require('../truthiness');
 
 var router = express.Router();
@@ -9,26 +9,20 @@ var router = express.Router();
 router.get('/private', auth.required);
 router.get('/private', function(req, res) {
   renderListing(req, res, 'user:' + req.session.user + ':private',
-                "Private Uploads", 'private');
+                "Private Files", 'private');
 });
 
 router.get('/public', function(req, res) {
-  renderListing(req, res, 'public', "Public Uploads", 'public');
+  renderListing(req, res, 'public', "Public Files", 'public');
 });
 
 router.get('/user/:user', function(req, res) {
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
   var db = req.app.get('database');
   db.exists('user:' + req.params.user, function(err, exists) {
     if(exists) {
       renderListing(req, res, 'user:' + req.params.user + ':public',
-                    capitalize(req.params.user) + "'s Public Uploads",
-                    'userPublic');
-    }
-    else {
+                    req.params.user, 'userPublic');
+    } else {
       res.render('info', {
         'title': "Error",
         'message': "No such user.",
@@ -38,7 +32,6 @@ router.get('/user/:user', function(req, res) {
 
 });
 
-// listing renderer
 function renderListing(req, res, zHash, title, listingType) {
   var page;
   if(_.has(req.query, 'page')) {

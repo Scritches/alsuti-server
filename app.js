@@ -113,7 +113,7 @@ app.use(function(req, res, next) {
 });
 
 // set up primary routes
-app.use('/', require('./routes/users.js'));
+app.use('/', require('./routes/sessions.js'));
 app.use('/', require('./routes/listings.js'));
 app.use('/', require('./routes/files.js'));
 

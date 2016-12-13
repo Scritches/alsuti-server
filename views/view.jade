@@ -6,7 +6,6 @@ html
     -else
       title= fileName
     link(rel='stylesheet' href='/stylesheets/style.css')
-    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript' src='/js/lib/js.cookie.js')
     script(type='text/javascript' src='/js/lib/aes.js')
@@ -23,49 +22,58 @@ html
       script(type='text/javascript').
         var encrypted = false;
   body
-    -if(title != null)
-      h1#title= title
+    div#globalBar
+      span.childPad
+        span#title= title || fileName
+        span.divider
+        -if(session.auth())
+          a.listingLink(href='/private') Private
+        a.listingLink(href='/public') Public
+        span.floatRight
+          -if(session.auth())
+            a(href='/logout') Log Out
+          -else
+            a(href='/login') Log In
     -if(description != null)
       p#description= description
-    p#uploadDetails(style='display:none;')
-      | Uploaded on 
-      span(class='uploadTime')= time
-      |  by 
-      span(class='uploadUser') <b>#{user}</b>
     div#optionBar
-      -if(encrypted)
-        div#decryption
-          input#passwordEntry(placeholder='Password' type='password')
-          button#decryptButton(onclick='decrypt();') Decrypt
-      a#downloadLink(href='/raw/#{fileName}' download='#{fileName}') Download
-      -if(session.auth(user))
-        a#deleteLink(href='/edit/#{fileName}') Edit
-        a#deleteLink(href='/delete/#{fileName}') Delete
-      -if(isImage == false)
+      span.childPad
         -if(encrypted)
-          label#lineNumbers(style='display:none;')
-            input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
-            | Line Numbers
+          div#decryption
+            input#passwordEntry(placeholder='Password' type='password')
+            button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
+          a#downloadLink(style='display:none;' href='/raw/#{fileName}' download='#{fileName}') Download
         -else
-          label#lineNumbers
-            input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
-            | Line Numbers
-      -if(session.auth())
-        a.floatRight(href='/logout') Log Out
-      -else
-        a.floatRight(href='/login') Log In
-    script(type='text/javascript').
-      renderTimes();
+          a#downloadLink(href='/raw/#{fileName}' download='#{fileName}') Download
+        -if(session.auth(user))
+          span.divider
+          a(href='/edit/#{fileName}') Edit
+          a.warnLink(href='/delete/#{fileName}') Delete
+        -if(isImage == false)
+          span.childPad#textTools(style='display:none;')
+            span.divider
+            button#copyTextButton(onclick='copyToClipboard();') Copy Text
+            label#lineNumbers
+              input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers();')
+              | Line Numbers
+        div.floatRight
+          span.uploadTime= time
+          |  by 
+          bold
+            a(href='/user/#{user}')= user
+          script(type='text/javascript').
+            renderTimes();
     -if(encrypted)
       -if(isImage)
-        center
-          img#image(style='display:none;')
+        center#imageContainer(style='display:none;')
+          img#content
       -else
-        code#content(style='display:none;')
+        div#textContainer(style='display:none;')
+          code#content
     -else
       -if(isImage)
-        center
-          a(href='/raw/#{fileName}')
-            img#image(src='/raw/#{fileName}')
+        center#imageContainer
+          img#content(src='/raw/#{fileName}')
       -else
-        code#content= content
+        div#textContainer
+          code#content= content

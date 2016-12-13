@@ -11,4 +11,4 @@ body
       input(type='hidden' name='file' value='#{fileName}')
       input(type='hidden' name='returnPath' value='#{delReturnPath}')
       button(type='submit') Confirm
-    a(href='#{returnPath}') Go back
+    a(href='#' onclick='window.history.back();') Go Back

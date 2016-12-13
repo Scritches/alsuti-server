@@ -8,52 +8,65 @@ html
     script(type='text/javascript' src='/js/listing.js')
     script(type='text/javascript' src='/js/time.js')
 body(onload='renderTimes();')
-  h1#title= title
+  div#globalBar
+    span.childPad
+      span#title= title
+      -if(listingType == 'private')
+        span.divider
+        a.listingLink(href='/public') Public
+      -else if(listingType == 'public')
+        -if(session.auth())
+          span.divider
+          a.listingLink(href='/private') Private
+      -else if(listingType == 'userPublic')
+        span.divider
+        -if(session.auth())
+          a.listingLink(href='/private') Private
+        a.listingLink(href='/public') Public
+      span.floatRight
+        -if(session.auth())
+          a(href='/logout') Log Out
+        -else
+          a(href='/login') Log In
   div#optionBar
-    -if(listingType == 'public')
-      a(href='/private') Private
-    -else if(listingType == 'private')
-      a(href='/public') Public
-    -else
-      a(href='/private') Private
-      a(href='/public') Public
-    div#listingCountContainer(style='display:none;')
-      | Show 
-      select#listingCount(onchange='updateListing();')
-        option 5
-        option 10
-        option 15
-        option 20
-        option 25
-        option 30
-        option 35
-        option 40
-        option 45
-        option 50
-      |  files per page
-    script(type='text/javascript').
-      $('#listingCount').val('#{count}');
-      $('#listingCountContainer').show();
-    -if(session.auth())
-      a.floatRight(href='/logout') Log Out
-    -else
-      a.floatRight(href='/login') Log In
+    span.childPad
+      span#page Page #{page}
+      span.divider
+      span#listingCountContainer
+        | Show 
+        select#listingCount(onchange='updateListing();')
+          option 5
+          option 10
+          option 15
+          option 20
+          option 25
+          option 30
+          option 35
+          option 40
+          option 45
+          option 50
+        |  files per page
+        script(type='text/javascript').
+          $('#listingCount').val('#{count}');
   -if(uploads.length == 0)
     span There's nothing here.
   -else
-    table#uploadListing(border='0' cellpadding='7px' cellspacing='0')
+    table#uploadListing(border='0' cellpadding='6px' cellspacing='0')
       each u,i in uploads
         tr
-          td
-            -if(u.encrypted)
-              a(class='encrypted' href='/#{u.fileName}')= u.title || u.fileName
-            -else
-              a(href='/#{u.fileName}')= u.title || u.fileName
+          -if(u.encrypted)
+            td.encrypted
+              img(src='/padlock.png')
+          -else
+            td.encrypted
+              img(src='/padlock.png' style='visibility:hidden;')
+          td.expand
+            a(href='/#{u.fileName}')= u.title || u.fileName
           -if(session.auth(u.user))
             td
-              a(href='/edit/#{u.fileName}') Edit
+              a.warnLink(href='/delete/#{u.fileName}') Delete
             td
-              a(href='/delete/#{u.fileName}') Delete
+              a(href='/edit/#{u.fileName}') Edit
           -else
             td
             td
@@ -62,16 +75,14 @@ body(onload='renderTimes();')
           -if(listingType == 'public')
             td
               a(href='/user/#{u.user}')= u.user
-    div(id='listingBar')
+    div#listingBar
       div#listingBarLeft
         -if(page > 1)
-          a(class='pageLink', href='?page=#{page - 1}&count=#{count}') Previous
+          a.pageLink(href='?page=#{page - 1}&count=#{count}') Previous
         -else
-          span(class='hidden pageLink') Previous
-      -if(uploads.length > 0)
-        span(class='page') Page #{page}
+          span.hidden.pageLink Previous
       div#listingBarRight
         -if(lastPage == false)
           a(class='pageLink', href='?page=#{page + 1}&count=#{count}') Next
         -else
-          span(class='hidden pageLink') Next
+          span.hidden.pageLink Next

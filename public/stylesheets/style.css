@@ -1,20 +1,48 @@
 body {
+  font: 15px "Lucida Grande", Helvetica;
+  margin: 10px;
+}
+
+/* significant stuff */
+#globalBar {
+  margin-bottom: 10px;
+}
+#title {
+  font-weight: bold;
+}
+p#description {
+  display: inline-block;
+  background-color: #E0C0A0; /* faded orange */
+  border-radius: 2.5px;
+  margin: 0px 0px 10px;
+  padding: 5px;
+}
+#optionBar {
+  background-color: #F0F0F0;
+  border: 1px solid #CCC;
+  clear: both;
+  line-height: 25px;
+  margin-bottom: 10px;
+  overflow: auto;
   padding: 10px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 /* common */
 a {
-  color: #00B7FF;
+  color: #00A0E0;
 }
-.error {
-  color: #FF2020;
+a.listingLink {
+  color: #20C020;
 }
-.encrypted {
-  color: #FF2020;
+a.warnLink {
+  color: #E00000;
 }
-.alignRight {
-  text-align: right;
+a.pageLink {
+  color: #E020C0;
+}
+span.divider:after {
+  color: #808080;
+  content: '│';
 }
 .floatRight {
   clear: left;
@@ -22,29 +50,35 @@ a {
   float: right;
 }
 
-/* generic */
-h1#title {
-  margin: 0px;
-  margin-bottom: 5px;
+/* dynamic padding */
+.childPad > * {
+  display: inline-block;
+  margin-right: 10px;
 }
-p#description {
-  margin: 5px 0px 5px;
-}
-p#uploadDetails {
-  font-size: 90%;
-  margin: 10px 0px 10px;
+.childPad > *:last-child {
+  margin-right: 0px;
 }
 
-/* login stuff */
-#loginForm * {
+/* login form */
+#loginForm > * {
   display: block;
   margin: 10px;
 }
-#loginForm * {
-  font-size: 14px;
-}
 #loginMessage {
   color: #FF2020;
+}
+
+/* edit form */
+form#editForm,
+form#deleteForm {
+  margin: 15px;
+}
+form#editForm > * {
+  display: block;
+  margin: 5px;
+}
+form#editForm input[type=text] {
+  width: 250px;
 }
 
 /* upload */
@@ -68,27 +102,13 @@ p#uploadDetails {
   min-height: 200px;
 }
 
-/* editing */
-form#editForm,
-form#deleteForm {
-  margin: 15px;
+/* listings */
+td.encrypted img {
+  vertical-align: top;
+  height: 17px;
 }
-form#editForm > * {
-  display: block;
-  margin: 5px;
-}
-
-form#editForm input[type=text] {
-  width: 250px;
-}
-
-/* upload listings */
 div#listingCountContainer {
   display: inline-block;
-}
-table#uploadListing {
-  font-family: monospace;
-  font-size: 14px;
 }
 table#uploadListing tr:nth-child(odd) {
   background-color: #F8F8F8;
@@ -96,17 +116,14 @@ table#uploadListing tr:nth-child(odd) {
 table#uploadListing tr:nth-child(even) {
   background-color: #E8E8E8;
 }
-table#uploadListing tr td:first-child {
+table#uploadListing tr td.expand {
   width: 100%;
 }
-table#uploadListing tr td:not(:first-child) {
+table#uploadListing tr td:not(.expand) {
   white-space: nowrap;
   text-align: right;
 }
-
-/* listings */
 #listingBar {
-  font-size: 14px;
   margin: 10px;
   text-align: center;
 }
@@ -122,34 +139,11 @@ table#uploadListing tr td:not(:first-child) {
   text-align: right;
   width: 50px;
 }
-.page {
-  display: inline-block;
-}
-a.pageLink {
-  color: #FF00B7;
-}
 .hidden {
   visibility: hidden;
 }
 
-/* view options */
-#optionBar {
-  background-color: rgb(240,240,240);
-  border: 1px solid #CCC;
-  font-size: 14px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding: 10px;
-  overflow: auto;
-}
-#optionBar > * {
-  margin-right: 10px;
-}
-#optionBar > *:last-child {
-  margin-right: 0px;
-}
-
-/* decryption stuff */
+/* decryption */
 #decryption {
   display: inline-block;
 }
@@ -160,21 +154,30 @@ a.pageLink {
   margin-right: 0px;
 }
 
-/* text content */
+/* content */
+#textContainer {
+  border: 1px solid #CCC;
+}
 code.hljs-line-numbers {
   border-right: 1px solid #CCC;
-  color: #999;
-  text-align: right;
-  user-select: none;
-  white-space: pre;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  color: #888;
 }
-
-/* images */
-img#image {
+code {
+  background-color: #F0F0F0;
+  display: block;
+  font-family: Consolas,
+               Monaco,
+               Lucida Console,
+               Liberation Mono,
+               Droid Sans Mono,
+               DejaVu Sans Mono,
+               Bitstream Vera Sans Mono,
+               Courier New;
+  line-height: 100%;
+  padding: 5px 10px;
+  overflow-x: auto;
+}
+img#content {
+  margin: 5px 0px;
   max-width: 75%;
 }

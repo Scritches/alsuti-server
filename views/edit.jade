@@ -5,7 +5,7 @@ head
   script(type='text/javascript' src='/js/lib/jquery.min.js')
 body
   center
-    h1#title #{title || fileName}
+    h1#title #{fileName}
     form#editForm(method='post' action='/edit')
       input(type='hidden' name='file' value='#{fileName}')
       input(type='hidden' name='returnPath' value='#{returnPath}')
@@ -18,4 +18,4 @@ body
           input(type='checkbox', name='public' value='yes')
         | Public
       button Save
-    a(href='#{returnPath}') Go Back
+    a(href='#' onclick='window.history.back();') Go Back

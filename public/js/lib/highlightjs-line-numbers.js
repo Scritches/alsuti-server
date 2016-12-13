@@ -34,20 +34,23 @@
 		if(typeof element !== 'object')
 		  return;
 
-		var parent = element.parentNode;
+		var parent = element.parentNode,
+		    lines = getCountLines(parent.textContent);
 
 		var l = '';
-		var lines = getCountLines(parent.textContent);
 		for(var i=0; i < lines; ++i) {
 			l += (i+1) + '\n';
 		}
 
-		var linesPanel = document.createElement('code');
-		linesPanel.className = 'hljs hljs-line-numbers';
-		linesPanel.style.float = 'left';
-		linesPanel.textContent = l;
+		var lp = document.createElement('code');
+		lp.className = 'hljs hljs-line-numbers';
+		lp.style.float = 'left';
+    lp.style.textAlign = 'right';
+		lp.style.userSelect = 'none';
+		lp.style.whiteSpace = 'pre';
+	  lp.textContent = l;
 
-		parent.insertBefore(linesPanel, element);
+		parent.insertBefore(lp, element);
 	}
 
 	function getCountLines(text) {

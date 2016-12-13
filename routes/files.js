@@ -6,7 +6,7 @@ var _ = require('underscore')._,
     path = require('path'),
     request = require('request'),
     shortid = require('shortid'),
-    auth = require('./userauth'),
+    auth = require('./auth'),
     isTrue = require('../truthiness');
 
 var router = express.Router();
@@ -96,16 +96,14 @@ router.post('/upload', function(req, res) {
     if(_.has(req.body, 'title') && req.body.title != null) {
       var title = req.body.title.trim();
       if(title.length > 0) {
-        metadata.push('title');
-        metadata.push(title);
+        metadata.push('title', title);
       }
     }
 
     if(_.has(req.body, 'description') && req.body.description != null) {
       var desc = req.body.description.trim();
       if(desc.length > 0) {
-        metadata.push('description');
-        metadata.push(desc);
+        metadata.push('description', desc);
       }
     }
 
@@ -422,19 +420,20 @@ router.get('/:file', function(req, res, rf) {
         return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
       }
 
-      fs.readFile(filePath, function(err, data) {
+      fs.readFile(filePath, {'encoding':'utf8'},  function(err, data) {
         if(!err) {
           res.render('view', {
-            'session': req.session,
+            'returnPath': req.headers.referer || null,
             'isImage': isImage(fileExt),
-            'fileName': fileName,
             'fileExt': fileExt,
+            'fileName': fileName,
             'title': u.title,
             'description': u.description,
             'user': u.user,
             'time': u.time,
             'encrypted': u.encrypted,
-            'content': data.toString()
+            'content': data.toString(),
+            'session': req.session,
           });
         }
         else {
