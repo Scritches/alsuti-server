@@ -398,6 +398,17 @@ router.post('/delete', function(req, res) {
   });
 });
 
+function sendFile(req, res) {
+  var filePath = path.resolve(__dirname + '/../files/' + req.params.file);
+  fs.access(filePath, function(err) {
+    if(!err) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404);
+    }
+  });
+}
+
 router.get('/:file', function(req, res, rf) {
   var db = req.app.get('database'),
       fileName = req.params.file,
@@ -416,12 +427,17 @@ router.get('/:file', function(req, res, rf) {
       var filePath = path.resolve(__dirname + '/../files/' + fileName),
           fileExt = fileName.match(/\.[a-z0-9]+$/i)[0].substr(1) || null;
 
-      function isImage(ext) {
-        return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+      if(req.device.type == 'bot') {
+        sendFile(req, res);
+        return;
       }
 
       fs.readFile(filePath, {'encoding':'utf8'},  function(err, data) {
         if(!err) {
+          function isImage(ext) {
+            return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+          }
+
           res.render('view', {
             'returnPath': req.headers.referer || null,
             'isImage': isImage(fileExt),
@@ -464,16 +480,7 @@ router.get('/:file', function(req, res, rf) {
 });
 
 // used for displaying unencrypted text/images in web view
-router.get('/raw/:file', function(req, res) {
-  var filePath = path.resolve(__dirname + '/../files/' + req.params.file);
-  fs.access(filePath, function(err) {
-    if(!err) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404);
-    }
-  });
-});
+router.get('/x/:file', sendFile);
 
 // handle deprecated encrypted views
 router.get('/e/:file', function(req, res) {
