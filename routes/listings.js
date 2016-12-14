@@ -9,11 +9,11 @@ var router = express.Router();
 router.get('/private', auth.required);
 router.get('/private', function(req, res) {
   renderListing(req, res, 'user:' + req.session.user + ':private',
-                "Private Files", 'private');
+                'Private', 'private');
 });
 
 router.get('/public', function(req, res) {
-  renderListing(req, res, 'public', "Public Files", 'public');
+  renderListing(req, res, 'public', 'Public', 'public');
 });
 
 router.get('/user/:user', function(req, res) {

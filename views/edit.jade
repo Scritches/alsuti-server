@@ -1,6 +1,7 @@
 doctype html
 head
   title Edit #{fileName}
+  meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='/stylesheets/style.css')
   script(type='text/javascript' src='/js/lib/jquery.min.js')
 body
@@ -9,7 +10,7 @@ body
     form#editForm(method='post' action='/edit')
       input(type='hidden' name='file' value='#{fileName}')
       input(type='hidden' name='returnPath' value='#{returnPath}')
-      input(type='text', placeholder='Title', name='title' value="#{title || ''}")
+      input(type='text', placeholder='Title', name='title' value="#{title || ''}" autofocus)
       input(type='text', placeholder='Description', name='description' value="#{description || ''}")
       label
         -if(public)

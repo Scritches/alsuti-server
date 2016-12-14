@@ -5,6 +5,7 @@ html
       title= title
     -else
       title= fileName
+    meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet' href='/stylesheets/style.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript' src='/js/lib/js.cookie.js')
@@ -22,47 +23,47 @@ html
       script(type='text/javascript').
         var encrypted = false;
   body
-    div#globalBar
-      span.childPad
-        span#title= title || fileName
+    div#globalBar.childPad
+      -if(session.auth())
+        a.uploadLink(href='/') Upload
         span.divider
+        a.listingLink(href='/private') Private
+      a.listingLink(href='/public') Public
+      span.floatRight
         -if(session.auth())
-          a.listingLink(href='/private') Private
-        a.listingLink(href='/public') Public
-        span.floatRight
-          -if(session.auth())
-            a(href='/logout') Log Out
-          -else
-            a(href='/login') Log In
-    -if(description != null)
-      p#description= description
-    div#optionBar
-      span.childPad
-        -if(encrypted)
-          div#decryption
-            input#passwordEntry(placeholder='Password' type='password')
-            button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
-          a#downloadLink(style='display:none;' href='/raw/#{fileName}' download='#{fileName}') Download
+          a(href='/logout') Log Out
         -else
-          a#downloadLink(href='/raw/#{fileName}' download='#{fileName}') Download
-        -if(session.auth(user))
-          span.divider
+          a(href='/login') Log In
+    div#header
+      span#title= title || fileName
+      -if(description != null)
+        span#description= description
+      div#info
+        | by 
+        bold
+          a(href='/user/#{user}')= user
+        |  on 
+        span.uploadTime= time
+        script(type='text/javascript').
+          renderTimes();
+    div#optionBar.childPad
+      -if(encrypted)
+        div#decryption
+          input#passwordEntry(placeholder='Password' type='password')
+          button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
+        a#downloadLink(style='display:none;' href='/raw/#{fileName}' download='#{fileName}') Download
+      -else
+        a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
+      -if(isImage == false)
+        div#textFeatures.childPad(style='display:none;')
+          label#lineNumbers
+            input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers();')
+            | Line Numbers
+          button(onclick='copyToClipboard();') Copy
+      -if(session.auth(user))
+        div.childPad.floatRight
           a(href='/edit/#{fileName}') Edit
           a.warnLink(href='/delete/#{fileName}') Delete
-        -if(isImage == false)
-          span.childPad#textTools(style='display:none;')
-            span.divider
-            button#copyTextButton(onclick='copyToClipboard();') Copy Text
-            label#lineNumbers
-              input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers();')
-              | Line Numbers
-        div.floatRight
-          span.uploadTime= time
-          |  by 
-          bold
-            a(href='/user/#{user}')= user
-          script(type='text/javascript').
-            renderTimes();
     -if(encrypted)
       -if(isImage)
         center#imageContainer(style='display:none;')

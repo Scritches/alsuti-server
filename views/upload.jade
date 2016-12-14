@@ -1,11 +1,46 @@
 doctype html
 head
   title Upload
+  meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='/stylesheets/style.css')
+  script(type='text/javascript' src='/js/.js')
 body
-  center
-    a.uploadOption(href='#' onclick='setTextUpload()') Text
-    a.uploadOption(href='#' onclick='setFileUpload()') File
-    input(class='uploadInput' type='file' style='display:none')#fileSelector
-    textarea(class='uploadInput' )#textInput
-    button(onclick='upload()') Upload
+  div#globalBar
+    span.childPad
+      -if(session.auth())
+        a.listingLink(href='/private') Private
+      a.listingLink(href='/public') Public
+      span.floatRight
+        -if(session.auth())
+          a(href='/logout') Log Out
+        -else
+          a(href='/login') Log In
+  center#upload
+    div#fileUpload
+      span#title Upload
+      form#fileForm(method='post' action='/upload' enctype='multipart/form-data')
+        input(type='file' name='fileupload')
+        label
+          input(type='checkbox' name='public' value='yes')
+          | Public
+        input(type='submit' value='Upload')
+    div#pasteUpload
+      span#title Paste
+      form#pasteForm(method='post' action='/upload' enctype='multipart/form-data')
+        input(type='text' name='title' placeholder='Title')
+        input(type='text' name='description' placeholder='Description')
+        textarea(form='pasteForm' name='content')
+        label
+          input(type='checkbox' name='public' value='yes')
+          | Public
+        input(type='submit' value='Paste')
+    div#rehostUpload
+      span#title Rehost
+      form#rehostForm(method='post' action='/upload')
+        input(type='text' name='url' placeholder='URL')
+        input(type='text' name='title' placeholder='Title')
+        input(type='text' name='description' placeholder='Description')
+        label
+          input(type='checkbox' name='public' value='yes')
+          | Public
+        input(type='submit' value='Rehost')

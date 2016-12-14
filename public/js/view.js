@@ -148,7 +148,7 @@ function renderText(data) {
     $('#textContainer').show();
   }
 
-  $('#textTools').show();
+  $('#textFeatures').show();
 
   $('code').each(function(i, block) {
     block.className = fileExt;

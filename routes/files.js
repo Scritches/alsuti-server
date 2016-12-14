@@ -9,49 +9,54 @@ var _ = require('underscore')._,
     auth = require('./auth'),
     isTrue = require('../truthiness');
 
+function getFileExt(str) {
+  var m = str.match(/\.[a-z]+\w+$/i);
+  return m != null ? m[0] : '';
+}
+function getUrlExt(url) {
+  var m = url.match(/(\.[a-z]+\w{2,3})(?:\?\S+)?$/i);
+  return m != null ? m[1] : '';
+}
+
 var router = express.Router();
 
 router.get('/', auth.required);
 router.get('/', function(req, res) {
   res.render('upload', {
     'title': "Upload",
-    'sessionUser': req.sessionUser
+    'session': req.session
   });
 });
 
 router.post('/upload', auth.required);
 router.post('/upload', function(req, res) {
   var localPath,
-      ext,
       fileName;
 
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
-    ext = req.files.fileupload.originalname.match(/\.([a-z0-9]+)$/i)[1] || 'bin';
-    fileName = shortid.generate() + '.' + ext;
+    fileName = shortid.generate() + getFileExt(req.files.fileupload.path);
     fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + fileName, data, function(err) {
         postWrite(err);
       });
     });
   }
-  else if(_.has(req.body, 'uri')) {
-    localPath = __dirname + '/../files/';
-    ext = req.body.uri.match(/\.([a-z0-9]+)\?\S*$/i)[1] || 'bin';
-    fileName = shortid.generate() + '.' + ext;
-    request.get(req.body.uri) // ...
-      .pipe(fs.createWriteStream(localPath + fileName))
-      .on('close', function() {
-        postWrite(err);
-      });
-  }
   else if(_.has(req.body, 'content')) {
     localPath = __dirname + '/../files/';
-    ext = req.body.extension;
     fileName = shortid.generate() + '.' + req.body.extension;
     fs.writeFile(localPath + fileName, req.body.content, function(err) {
       postWrite(err);
     });
+  }
+  else if(_.has(req.body, 'url')) {
+    localPath = __dirname + '/../files/';
+    fileName = shortid.generate() + getUrlExt(req.body.url);
+    request.get(req.body.url) // ...
+      .pipe(fs.createWriteStream(localPath + fileName))
+      .on('close', function() {
+        postWrite(null);
+      });
   }
   else {
     res.status(400);
@@ -124,7 +129,7 @@ router.post('/upload', function(req, res) {
           res.api(false, {'fileName': fileName});
         } else {
           res.status(302);
-          res.redirect(url);
+          res.redirect('/' + fileName);
         }
       }
       else {
@@ -425,7 +430,7 @@ router.get('/:file', function(req, res, rf) {
       u.public = isTrue(u.public) || false;
 
       var filePath = path.resolve(__dirname + '/../files/' + fileName),
-          fileExt = fileName.match(/\.[a-z0-9]+$/i)[0].substr(1) || null;
+          fileExt = getFileExt(filePath).substr(1);
 
       if(req.device.type == 'bot') {
         sendFile(req, res);
