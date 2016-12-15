@@ -19,7 +19,7 @@ body
     div#fileUpload
       span#title Upload
       form#fileForm(method='post' action='/upload' enctype='multipart/form-data')
-        input#uploadInput(type='file' name='fileupload')
+        input(type='file' name='fileupload')
         input(type='text' name='title' placeholder='Title')
         input(type='text' name='description' placeholder='Description')
         label
@@ -29,7 +29,7 @@ body
     div#pasteUpload
       span#title Paste
       form#pasteForm(method='post' action='/upload' enctype='multipart/form-data')
-        input#pasteInput(type='text' name='title' placeholder='Title')
+        input(type='text' name='title' placeholder='Title')
         input(type='text' name='description' placeholder='Description')
         textarea#r(form='pasteForm' name='content')
         input(type='hidden', name='extension', value='txt')
@@ -40,7 +40,7 @@ body
     div#rehostUpload
       span#title Rehost
       form#rehostForm(method='post' action='/upload')
-        input#rehostInput(type='text' name='url' placeholder='URL')
+        input(type='text' name='url' placeholder='URL')
         input(type='text' name='title' placeholder='Title')
         input(type='text' name='description' placeholder='Description')
         label
