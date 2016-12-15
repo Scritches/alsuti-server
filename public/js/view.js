@@ -53,12 +53,12 @@ function saveOptions() {
 }
 
 function loadOptions() {
-  var lineNumbersState = Cookies.get('lineNumbers') == 'on';
-  $('#lineNumbersCheckbox').prop('checked', lineNumbersState);
+  $('#lineNumbersCheckbox').prop('checked', Cookies.get('lineNumbers') == 'on');
 }
 
 function toggleLineNumbers() {
   var code = $('code');
+
   if($('#lineNumbersCheckbox').prop('checked')) {
     // disable line wrapping
     code.css('white-space', 'pre');
@@ -148,7 +148,7 @@ function renderText(data) {
     $('#textContainer').show();
   }
 
-  $('#textFeatures').show();
+  $('#textTools').show();
 
   $('code').each(function(i, block) {
     block.className = fileExt;

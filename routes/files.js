@@ -44,7 +44,12 @@ router.post('/upload', function(req, res) {
   }
   else if(_.has(req.body, 'content')) {
     localPath = __dirname + '/../files/';
-    fileName = shortid.generate() + '.' + req.body.extension;
+    if(_.has(req.body, 'extension')) {
+      fileName = shortid.generate() + '.' + req.body.extension;
+    } else {
+      fileName = shortid.generate();
+    }
+
     fs.writeFile(localPath + fileName, req.body.content, function(err) {
       postWrite(err);
     });

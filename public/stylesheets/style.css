@@ -1,15 +1,14 @@
 body {
   font-family: "Lucida Grande", Helvetica;
   font-size: 14px;
-  margin: 10px;
+  margin: 0px;
+  min-width: 320px;
+  padding: 10px;
 }
 
 /* common */
-a:link {
+a {
   color: #2996CC;
-}
-a:visited {
-  color: #144B66;
 }
 a.encrypted,
 a.uploadLink {
@@ -21,23 +20,23 @@ a.listingLink {
 a.warnLink {
   color: #B33636;
 }
-span.divider:after {
-  color: #808080;
-  content: '│';
-}
-.floatRight {
-  float: right;
-  text-align: right;
-}
-form > * {
-  margin: 5px;
-}
+
 .childPad > * {
-  display: inline;
   margin-right: 5px;
 }
 .childPad > *:last-child {
   margin-right: 0px;
+}
+.floatRight {
+  float: right;
+}
+span.divider:after {
+  color: #808080;
+  content: '|';
+}
+
+form > * {
+  margin: 5px;
 }
 
 /* significant stuff */
@@ -63,14 +62,22 @@ form > * {
   margin-top: 5px;
 }
 #optionBar {
-  display: block;
   background-color: #F0F0F0;
   border: 1px solid #CCC;
+  line-height: 25px;
   margin-bottom: 10px;
   padding: 5px;
 }
-#optionBar > * {
-  display: inline-block;
+
+/* v-center inputs in option bar */
+#optionBar input {
+  vertical-align: middle;
+}
+#optionBar input#lineNumbersCheckbox {
+  margin: 0px;
+}
+#optionBar label#lineNumbersLabel {
+  padding-left: 5px;
 }
 
 /* decryption */
@@ -82,10 +89,6 @@ form > * {
 }
 #decryption > *:last-child {
   margin-right: 0px;
-}
-
-#textFeatures {
-  display: inline-block;
 }
 
 /* login/delete/edit pages */
@@ -105,13 +108,9 @@ form#editForm input[type=text] {
 }
 
 /* upload forms */
-#upload > form:first-child {
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-}
-#upload > form:last-child {
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+#upload {
+  border-radius: 5px;
+  margin: 0 auto;
 }
 
 #fileUpload,
@@ -121,11 +120,15 @@ form#editForm input[type=text] {
   display: block;
   padding: 5px 10px;
 }
+
+form#fileForm input[type=file],
+form#fileForm input[type=text],
 form#pasteForm input[type=text],
-form#rehostForm input[type=text],
-form#pasteForm textarea {
+form#pasteForm textarea,
+form#rehostForm input[type=text]
+{
   display: block;
-  width: 60%;
+  width: 95%;
 }
 
 #fileUpload {
@@ -139,16 +142,8 @@ form#pasteForm textarea {
 }
 
 #pasteUpload textarea {
-  resize: none;
+  resize: vertical;
   min-height: 100px;
-}
-
-#fileForm input[type=file] {
-  background-color: #E0E0E0;
-  border: 1px solid #C0C0C0;
-  border-radius: 2.5px;
-  display: block;
-  padding: 5px;
 }
 
 /* listing table */
@@ -156,7 +151,7 @@ div#listingCountContainer {
   display: block;
 }
 table#uploadListing {
-  width: 100%;
+  display: block;
 }
 table#uploadListing tr:nth-child(odd) {
   background-color: #F8F8F8;
@@ -164,13 +159,20 @@ table#uploadListing tr:nth-child(odd) {
 table#uploadListing tr:nth-child(even) {
   background-color: #E8E8E8;
 }
-table#uploadListing tr td:not(:first-child) {
+table#uploadListing tr td:first-child {
+  color: #808080;
+}
+table#uploadListing tr td.expand {
+  width: 100%;
+}
+table#uploadListing tr td:not(.expand) {
   text-align: right;
+  white-space: pre;
 }
 
 /* listing page bar */
 #pageBar {
-  margin: 5px;
+  margin: 5px 10px;
   width: auto;
 }
 #pageBarLeft {
@@ -192,6 +194,7 @@ table#uploadListing tr td:not(:first-child) {
 /* content */
 #textContainer {
   border: 1px solid #CCC;
+  clear: both;
 }
 code.hljs-line-numbers {
   border-right: 1px solid #CCC;

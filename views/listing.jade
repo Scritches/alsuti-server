@@ -25,6 +25,7 @@ body(onload='renderTimes();')
         a.uploadLink(href='/') Upload
         span.divider
         a.listingLink(href='/private') Private
+        span.divider
       a.listingLink(href='/public') Public
     span.floatRight
       -if(session.auth())
@@ -57,6 +58,7 @@ body(onload='renderTimes();')
     table#uploadListing(border='0' cellpadding='5px' cellspacing='0')
       each u,i in uploads
         tr
+          td= (count * (page-1)) + (i+1)
           td.expand
             -if(u.encrypted)
               a.encrypted(href='/#{u.fileName}')= u.title || u.fileName
@@ -65,6 +67,7 @@ body(onload='renderTimes();')
           -if(session.auth(u.user))
             td.childPad
               a(href='/edit/#{u.fileName}') Edit
+              span.divider
               a.warnLink(href='/delete/#{u.fileName}') Delete
           -else
             td

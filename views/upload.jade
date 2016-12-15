@@ -3,12 +3,12 @@ head
   title Upload
   meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='/stylesheets/style.css')
-  script(type='text/javascript' src='/js/.js')
 body
   div#globalBar
     span.childPad
       -if(session.auth())
         a.listingLink(href='/private') Private
+        span.divider
       a.listingLink(href='/public') Public
       span.floatRight
         -if(session.auth())
@@ -19,7 +19,9 @@ body
     div#fileUpload
       span#title Upload
       form#fileForm(method='post' action='/upload' enctype='multipart/form-data')
-        input(type='file' name='fileupload')
+        input#uploadInput(type='file' name='fileupload')
+        input(type='text' name='title' placeholder='Title')
+        input(type='text' name='description' placeholder='Description')
         label
           input(type='checkbox' name='public' value='yes')
           | Public
@@ -27,9 +29,10 @@ body
     div#pasteUpload
       span#title Paste
       form#pasteForm(method='post' action='/upload' enctype='multipart/form-data')
-        input(type='text' name='title' placeholder='Title')
+        input#pasteInput(type='text' name='title' placeholder='Title')
         input(type='text' name='description' placeholder='Description')
-        textarea(form='pasteForm' name='content')
+        textarea#r(form='pasteForm' name='content')
+        input(type='hidden', name='extension', value='txt')
         label
           input(type='checkbox' name='public' value='yes')
           | Public
@@ -37,7 +40,7 @@ body
     div#rehostUpload
       span#title Rehost
       form#rehostForm(method='post' action='/upload')
-        input(type='text' name='url' placeholder='URL')
+        input#rehostInput(type='text' name='url' placeholder='URL')
         input(type='text' name='title' placeholder='Title')
         input(type='text' name='description' placeholder='Description')
         label
