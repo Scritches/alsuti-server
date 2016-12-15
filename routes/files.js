@@ -15,7 +15,7 @@ function getFileExt(str) {
 }
 function getUrlExt(url) {
   var m = url.match(/(\.[a-z]+\w{2,3})(?:\?\S+)?$/i);
-  return m != null ? m[1] : '';
+  return m != null && m.length == 2 ? m[1] : '';
 }
 
 var router = express.Router();
@@ -57,11 +57,22 @@ router.post('/upload', function(req, res) {
   else if(_.has(req.body, 'url')) {
     localPath = __dirname + '/../files/';
     fileName = shortid.generate() + getUrlExt(req.body.url);
-    request.get(req.body.url) // ...
-      .pipe(fs.createWriteStream(localPath + fileName))
-      .on('close', function() {
-        postWrite(null);
-      });
+    try {
+      request.get(req.body.url)
+        .pipe(fs.createWriteStream(localPath + fileName))
+        .on('close', function() {
+          postWrite(null);
+        });
+    } catch(e) {
+      if(req.apiRequest) {
+        res.api(true, {'message': "Invalid URL."});
+      } else {
+        res.render('error', {
+          'title': 'Error',
+          'message': "Invalid URL."
+        });
+      }
+    }
   }
   else {
     res.status(400);
