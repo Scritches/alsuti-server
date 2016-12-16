@@ -17,6 +17,7 @@ a.uploadLink {
 a.listingLink {
   color: #75B336;
 }
+.error,
 a.warnLink {
   color: #B33636;
 }
@@ -27,6 +28,9 @@ a.warnLink {
 .childPad > *:last-child {
   margin-right: 0px;
 }
+.floatLeft {
+  float: left;
+}
 .floatRight {
   float: right;
 }
@@ -36,13 +40,14 @@ span.divider:after {
 }
 
 form > * {
-  margin: 5px;
+  margin: 10px;
 }
 
 /* significant stuff */
 #globalBar {
   display: block;
-  margin-bottom: 10px;
+  overflow: auto;
+  margin-bottom: 15px;
 }
 #header {
   overflow: auto;
@@ -50,7 +55,7 @@ form > * {
 }
 #title {
   display: block;
-  font-size: 125%;
+  font-size: 150%;
   font-weight: bold;
   margin: 0px;
 }
@@ -59,7 +64,7 @@ form > * {
 }
 #info {
   color: #808080;
-  margin-top: 5px;
+  font-size: 90%;
 }
 #optionBar {
   background-color: #F0F0F0;
@@ -67,6 +72,14 @@ form > * {
   line-height: 25px;
   margin-bottom: 10px;
   padding: 5px;
+}
+
+/* header margins */
+#header * {
+  margin-bottom: 5px;
+}
+#header *:last-child {
+  margin-bottom: 0px;
 }
 
 /* v-center inputs in option bar */
@@ -91,15 +104,17 @@ form > * {
   margin-right: 0px;
 }
 
-/* login/delete/edit pages */
-#loginMessage {
-  color: #FF2020;
+/* login/register/delete/edit pages */
+#actionMessage {
+  margin: 10px;
+  padding: 0px;
 }
 form#editForm,
 form#deleteForm {
   margin: 10px;
 }
 #loginForm > *,
+#registerForm > *,
 form#editForm > * {
   display: block;
 }
@@ -172,20 +187,8 @@ table#uploadListing tr td:not(.expand) {
 
 /* listing page bar */
 #pageBar {
-  margin: 5px 10px;
-  width: auto;
-}
-#pageBarLeft {
-  display: block;
-  float: left;
-  text-align: left;
-  width: 25px;
-}
-#pageBarRight {
-  display: block;
-  float: right;
-  text-align: right;
-  width: 25px;
+  margin: 10px 5px;
+  overflow: auto;
 }
 .hidden {
   visibility: hidden;
@@ -218,6 +221,5 @@ code {
   overflow-x: auto;
 }
 img#content {
-  margin: 5px 0px;
   max-width: 100%;
 }

@@ -11,18 +11,57 @@ var db = redis.createClient(),
 //  base64 regex from http://stackoverflow.com/a/18967082
     b64m = new RegExp("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$");
 
-function setUser(name, password, cb) {
+function setInviteOnly(state) {
+  db.hset('settings', 'inviteonly', state ? 'yes' : 'no', function(err, reply) {
+    if(state) {
+      console.log("Registration: invite-only.");
+    } else {
+      console.log("Registration: public.");
+    }
+  });
+}
+
+function setUser(name, password, isAdmin) {
   var userHash = 'user:' + name,
       pHash = bcrypt.hashSync(password);
 
-  db.hset(userHash, 'password', pHash, cb);
+  db.hmset(userHash, ['admin', isAdmin ? 'yes' : 'no', 'password', pHash], function(err, reply) {
+    if(!err) {
+      console.log("User configured: " + argv[1] + " [admin=" + (isAdmin ? 'yes' : 'no') + "]");
+    } else {
+      console.log("Database error.")
+    }
+  });
 }
 
 function delUser(name) {
+  var userHash = 'user:' + name,
+      m = db.multi();
+
+  m.del(userHash);
+  m.del(userHash + ':public');
+  m.del(userHash + ':private');
+
+  m.exec(function(err, replies) {
+    if(!err) {
+      console.log("User deleted: " + argv[1]);
+    } else {
+      console.log("Database error.");
+    }
+  });
+}
+
+function setAdmin(name, state) {
   var userHash = 'user:' + name;
-  db.del(userHash);
-  db.del(userHash + ':public');
-  db.del(userHash + ':private');
+  db.exists(userHash, function(err, exists) {
+    if(!err && exists) {
+      db.hset(userHash, 'admin', state ? 'yes' : 'no', function(err, reply) {
+        console.log("User configured: " + name + " [admin=" + (state ? 'yes' : 'no') + "]");
+      });
+    } else {
+      console.log(name + ": no such user");
+    }
+  });
 }
 
 function main() {
@@ -33,10 +72,12 @@ function main() {
   if(argv[0] == 'flush') {
     db.flushdb();
   }
+  else if(argv[0] == 'inviteonly') {
+    setInviteOnly(argv[1] == 'yes');
+  }
   else if(argv[0] == 'setuser') {
     if(argv.length == 3) {
       setUser(argv[1], argv[2]);
-      console.log("User '" + argv[1] + "' set with password: " + argv[2]);
     } else {
       console.log("Error: 'setuser' needs 2 arguments, " + (argv.length - 1) + " were given.");
     }
@@ -44,9 +85,15 @@ function main() {
   else if(argv[0] == 'deluser') {
     if(argv.length == 2) {
       delUser(argv[1]);
-      console.log("User '" + argv[1] + "' deleted.");
     } else {
       console.log("Error: 'deluser' needs 1 argument, " + (argv.length - 1) + " were given.");
+    }
+  }
+  else if(argv[0] == 'setadmin') {
+    if(argv.length == 3) {
+      setAdmin(argv[1], argv[2] == 'yes');
+    } else {
+      console.log("Error: 'setadmin' needs 2 arguments, " + (argv.length - 1) + " were given.");
     }
   }
   else if(argv[0] == 'mkdb') {
@@ -55,8 +102,8 @@ function main() {
         _public = false;
 
     for(var i=1; i < argv.length; ++i) {
-      if(argv[i].startsWith('user=')) {
-        user = argv[i].split('=').slice(1).join();
+      if(argv[i].startsWith('admin=')) {
+        admin = argv[i].split('=').slice(1).join();
       }
       else if(argv[i].startsWith('password=')) {
         password = argv[i].split('=').slice(1).join();
@@ -67,11 +114,12 @@ function main() {
     }
 
     if(user == null || password == null) {
-      console.log("Error: you must specify a default user and password.");
+      console.log("Error: you must specify an administrator user and password.");
       console.log("Example: ./admin mkdb user=someone password=something");
     }
     else {
-      setUser(user, password); // add default user
+      setInviteOnly(true);
+      setUser(admin, password, true); // add default admin user
 
       var slugs = fs.readdirSync('files').filter(function(slug) {
         return slug.startsWith(".") == false;
@@ -93,37 +141,28 @@ function main() {
             fHash = 'file:' + u.fileName,
             settings = [];
 
-        db.hmset(fHash,
-          'user', user,
-          'time', u.time,
-          'encrypted', u.encrypted ? 'true' : 'false',
-          'public', _public
-        );
+        db.exists(fHash, function(err, exists) {
+          if(err || exists == false) {
+            db.hmset(fHash,
+              'user', admin,
+              'time', u.time,
+              'encrypted', u.encrypted ? 'true' : 'false',
+              'public', _public
+            );
 
-        // push to user upload lists
-        var userHash = 'user:' + user;
-        if(_public) {
-          db.zadd('public', u.time, u.fileName);
-          db.zadd(userHash + ':public', u.time, u.fileName);
-        } else {
-          db.zadd(userHash + ':private', u.time, u.fileName);
-        }
+            // push to user upload lists
+            var userHash = 'user:' + user;
+            if(_public) {
+              db.zadd('public', u.time, u.fileName);
+              db.zadd(userHash + ':public', u.time, u.fileName);
+            } else {
+              db.zadd(userHash + ':private', u.time, u.fileName);
+            }
+          }
+        });
 
         console.log(u.fileName + ": time=" + u.time.toString() + (u.encrypted ? ', encrypted' : ''));
       }
-
-      console.log('');
-      console.log("User: " + user);
-      console.log("Password: " + password);
-
-      if(_public) {
-        console.log("All existing uploads are public.");
-      }
-      else {
-        console.log("All existing uploads are private.");
-      }
-
-      console.log('');
     }
   }
 

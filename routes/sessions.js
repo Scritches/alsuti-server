@@ -4,22 +4,54 @@ var _ = require('underscore'),
     auth = require('./auth'),
     isTrue = require('../truthiness');
 
-var router = express.Router();
+function Session(req, res) {
+  this.user = null;
+  this.status = -1;
+  this.validate = function(user) {
+    if(typeof user !== 'undefined') {
+      return this.user == user && this.status == 0;
+    } else {
+      return this.status == 0;
+    }
+  };
+}
 
-router.get('/login', function(req, res) {
-  if(req.session.auth()) {
-    res.redirect(req.headers.referer || '/');
-    return;
+function handleSession(req, res, next) {
+  req.session = new Session();
+
+  if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
+    var db = req.app.get('database'),
+        sessionUser = req.cookies.sessionUser,
+        sessionKey = req.cookies.sessionKey,
+        userHash = 'user:' + sessionUser;
+
+    db.hmget(userHash, ['sessionKey', 'sessionExpiry'], function(err, data) {
+      if(!err && sessionKey == data[0]) {
+        req.session.user = sessionUser;
+        if(data[1] == 'never') {
+          req.session.status = 0;
+        }
+        else if(Date.now() < parseInt(data[1])) {
+          db.hset(userHash, 'sessionExpiry', Date.now() + req.app.get('sessionAge'));
+          req.session.status = 0;
+        }
+        else {
+          req.session.status = 1; // session expired
+        }
+      }
+      else {
+        req.session.session = 2; // invalid session key
+      }
+
+      next();
+    });
   }
+  else {
+    next();
+  }
+}
 
-  res.render('login', {
-    'title': "Log In",
-    'returnPath': req.headers.referer || '/'
-  });
-});
-
-router.post('/login', auth.required);
-router.post('/login', function(req, res) {
+function startSession(req, res) {
   var db = req.app.get('database');
       userHash = 'user:' + req.body.user;
 
@@ -51,24 +83,16 @@ router.post('/login', function(req, res) {
     // store updated session data
     db.hmset(userHash, sessionData, function(err, reply) {
       if(!err) {
-        if(req.apiRequest) {
-          res.api(false, {
-            'sessionUser': req.session.user,
-            'sessionKey': sessionKey,
-            'sessionExpiry': sessionExpiry
-          });
-        } else {
-          // set cookies
-          var cookieOptions = { httpOnly: true };
-          if(sessionExpiry != 'never')
-            cookieOptions.maxAge = req.app.get('cookieAge');
-
-          res.cookie('sessionUser', req.session.user, cookieOptions);
-          res.cookie('sessionKey', sessionKey, cookieOptions);
-
-          // redirect
-          res.redirect(req.body.returnPath || '/');
+        // set cookies
+        var cookieOptions = { httpOnly: true };
+        if(sessionExpiry != 'never') {
+          cookieOptions.maxAge = req.app.get('cookieAge');
         }
+
+        res.cookie('sessionUser', req.body.user, cookieOptions);
+        res.cookie('sessionKey', sessionKey, cookieOptions);
+
+        res.redirect(req.body.returnPath || '/private');
       }
       else {
         if(req.apiRequest) {
@@ -76,34 +100,57 @@ router.post('/login', function(req, res) {
         } else {
           res.render('info', {
             'title': "Database Error",
-            'message': "Cannot store session data."
+            'message': "Something went wrong."
           });
         }
       }
     });
   });
+}
+
+var router = express.Router();
+
+router.get('/login', function(req, res) {
+  var returnPath = req.headers.referer || '/private';
+  if(req.session.validate()) {
+    res.redirect(returnPath);
+  } else {
+    res.render('login', {
+      'title': "Log In",
+      'returnPath': returnPath
+    });
+  }
 });
 
-router.get('/logout', auth.required);
+router.post('/login', auth.required);
+router.post('/login', startSession);
+
 router.get('/logout', function(req, res) {
-  var db = req.app.get('database'),
-      userHash = 'user:' + req.cookies.sessionUser;
+  var returnPath = req.headers.referer || '/public';
 
-  if(_.has(req.cookies, 'sessionUser') ||
-     _.has(req.cookies, 'sessionKey'))
-  {
-    var options = {
-      'expires': new Date(0),
-      'httpOnly': true
-    }
-
-    res.cookie('sessionUser', '', options);
-    res.cookie('sessionKey', '', options);
+  if(req.session.validate(req.cookies.sessionUser) == false) {
+    res.redirect(returnPath);
+    return;
   }
 
+  var db = req.app.get('database'),
+      userHash = 'user:' + req.session.user;
+
+  var cookieOptions = {
+    'expires': new Date(0),
+    'httpOnly': true
+  }
+
+  res.cookie('sessionUser', '', cookieOptions);
+  res.cookie('sessionKey', '', cookieOptions);
+
   db.hdel(userHash, 'sessionKey', 'sessionExpiry', function(err, reply) {
-    res.redirect(req.headers.referer || '/');
+    res.redirect(returnPath);
   });
 });
 
-module.exports = router;
+module.exports = {
+  'router': router,
+  'handler': handleSession,
+  'start': startSession,
+};

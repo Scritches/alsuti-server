@@ -11,6 +11,7 @@ var _ = require('underscore')._,
     process = require('process'),
     redis = require('redis'),
     sys = require('sys'),
+    sessions = require('./routes/sessions.js'),
     isTrue = require('./truthiness.js');
 
 if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
@@ -59,7 +60,7 @@ app.use(multer());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// authentication and api response helpers
+// api handler
 app.use(function(req, res, next) {
   // api request flag
   if(req.method == 'POST') {
@@ -75,72 +76,28 @@ app.use(function(req, res, next) {
     this.json(data);
   }.bind(res);
 
-  req.session = {
-    'user': null,
-    'auth': function(user) {
-      if(typeof user === 'undefined') {
-        return this.user != null;
-      } else {
-        return this.user != null && this.user == user;
-      }
-    },
-  };
-
-  if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
-    var db = req.app.get('database'),
-        sessionUser = req.cookies.sessionUser,
-        sessionKey = req.cookies.sessionKey,
-        userHash = 'user:' + sessionUser;
-
-    db.hmget(userHash, ['sessionKey', 'sessionExpiry'], function(err, data) {
-      if(!err && sessionKey == data[0]) {
-        if(data[1] == 'never') {
-          req.session.user = sessionUser;
-        }
-        else {
-          var now = Date.now();
-          if(now < parseInt(data[1])) {
-            var newExpiry = now + req.app.get('sessionAge');
-            db.hset(userHash, 'sessionExpiry', newExpiry);
-            req.session.user = sessionUser;
-          }
-        }
-      }
-    });
-  }
-
   next();
 });
 
-// set up primary routes
-app.use('/', require('./routes/sessions.js'));
+// primary route handlers
+app.use(sessions.handler);
+app.use('/', sessions.router);
+app.use('/', require('./routes/registration.js'));
 app.use('/', require('./routes/listings.js'));
 app.use('/', require('./routes/files.js'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  var err = new Error("Not Found");
   err.status = 404;
   next(err);
 });
 
 // development error handler; prints stacktrace
-if(app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-      message: err.message,
-      error: err
-    });
-  });
-}
-
-// production error handler; no stacktraces
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {
-    message: err.message,
-    error: {}
+    'e': err
   });
 });
 

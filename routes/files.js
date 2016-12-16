@@ -154,7 +154,10 @@ router.post('/upload', function(req, res) {
           if(req.apiRequest) {
             res.api(true, {'message': "Database error."});
           } else {
-            res.redirect('/');
+            res.render('info', {
+              'title': "Database Error",
+              'message': "Failed to store metadata."
+            });
           }
         });
       }
@@ -181,7 +184,7 @@ router.get('/edit/:file', function(req, res) {
       else {
         res.render('info', {
           'title': "Not Authorized",
-          'message': "You are not allowed to edit this file."
+          'message': "You are not allowed to edit this file.",
         });
       }
     }
@@ -319,8 +322,8 @@ router.get('/delete/:file', function(req, res) {
           'title': data[0],
           'user': data[1],
           'public': isTrue(data[2]),
-          'returnPath': req.headers.referer || ('/' + fileName),
-          'delReturnPath': isTrue(data[2]) ? '/user/' + data[1] : '/private'
+          'cancelReturnPath': req.headers.referer || ('/' + fileName),
+          'deleteReturnPath': isTrue(data[2]) ? '/user/' + data[1] : '/private'
         });
       }
       else {

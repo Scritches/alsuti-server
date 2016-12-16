@@ -6,18 +6,18 @@ head
 body
   div#globalBar
     span.childPad
-      -if(session.auth())
+      -if(session.validate())
         a.listingLink(href='/private') Private
         span.divider
       a.listingLink(href='/public') Public
       span.floatRight
-        -if(session.auth())
+        -if(session.validate())
           a(href='/logout') Log Out
         -else
           a(href='/login') Log In
   center#upload
     div#fileUpload
-      span#title Upload
+      h1#title Upload
       form#fileForm(method='post' action='/upload' enctype='multipart/form-data')
         input(type='file' name='fileupload')
         input(type='text' name='title' placeholder='Title')
@@ -27,7 +27,7 @@ body
           | Public
         input(type='submit' value='Upload')
     div#pasteUpload
-      span#title Paste
+      h1#title Paste
       form#pasteForm(method='post' action='/upload' enctype='multipart/form-data')
         input(type='text' name='title' placeholder='Title')
         input(type='text' name='description' placeholder='Description')
@@ -38,7 +38,7 @@ body
           | Public
         input(type='submit' value='Paste')
     div#rehostUpload
-      span#title Rehost
+      h1#title Rehost
       form#rehostForm(method='post' action='/upload')
         input(type='text' name='url' placeholder='URL')
         input(type='text' name='title' placeholder='Title')

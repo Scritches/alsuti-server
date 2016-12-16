@@ -1,0 +1,13 @@
+doctype html
+head
+  title Register
+  meta(name='viewport' content='width=device-width, initial-scale=1')
+  link(rel='stylesheet' href='/stylesheets/style.css')
+  center
+    h1#title Register
+    form#registerForm(method='post' action='/register')
+      input(name='user' placeholder='User')#userEntry
+      input(type='password' name='password' placeholder='Password' autocomplete='new-password')#passwordEntry
+      -if(inviteCode != null)
+        input(type='hidden' name='code' value='#{inviteCode}')
+      button(type='submit') Register

@@ -11,29 +11,29 @@ html
 body(onload='renderTimes();')
   div#globalBar.childPad
     -if(listingType == 'private')
-      -if(session.auth())
+      -if(session.validate())
         a.uploadLink(href='/') Upload
         span.divider
       a.listingLink(href='/public') Public
     -else if(listingType == 'public')
-      -if(session.auth())
+      -if(session.validate())
         a.uploadLink(href='/') Upload
         span.divider
         a.listingLink(href='/private') Private
     -else if(listingType == 'userPublic')
-      -if(session.auth())
+      -if(session.validate())
         a.uploadLink(href='/') Upload
         span.divider
         a.listingLink(href='/private') Private
         span.divider
       a.listingLink(href='/public') Public
     span.floatRight
-      -if(session.auth())
+      -if(session.validate())
         a(href='/logout') Log Out
       -else
         a(href='/login') Log In
   div#header
-    span#title= title
+    h1#title= title
   div#optionBar
     span#listingCountContainer
       | Show 
@@ -64,7 +64,7 @@ body(onload='renderTimes();')
               a.encrypted(href='/#{u.fileName}')= u.title || u.fileName
             -else
               a(href='/#{u.fileName}')= u.title || u.fileName
-          -if(session.auth(u.user))
+          -if(session.validate(u.user))
             td.childPad
               a(href='/edit/#{u.fileName}') Edit
               span.divider
@@ -77,13 +77,11 @@ body(onload='renderTimes();')
             td
               a(href='/user/#{u.user}')= u.user
     div#pageBar
-      div#pageBarLeft
-        -if(page > 1)
-          a(href='?page=#{page - 1}&count=#{count}') Previous
-        -else
-          span.hidden Previous
-      div#pageBarRight
-        -if(lastPage == false)
-          a(href='?page=#{page + 1}&count=#{count}') Next
-        -else
-          span.hidden Next
+      -if(page > 1)
+        a.floatLeft(href='?page=#{page - 1}&count=#{count}') Previous
+      -else
+        span.floatLeft.hidden Previous
+      -if(lastPage == false)
+        a.floatRight(href='?page=#{page + 1}&count=#{count}') Next
+      -else
+        span.floatRight.hidden Next

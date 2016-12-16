@@ -24,19 +24,19 @@ html
         var encrypted = false;
   body
     div#globalBar.childPad
-      -if(session.auth())
+      -if(session.validate())
         a.uploadLink(href='/') Upload
         span.divider
         a.listingLink(href='/private') Private
         span.divider
       a.listingLink(href='/public') Public
       span.floatRight
-        -if(session.auth())
+        -if(session.validate())
           a(href='/logout') Log Out
         -else
           a(href='/login') Log In
     div#header
-      span#title= title || fileName
+      h1#title= title || fileName
       -if(description != null)
         span#description= description
       div#info
@@ -50,7 +50,7 @@ html
     div#optionBar.childPad
       -if(encrypted)
         span#decryption
-          input#passwordEntry(placeholder='Password' type='password')
+          input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password')
           button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
         a#downloadLink(style='display:none;' href='/raw/#{fileName}' download='#{fileName}') Download
       -else
@@ -61,7 +61,7 @@ html
           button#copyTextButton(onclick='copyToClipboard();') Copy
           input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers()')
           label#lineNumbersLabel(for='lineNumbersCheckbox') Line Numbers
-      -if(session.auth(user))
+      -if(session.validate(user))
         span#ownerTools.floatRight.childPad
           a(href='/edit/#{fileName}') Edit
           span.divider
