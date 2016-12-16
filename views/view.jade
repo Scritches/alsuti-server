@@ -61,7 +61,7 @@ html
           button#copyTextButton(onclick='copyToClipboard();') Copy
           input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers()')
           label#lineNumbersLabel(for='lineNumbersCheckbox') Line Numbers
-      -if(session.validate(user))
+      -if(session.admin || session.validate(user))
         span#ownerTools.floatRight.childPad
           a(href='/edit/#{fileName}') Edit
           span.divider

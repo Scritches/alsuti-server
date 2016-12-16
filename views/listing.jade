@@ -64,7 +64,7 @@ body(onload='renderTimes();')
               a.encrypted(href='/#{u.fileName}')= u.title || u.fileName
             -else
               a(href='/#{u.fileName}')= u.title || u.fileName
-          -if(session.validate(u.user))
+          -if(session.admin || session.validate(u.user))
             td.childPad
               a(href='/edit/#{u.fileName}') Edit
               span.divider

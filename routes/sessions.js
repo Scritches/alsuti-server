@@ -6,6 +6,7 @@ var _ = require('underscore'),
 
 function Session(req, res) {
   this.user = null;
+  this.admin = false;
   this.status = -1;
   this.validate = function(user) {
     if(typeof user !== 'undefined') {
@@ -25,9 +26,11 @@ function handleSession(req, res, next) {
         sessionKey = req.cookies.sessionKey,
         userHash = 'user:' + sessionUser;
 
-    db.hmget(userHash, ['sessionKey', 'sessionExpiry'], function(err, data) {
+    db.hmget(userHash, ['sessionKey', 'sessionExpiry', 'admin'], function(err, data) {
       if(!err && sessionKey == data[0]) {
         req.session.user = sessionUser;
+        req.session.admin = isTrue(data[2]);
+
         if(data[1] == 'never') {
           req.session.status = 0;
         }

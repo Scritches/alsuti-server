@@ -172,7 +172,7 @@ router.get('/edit/:file', function(req, res) {
 
   db.hmget(fHash, ['user', 'title', 'description', 'public'], function(err, data) {
     if(!err) {
-      if(req.session.auth(data[0])) {
+      if(req.session.admin || req.session.validate(data[0])) {
         res.render('edit', {
           'fileName': req.params.file,
           'title': data[1],
@@ -220,7 +220,7 @@ router.post('/edit', function(req, res) {
   db.hmget(fHash, ['user', 'time', 'title', 'description', 'public'], function(err, data) {
     if(!err) {
       var user = data[0];
-      if(req.session.auth(user)) {
+      if(req.session.admin || req.session.validate(user)) {
         var m = db.multi(),
             time = data[1],
             title = data[2],
@@ -316,7 +316,7 @@ router.get('/delete/:file', function(req, res) {
 
   db.hmget(fHash, ['title', 'user', 'public'], function(err, data) {
     if(!err) {
-      if(req.session.auth(data[1])) {
+      if(req.session.admin || req.session.validate(data[1])) {
         res.render('delete', {
           'fileName': fileName,
           'title': data[0],
@@ -366,7 +366,7 @@ router.post('/delete', function(req, res) {
 
   db.hmget(fHash, ['user', 'public'], function(err, data) {
     if(!err) {
-      if(req.session.auth(data[0])) {
+      if(req.session.admin || req.session.validate(data[0])) {
         // delete file
         fs.unlink(filePath, function(err) {
           var m = db.multi(),

@@ -6,13 +6,13 @@ var bcrypt = require('bcrypt-nodejs'),
 var router = express.Router();
 
 router.get('/register', function(req, res) {
-  /*if(req.session.validate()) {
+  if(req.session.validate()) {
     res.redirect('/');
     return;
-  }*/
+  }
 
   var db = req.app.get('database');
-  db.hget('settings', 'inviteonly', function(err, inviteOnly) {
+  db.hget('settings', 'inviteOnly', function(err, inviteOnly) {
     if(!err) {
       if(isTrue(inviteOnly)) {
         res.render('info', {
@@ -57,7 +57,7 @@ router.get('/register/:code', function(req, res) {
 
 router.post('/register', function(req, res) {
   var db = req.app.get('database');
-  db.hget('settings', 'inviteonly', function(err, inviteOnly) {
+  db.hget('settings', 'inviteOnly', function(err, inviteOnly) {
     if(!err) {
       if(isTrue(inviteOnly)) {
         res.render('info', {
