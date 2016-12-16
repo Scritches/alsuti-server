@@ -26,7 +26,7 @@ TLS certificate. *Optional.*
 **3)** cd into the alsuti-server directory and issue this command with 'USER' and 'PASSWORD' replaced respectively:
 
 ~~~~
-./admin mkdb user=USER password=PASSWORD
+./admin mkdb admin=USER password=PASSWORD
 ~~~~
 
 You may also append 'public' to this command to make all existing uploads publicly listed, as any uploads are private by default.
