@@ -1,4 +1,5 @@
-var bcrypt = require('bcrypt-nodejs'),
+var _ = require('underscore'),
+    bcrypt = require('bcrypt-nodejs'),
     express = require('express'),
     sessions = require('./sessions'),
     isTrue = require('../truthiness');
@@ -33,14 +34,14 @@ router.get('/register', function(req, res) {
   });
 });
 
-router.get('/register/:code', function(req, res) {
-  if(req.session.auth()) {
+router.get('/register/:key', function(req, res) {
+  if(req.session.validate()) {
     res.redirect('/');
   }
 
   var db = req.app.get('database');
-  db.hexists('invites', req.params.code, function(err, validCode) {
-    if(!err && validCode) {
+  db.get('invite:' + req.params.code, function(err, expiry) {
+    if(expiry != null && Date.now() < parseInt(expiry)) {
       res.render('register', {
         'inviteCode': req.params.code
       });
@@ -56,20 +57,33 @@ router.get('/register/:code', function(req, res) {
 });
 
 router.post('/register', function(req, res) {
-  var db = req.app.get('database');
-  db.hget('settings', 'inviteOnly', function(err, inviteOnly) {
+  var db = req.app.get('database'),
+      m = db.multi();
+
+  m.hget('settings', 'inviteOnly');
+  if(_.has(req.body, 'code')) {
+    m.get('invite:' + req.body.code);
+  }
+
+  m.exec(function(err, data) {
     if(!err) {
-      if(isTrue(inviteOnly)) {
-        res.render('info', {
-          'title': "Stop it.",
-          'message': "No means no."
+      var inviteOnly = isTrue(data[0]);
+      if(inviteOnly == false || (data[1] != null && Date.now() < parseInt(data[1]))) {
+        bcrypt.hash(req.body.password, null, null, function(err, pHash) {
+          var m = db.multi();
+          if(data[1] != null) {
+            m.del('invite:' + req.body.key);
+          }
+          m.hmset('user:' + req.body.user, ['password', pHash]);
+          m.exec(function(err, replies) {
+            sessions.start(req, res);
+          });
         });
       }
       else {
-        bcrypt.hash(req.body.password, null, null, function(err, pHash) {
-          db.hmset('user:' + req.body.user, ['password', pHash], function(err, replies) {
-            sessions.start(req, res);
-          });
+        res.render('info', {
+          'title': "LOL",
+          'message': "No."
         });
       }
     }

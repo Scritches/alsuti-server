@@ -12,8 +12,8 @@ var db = redis.createClient(),
     b64m = new RegExp("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$");
 
 function setInviteOnly(state) {
-  db.hset('settings', 'inviteOnly', state ? 'yes' : 'no', function(err, reply) {
-    if(state) {
+  db.hset('settings', ['inviteOnly', state], function(err, reply) {
+    if(state == 'yes') {
       console.log("Registration: invite-only.");
     } else {
       console.log("Registration: public.");
@@ -25,7 +25,7 @@ function setUser(name, password, admin) {
   var userHash = 'user:' + name,
       pHash = bcrypt.hashSync(password);
 
-  db.hmset(userHash, ['admin', admin, 'password', pHash], function(err, reply) {
+  db.hmset(userHash, ['password', pHash, 'admin', admin], function(err, reply) {
     if(!err) {
       console.log("User configured: " + name + " [admin=" + admin + "]");
     } else {
