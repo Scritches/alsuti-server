@@ -34,7 +34,7 @@ router.get('/register', function(req, res) {
   });
 });
 
-router.get('/register/:key', function(req, res) {
+router.get('/register/:code', function(req, res) {
   if(req.session.validate()) {
     res.redirect('/');
   }
@@ -72,7 +72,7 @@ router.post('/register', function(req, res) {
         bcrypt.hash(req.body.password, null, null, function(err, pHash) {
           var m = db.multi();
           if(data[1] != null) {
-            m.del('invite:' + req.body.key);
+            m.del('invite:' + req.body.code);
           }
           m.hmset('user:' + req.body.user, ['password', pHash]);
           m.exec(function(err, replies) {
