@@ -36,6 +36,7 @@ router.post('/upload', function(req, res) {
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
     fileName = shortid.generate() + getFileExt(req.files.fileupload.path);
+    var options = {'encoding': 'binary'};
     fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + fileName, data, function(err) {
         postWrite(err);
@@ -422,6 +423,31 @@ router.post('/delete', function(req, res) {
   });
 });
 
+function isImage(ext) {
+  return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+}
+
+// binary hueristics
+function isBinary(data, threshold) {
+  // check for null bytes and control characters (excluding CR/LF)
+  var nSusp = 0;
+  for(var i=0; i < Math.min(512, data.length); ++i) {
+    var c = data.codePointAt(i);
+    if(c == 0) {
+      console.log('null byte found; definitely binary');
+      return true;
+    } else if((c <= 31 && c != 10 && c != 13) || c == 127) {
+      ++nSusp;
+    }
+  }
+
+  var percSusp = (nSusp / data.length) * 100,
+      result = percSusp >= threshold;
+
+  console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
+  return result;
+}
+
 function sendFile(req, res) {
   var filePath = path.resolve(__dirname + '/../files/' + req.params.file);
   fs.access(filePath, function(err) {
@@ -456,16 +482,10 @@ router.get('/:file', function(req, res, rf) {
         return;
       }
 
-      fs.readFile(filePath, {'encoding':'utf8'},  function(err, data) {
+      fs.readFile(filePath, function(err, data) {
         if(!err) {
-          function isImage(ext) {
-            return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
-          }
-
-          res.render('view', {
+          var env = {
             'returnPath': req.headers.referer || null,
-            'isImage': isImage(fileExt),
-            'fileExt': fileExt,
             'fileName': fileName,
             'title': u.title,
             'description': u.description,
@@ -474,7 +494,15 @@ router.get('/:file', function(req, res, rf) {
             'encrypted': u.encrypted,
             'content': data.toString(),
             'session': req.session,
-          });
+            'fileExt': fileExt,
+            'isImage': isImage(fileExt)
+          }
+
+          if(env.encrypted == false && env.isImage == false) {
+            env.isBinary = isBinary(env.content);
+          }
+
+          res.render('view', env);
         }
         else {
           if(req.apiRequest) {

@@ -99,14 +99,13 @@ function decrypt() {
   function tryDecrypt() {
     try {
       return CryptoJS.AES.decrypt(cipherText, password).toString(CryptoJS.enc.Utf8);
-    }
-    catch(err) {
+    } catch(err) {
       return null;
     }
   }
 
-  var decrypted = tryDecrypt();
-  if(!decrypted) {
+  data = tryDecrypt();
+  if(!data) {
     setDecryptError();
     return;
   }
@@ -114,35 +113,63 @@ function decrypt() {
   $('#decryption').remove();
 
   if(isImage) {
-    renderImage(decrypted);
+    renderImage(data);
+  } else if(isBinary(data)) {
+    renderBinary(data);
   } else {
-    renderText(decrypted);
+    renderText(data);
   }
 }
 
-function renderImage(data) {
-  if(!data.match(/^YW5kcm9pZHN1Y2tz/)) {
-    data = btoa(data);
-  } else {
-    data = data.replace(/^YW5kcm9pZHN1Y2tz/,'');
+// binary hueristics
+function isBinary(data) {
+  var nSusp = 0;
+  for(var i=0; i < Math.min(512, data.length); ++i) {
+    var c = data.codePointAt(i);
+    if(c == 0) {
+      console.log('isBinary(): null byte found; definitely binary');
+      return true;
+    }
+    else if((c <= 31 && c != 10 && c != 13) || c == 127) {
+      ++nSusp;
+    }
   }
 
-  $('#downloadLink').attr('href', 'data:image/'+ fileExt +';base64,' + data);
-  $('#downloadLink').show();
+  var percSusp = (nSusp / data.length) * 100,
+      result = percSusp >= 15;
 
-  $('img#content').attr('src', 'data:image/' + fileExt +';base64,' + data);
+  console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
+  return result;
+}
+
+function renderImage(data) {
+  var blob = bytesToBlob(data, 'image/' + fileExt),
+      blobURL = URL.createObjectURL(blob);
+
+  $('img#content').attr('src', blobURL);
   $('#imageContainer').show();
+}
+
+function renderBinary(data) {
+  var blob = bytesToBlob(data),
+      blobURL = URL.createObjectURL(blob);
+
+  var dLink = $('#downloadLink');
+  dLink.attr('href', blobURL);
+  dLink.show();
+
+  $('#binaryNotice').show();
+  $('#textContainer').hide();
 }
 
 function renderText(data) {
   if(data != null) {
-    if(fileExt == 'txt' || fileExt == 'log') {
-      $('#downloadLink').attr('href', 'data:text/plain;utf-8,' + data);
-    } else {
-      $('#downloadLink').attr('href', 'data:application/' + fileExt + ';binary,' + data);
-    }
+    var blob = bytesToBlob(data, 'image/plain'),
+        blobURL = URL.createObjectURL(blob),
+        dLink = $('#downloadLink');
 
-    $('#downloadLink').show();
+    dLink.attr('href', blobURL);
+    dLink.show();
 
     $('code#content').text(data);
     $('#textContainer').show();
@@ -160,4 +187,27 @@ function renderText(data) {
   });
 
   toggleLineNumbers();
+}
+
+function bytesToBlob(inputBytes, contentType) {
+  contentType = contentType || '';
+
+  var sliceSize = 1024,
+      byteSize = inputBytes.length,
+      slicesCount = Math.ceil(byteSize / sliceSize),
+      byteArrays = new Array(slicesCount);
+
+  for(var si = 0; si < slicesCount; ++si) {
+    var begin = si * sliceSize,
+        end = Math.min(begin + sliceSize, byteSize),
+        bytes = new Array(end - begin);
+
+    for(var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
+      bytes[i] = inputBytes[offset].charCodeAt(0);
+    }
+
+    byteArrays[si] = new Uint8Array(bytes);
+  }
+
+  return new Blob(byteArrays, { type: contentType });
 }

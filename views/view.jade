@@ -15,13 +15,21 @@ html
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
     script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
     script(type='text/javascript').
-      var fileName = '#{fileName}', fileExt = '#{fileExt}', isImage = #{isImage};
-    -if(encrypted)
+      var fileName = '#{fileName}',
+          encrypted = #{encrypted},
+          isImage = #{isImage};
+    -if(fileExt != null)
       script(type='text/javascript').
-        var encrypted = true, cipherText = "#{content}";
+        var fileExt = '#{fileExt}';
     -else
       script(type='text/javascript').
-        var encrypted = false;
+        var fileExt = null;
+    -if(encrypted)
+      script(type='text/javascript').
+        cipherText = "#{content}";
+    -else
+      script(type='text/javascript').
+        isBinary = #{isBinary};
   body
     div#globalBar.childPad
       -if(session.validate())
@@ -52,7 +60,7 @@ html
         span#decryption
           input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password')
           button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
-        a#downloadLink(style='display:none;' href='/raw/#{fileName}' download='#{fileName}') Download
+        a#downloadLink(style='display:none;' download='#{fileName}') Download
       -else
         a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
       -if(isImage == false)
@@ -71,12 +79,15 @@ html
         center#imageContainer(style='display:none;')
           img#content
       -else
+        div#binaryNotice(style='display:none;') [Binary File]
         div#textContainer(style='display:none;')
           code#content
     -else
       -if(isImage)
         center#imageContainer
           img#content(src='/x/#{fileName}')
+      -else if(isBinary)
+        div#binaryNotice [Binary File]
       -else
         div#textContainer
           code#content= content

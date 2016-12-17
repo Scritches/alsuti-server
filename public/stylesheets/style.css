@@ -71,6 +71,7 @@ form > * {
   border: 1px solid #CCC;
   line-height: 25px;
   margin-bottom: 10px;
+  overflow: auto;
   padding: 5px;
 }
 
@@ -195,10 +196,16 @@ table#uploadListing tr td:not(.expand) {
 }
 
 /* content */
-#textContainer {
+#contentContainer {
   background-color: #F0F0F0;
   border: 1px solid #CCC;
   clear: both;
+}
+#binaryNotice {
+  color: #A0A0A0;
+  font-size: 200%;
+  font-weight: bold;
+  text-align: center;
 }
 code.hljs-line-numbers {
   border-right: 1px solid #CCC;
