@@ -196,7 +196,7 @@ table#uploadListing tr td:not(.expand) {
 }
 
 /* content */
-#contentContainer {
+#textContainer {
   background-color: #F0F0F0;
   border: 1px solid #CCC;
   clear: both;
@@ -206,6 +206,7 @@ table#uploadListing tr td:not(.expand) {
   font-size: 200%;
   font-weight: bold;
   text-align: center;
+  line-height: 100px;
 }
 code.hljs-line-numbers {
   border-right: 1px solid #CCC;

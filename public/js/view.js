@@ -1,3 +1,5 @@
+binary_threshold = 15;
+
 decryptError = true;
 decryptErrorColour = "#C02020"
 decryptErrorTimeout = null;
@@ -114,7 +116,7 @@ function decrypt() {
 
   if(isImage) {
     renderImage(data);
-  } else if(isBinary(data)) {
+  } else if(isBinary(data, binary_threshold)) {
     renderBinary(data);
   } else {
     renderText(data);
@@ -122,9 +124,11 @@ function decrypt() {
 }
 
 // binary hueristics
-function isBinary(data) {
-  var nSusp = 0;
-  for(var i=0; i < Math.min(512, data.length); ++i) {
+function isBinary(data, threshold) {
+  var nSusp = 0,
+      nMax = Math.min(2048, data.length);
+
+  for(var i=0; i < nMax; ++i) {
     var c = data.codePointAt(i);
     if(c == 0) {
       console.log('isBinary(): null byte found; definitely binary');
@@ -135,8 +139,8 @@ function isBinary(data) {
     }
   }
 
-  var percSusp = (nSusp / data.length) * 100,
-      result = percSusp >= 15;
+  var percSusp = (nSusp / nMax) * 100,
+      result = percSusp >= threshold;
 
   console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
   return result;

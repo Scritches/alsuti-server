@@ -9,6 +9,8 @@ var _ = require('underscore')._,
     auth = require('./auth'),
     isTrue = require('../truthiness');
 
+binary_threshold = 15;
+
 function getFileExt(str) {
   var m = str.match(/\.[a-z]+\w+$/i);
   return m != null ? m[0] : '';
@@ -16,6 +18,33 @@ function getFileExt(str) {
 function getUrlExt(url) {
   var m = url.match(/(\.[a-z]+\w{2,3})(?:\?\S+)?$/i);
   return m != null && m.length == 2 ? m[1] : '';
+}
+
+function isImage(ext) {
+  return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
+}
+
+// binary hueristics
+function isBinary(data, threshold) {
+  var nSusp = 0,
+      nMax = Math.min(2048, data.length);
+
+  for(var i=0; i < nMax; ++i) {
+    var c = data.codePointAt(i);
+    if(c == 0) {
+      console.log('isBinary(): null byte found; definitely binary');
+      return true;
+    }
+    else if((c <= 31 && c != 10 && c != 13) || c == 127) {
+      ++nSusp;
+    }
+  }
+
+  var percSusp = (nSusp / nMax) * 100,
+      result = percSusp >= threshold;
+
+  console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
+  return result;
 }
 
 var router = express.Router();
@@ -64,7 +93,8 @@ router.post('/upload', function(req, res) {
         .on('close', function() {
           postWrite(null);
         });
-    } catch(e) {
+    }
+    catch(e) {
       if(req.apiRequest) {
         res.api(true, {'message': "Invalid URL."});
       } else {
@@ -423,31 +453,6 @@ router.post('/delete', function(req, res) {
   });
 });
 
-function isImage(ext) {
-  return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
-}
-
-// binary hueristics
-function isBinary(data, threshold) {
-  // check for null bytes and control characters (excluding CR/LF)
-  var nSusp = 0;
-  for(var i=0; i < Math.min(512, data.length); ++i) {
-    var c = data.codePointAt(i);
-    if(c == 0) {
-      console.log('null byte found; definitely binary');
-      return true;
-    } else if((c <= 31 && c != 10 && c != 13) || c == 127) {
-      ++nSusp;
-    }
-  }
-
-  var percSusp = (nSusp / data.length) * 100,
-      result = percSusp >= threshold;
-
-  console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
-  return result;
-}
-
 function sendFile(req, res) {
   var filePath = path.resolve(__dirname + '/../files/' + req.params.file);
   fs.access(filePath, function(err) {
@@ -499,7 +504,7 @@ router.get('/:file', function(req, res, rf) {
           }
 
           if(env.encrypted == false && env.isImage == false) {
-            env.isBinary = isBinary(env.content);
+            env.isBinary = isBinary(env.content, binary_threshold);
           }
 
           res.render('view', env);
