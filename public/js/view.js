@@ -1,4 +1,4 @@
-binary_threshold = 15;
+binaryThreshold = 15;
 
 decryptError = true;
 decryptErrorColour = "#C02020"
@@ -116,7 +116,7 @@ function decrypt() {
 
   if(isImage) {
     renderImage(data);
-  } else if(isBinary(data, binary_threshold)) {
+  } else if(isBinary(data, binaryThreshold)) {
     renderBinary(data);
   } else {
     renderText(data);
@@ -148,7 +148,11 @@ function isBinary(data, threshold) {
 
 function renderImage(data) {
   var blob = bytesToBlob(data, 'image/' + fileExt),
-      blobURL = URL.createObjectURL(blob);
+      blobURL = URL.createObjectURL(blob),
+      dLink = $('#downloadLink');
+
+  dLink.attr('href', blobURL);
+  dLink.show();
 
   $('img#content').attr('src', blobURL);
   $('#imageContainer').show();
@@ -156,9 +160,9 @@ function renderImage(data) {
 
 function renderBinary(data) {
   var blob = bytesToBlob(data),
-      blobURL = URL.createObjectURL(blob);
+      blobURL = URL.createObjectURL(blob),
+      dLink = $('#downloadLink');
 
-  var dLink = $('#downloadLink');
   dLink.attr('href', blobURL);
   dLink.show();
 
@@ -196,21 +200,20 @@ function renderText(data) {
 function bytesToBlob(inputBytes, contentType) {
   contentType = contentType || '';
 
-  var sliceSize = 1024,
-      byteSize = inputBytes.length,
-      slicesCount = Math.ceil(byteSize / sliceSize),
-      byteArrays = new Array(slicesCount);
+  var sliceSize = 2048,
+      nSlices = Math.ceil(inputBytes.length / sliceSize),
+      byteArrays = new Array(nSlices);
 
-  for(var si = 0; si < slicesCount; ++si) {
-    var begin = si * sliceSize,
-        end = Math.min(begin + sliceSize, byteSize),
-        bytes = new Array(end - begin);
+  for(var s=0; s < nSlices; ++s) {
+    var start = s * sliceSize,
+        end = Math.min(start + sliceSize, inputBytes.length),
+        sliceBytes = new Array(end - start);
 
-    for(var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
-      bytes[i] = inputBytes[offset].charCodeAt(0);
+    for(var i = start, o=0; i < end; ++i, ++o) {
+      sliceBytes[o] = inputBytes[i].charCodeAt(0);
     }
 
-    byteArrays[si] = new Uint8Array(bytes);
+    byteArrays[s] = new Uint8Array(sliceBytes);
   }
 
   return new Blob(byteArrays, { type: contentType });

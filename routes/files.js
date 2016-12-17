@@ -9,7 +9,7 @@ var _ = require('underscore')._,
     auth = require('./auth'),
     isTrue = require('../truthiness');
 
-binary_threshold = 15;
+binaryThreshold = 15;
 
 function getFileExt(str) {
   var m = str.match(/\.[a-z]+\w+$/i);
@@ -65,7 +65,6 @@ router.post('/upload', function(req, res) {
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
     fileName = shortid.generate() + getFileExt(req.files.fileupload.path);
-    var options = {'encoding': 'binary'};
     fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + fileName, data, function(err) {
         postWrite(err);
@@ -88,6 +87,7 @@ router.post('/upload', function(req, res) {
     localPath = __dirname + '/../files/';
     fileName = shortid.generate() + getUrlExt(req.body.url);
     try {
+      // TODO: detect file extension from mimetype if not present
       request.get(req.body.url)
         .pipe(fs.createWriteStream(localPath + fileName))
         .on('close', function() {
@@ -504,7 +504,7 @@ router.get('/:file', function(req, res, rf) {
           }
 
           if(env.encrypted == false && env.isImage == false) {
-            env.isBinary = isBinary(env.content, binary_threshold);
+            env.isBinary = isBinary(env.content, binaryThreshold);
           }
 
           res.render('view', env);

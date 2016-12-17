@@ -5,6 +5,8 @@ head
   link(rel='stylesheet' href='/stylesheets/style.css')
   center
     h1#title Register
+    -if(inviteUser != null)
+      p#description You've been invited to Alsuti by #{user}.
     form#registerForm(method='post' action='/register')
       input(name='user' placeholder='User')#userEntry
       input(type='password' name='password' placeholder='Password' autocomplete='new-password')#passwordEntry

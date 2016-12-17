@@ -1,5 +1,11 @@
 [ ] file extension detection for url rehosting (based on mimetype header)
 [ ] web frontend for generating registration invite codes
 [ ] multiple file upload
+[ ] file tags
 [ ] expiring uploads
 [ ] self-destructing uploads
+
+federation
+
+[ ] access restrictions
+[ ] share groups

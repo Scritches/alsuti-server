@@ -37,13 +37,17 @@ router.get('/register', function(req, res) {
 router.get('/register/:code', function(req, res) {
   if(req.session.validate()) {
     res.redirect('/');
+    return;
   }
 
-  var db = req.app.get('database');
-  db.get('invite:' + req.params.code, function(err, expiry) {
-    if(expiry != null && Date.now() < parseInt(expiry)) {
+  var db = req.app.get('database'),
+      iHash = 'invite:' + req.params.code;
+
+  db.get(iHash, function(err, user) {
+    if(user != null) {
       res.render('register', {
-        'inviteCode': req.params.code
+        'inviteUser': user,
+        'inviteCode': req.params.code,
       });
     }
     else {
@@ -68,11 +72,13 @@ router.post('/register', function(req, res) {
   m.exec(function(err, data) {
     if(!err) {
       var inviteOnly = isTrue(data[0]);
-      if(inviteOnly == false || (data[1] != null && Date.now() < parseInt(data[1]))) {
+      if(inviteOnly == false || data[1] != null) {
         bcrypt.hash(req.body.password, null, null, function(err, pHash) {
           var m = db.multi();
           if(data[1] != null) {
-            m.del('invite:' + req.body.code);
+            var userHash = 'user:' + data[1];
+            m.del('invite:' + data[1] + ':' + req.body.code);
+            m.lrem(userHash + ':invites', 1, req.body.code);
           }
           m.hmset('user:' + req.body.user, ['password', pHash]);
           m.exec(function(err, replies) {
