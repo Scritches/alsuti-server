@@ -1,11 +1,10 @@
-[ ] file extension detection for url rehosting (based on mimetype header)
-[ ] web frontend for generating registration invite codes
-[ ] multiple file upload
+[ ] file extension detection for rehosting (based on mimetype headers)
+[ ] web frontend for invite codes
+[ ] audio/video content view (with encryption support)
+[ ] file groups
 [ ] file tags
+[ ] restricted uploads
+[ ] multiple file upload
 [ ] expiring uploads
 [ ] self-destructing uploads
-
-federation
-
-[ ] access restrictions
-[ ] share groups
+[ ] remote login api (federation)
