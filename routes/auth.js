@@ -16,7 +16,7 @@ function authRequired(req, res, next) {
 
     db.hget(userHash, 'password', function(err, pHash) {
       bcrypt.compare(req.body.password, pHash, function(err, result) {
-        if(!err && result != null) {
+        if(!err && result) {
           req.session.user = req.body.user;
           req.session.status = 0;
           next();
