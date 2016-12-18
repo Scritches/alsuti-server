@@ -172,7 +172,7 @@ function renderBinary(data) {
 
 function renderText(data) {
   if(data != null) {
-    var blob = bytesToBlob(data, 'image/plain'),
+    var blob = bytesToBlob(data, 'text/plain'),
         blobURL = URL.createObjectURL(blob),
         dLink = $('#downloadLink');
 
