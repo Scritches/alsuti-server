@@ -205,8 +205,12 @@ img#content,
 audio#content,
 video#content
 {
-  width: 80%;
   max-width: 80%;
+}
+audio#content,
+video#content
+{
+  width: 80%;
 }
 #binaryNotice {
   color: #A0A0A0;
