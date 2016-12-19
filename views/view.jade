@@ -78,7 +78,7 @@ html
             source(src='/x/#{fileName}' type='#{mimeType}')
       -else if(fileType == 'video')
         center#videoContainer(style='display:none;')
-          video
+          video#content(controls)
             source(src='/x/#{fileName}' type='#{mimeType}')
       -else
         div#binaryNotice(style='display:none;') This file cannot be displayed.
@@ -94,7 +94,7 @@ html
             source(src='/x/#{fileName}' type='#{mimeType}')
       -else if(fileType == 'video')
         center#videoContainer
-          video#video(controls)
+          video#content(controls)
             source(src='/x/#{fileName}' type='#{mimeType}')
       -else if(fileType == 'binary')
         div#binaryNotice This file cannot be displayed.

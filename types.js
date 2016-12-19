@@ -3,10 +3,13 @@
 mimeMap = {
   'image': {
     'gif': ['gif'],
-    'jpeg': ['jpg', 'jpeg', 'jpe'],
+    'jpeg': ['jpg', 'jpeg', 'jpe', 'jfif'],
     'png': ['png'],
     'svg+xml': ['svg', 'svgz'],
-    'webp': ['webp']
+    'webp': ['webp'],
+    'bmp': ['bmp'],
+    'tiff': ['.tif', '.tiff'],
+    'x-icon': ['.ico'],
   },
   'audio': {
     'wav': ['wav'],
@@ -19,7 +22,7 @@ mimeMap = {
     'x-aac': ['aac']
   },
   'video': {
-    'ogg': ['ogv'],
+    'ogg': ['ogv', 'ogg'],
     'webm': ['webm'],
     'h261': ['h261'],
     'h263': ['h263'],
@@ -70,21 +73,21 @@ function isImage(ext) {
 }
 
 function isAudio(ext) {
-  return ['oga',  'spx',  'mp3',  'm4a',
-          'mp4a', 'mpga', 'mp2',  'mp2a',
-          'm2a',  'm3a',  'weba', 'aac',
-          'aif',  'aiff', 'aifc', 'wav',
-          'flac', 'mka',  'm3u',  'wax',
-          'wma',  'pya',  'ra',   'xm'].indexOf(ext) != -1;
+  for(var ft in mimeMap['audio']) {
+    if(mimeMap['audio'][ft].indexOf(ext) != -1)
+      return true;
+  }
+
+  return false;
 }
 
 function isVideo(ext) {
-  return ['h261', 'h263', 'h264', 'mp4',
-          'mp4v', 'mpg4', 'mpeg', 'mpg',
-          'mpe',  'm1v',  'm2v',  'qt',
-          'mov',  'webm', 'm4v',  'mkv',
-          'mk3d', 'mks',  'vob',  'wmv',
-          'avi'].indexOf(ext) != -1;
+  for(var ft in mimeMap['video']) {
+    if(mimeMap['video'][ft].indexOf(ext) != -1)
+      return true;
+  }
+
+  return false;
 }
 
 // binary hueristics
