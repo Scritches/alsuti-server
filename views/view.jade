@@ -17,19 +17,11 @@ html
     script(type='text/javascript').
       var fileName = '#{fileName}',
           encrypted = #{encrypted},
-          isImage = #{isImage};
-    -if(fileExt != null)
-      script(type='text/javascript').
-        var fileExt = '#{fileExt}';
-    -else
-      script(type='text/javascript').
-        var fileExt = null;
+          fileType = '#{fileType}',
+          mimeType = '#{mimeType}';
     -if(encrypted)
       script(type='text/javascript').
         cipherText = "#{content}";
-    -else
-      script(type='text/javascript').
-        isBinary = #{isBinary};
   body
     div#globalBar.childPad
       -if(session.validate())
@@ -75,19 +67,35 @@ html
           span.divider
           a.warnLink(href='/delete/#{fileName}') Delete
     -if(encrypted)
-      -if(isImage)
+      if(fileType == 'image')
         center#imageContainer(style='display:none;')
           img#content
+      -else if(fileType == 'audio')
+        center#audioContainer(style='display:none;')
+          audio#content(controls)
+            source(src='/x/#{fileName}' type='#{mimeType}')
+      -else if(fileType == 'video')
+        center#videoContainer(style='display:none;')
+          video
+            source(src='/x/#{fileName}' type='#{mimeType}')
       -else
-        div#binaryNotice(style='display:none;') [Binary File]
+        div#binaryNotice(style='display:none;') This file cannot be displayed.
         div#textContainer(style='display:none;')
           code#content
     -else
-      -if(isImage)
+      -if(fileType == 'image')
         center#imageContainer
           img#content(src='/x/#{fileName}')
-      -else if(isBinary)
-        div#binaryNotice [Binary File]
+      -else if(fileType == 'audio')
+        center#audioContainer
+          audio#content(controls)
+            source(src='/x/#{fileName}' type='#{mimeType}')
+      -else if(fileType == 'video')
+        center#videoContainer
+          video#video(controls)
+            source(src='/x/#{fileName}' type='#{mimeType}')
+      -else if(fileType == 'binary')
+        div#binaryNotice This file cannot be displayed.
       -else
         div#textContainer
           code#content= content

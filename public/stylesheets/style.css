@@ -201,9 +201,15 @@ table#uploadListing tr td:not(.expand) {
   border: 1px solid #CCC;
   clear: both;
 }
+img#content,
+#audioContainer audio,
+#videoContainer video
+{
+  max-width: 80%;
+}
 #binaryNotice {
   color: #A0A0A0;
-  font-size: 200%;
+  font-size: 150%;
   font-weight: bold;
   text-align: center;
   line-height: 100px;
@@ -227,7 +233,4 @@ code {
   line-height: 100%;
   padding: 5px;
   overflow-x: auto;
-}
-img#content {
-  max-width: 100%;
 }

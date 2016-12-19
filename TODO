@@ -1,6 +1,6 @@
-[ ] file extension detection for rehosting (based on mimetype headers)
+[*] rehost mimetype handling
 [ ] web frontend for invite codes
-[ ] audio/video content view (with encryption support)
+[*] audio/video content view (with encryption support)
 [ ] file groups
 [ ] file tags
 [ ] restricted uploads

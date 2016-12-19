@@ -30,7 +30,7 @@ $(function() {
       decrypt();
     }
   }
-  else if(isImage == false) {
+  else if(fileType != 'image' && fileType != 'binary') {
     renderText(null);
   }
 
@@ -112,10 +112,15 @@ function decrypt() {
     return;
   }
 
+  cipherText = null;
   $('#decryption').remove();
 
-  if(isImage) {
+  if(fileType == 'image') {
     renderImage(data);
+  } else if(fileType == 'audio') {
+    renderAudio(data);
+  } else if(fileType == 'video') {
+    renderVideo(data);
   } else if(isBinary(data, binaryThreshold)) {
     renderBinary(data);
   } else {
@@ -147,7 +152,7 @@ function isBinary(data, threshold) {
 }
 
 function renderImage(data) {
-  var blob = bytesToBlob(data, 'image/' + fileExt),
+  var blob = bytesToBlob(data, mimeType),
       blobURL = URL.createObjectURL(blob),
       dLink = $('#downloadLink');
 
@@ -158,8 +163,33 @@ function renderImage(data) {
   $('#imageContainer').show();
 }
 
+function renderAudio(data) {
+  var blob = bytesToBlob(data, mimeType),
+      blobURL = URL.createObjectURL(blob),
+      dLink = $('#downloadLink'),
+      audio = $("#audio");
+
+  dLink.attr('href', blobURL);
+  dLink.show();
+
+  $('audio#content').attr('src', blobURL);
+  $('#audioContainer').show();
+}
+
+function renderVideo(data) {
+  var blob = bytesToBlob(data, mimeType),
+      blobURL = URL.createObjectURL(blob),
+      dLink = $('#downloadLink');
+
+  dLink.attr('href', blobURL);
+  dLink.show();
+
+  $("video#content").attr('src', blobURL);
+  $('#videoContainer').show();
+}
+
 function renderBinary(data) {
-  var blob = bytesToBlob(data),
+  var blob = bytesToBlob(data, 'application/octet-stream'),
       blobURL = URL.createObjectURL(blob),
       dLink = $('#downloadLink');
 
@@ -167,7 +197,6 @@ function renderBinary(data) {
   dLink.show();
 
   $('#binaryNotice').show();
-  $('#textContainer').hide();
 }
 
 function renderText(data) {
@@ -186,8 +215,8 @@ function renderText(data) {
   $('#textTools').show();
 
   $('code').each(function(i, block) {
-    block.className = fileExt;
-    if(fileExt == 'txt' || fileExt == 'log' || fileExt == null) {
+    block.className = fileType;
+    if(fileType == 'text' || fileType == null) {
       block.className = 'hljs txt';
     } else {
       hljs.highlightBlock(block);

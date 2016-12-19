@@ -7,45 +7,8 @@ var _ = require('underscore')._,
     request = require('request'),
     shortid = require('shortid'),
     auth = require('./auth'),
-    isTrue = require('../truthiness');
-
-binaryThreshold = 15;
-
-function getFileExt(str) {
-  var m = str.match(/\.[a-z]+\w+$/i);
-  return m != null ? m[0] : '';
-}
-function getUrlExt(url) {
-  var m = url.match(/(\.[a-z]+\w{2,3})(?:\?\S+)?$/i);
-  return m != null && m.length == 2 ? m[1] : '';
-}
-
-function isImage(ext) {
-  return ['gif', 'jpg', 'jpeg', 'png', 'svg', 'bmp', 'ico'].indexOf(ext) != -1;
-}
-
-// binary hueristics
-function isBinary(data, threshold) {
-  var nSusp = 0,
-      nMax = Math.min(2048, data.length);
-
-  for(var i=0; i < nMax; ++i) {
-    var c = data.codePointAt(i);
-    if(c == 0) {
-      console.log('isBinary(): null byte found; definitely binary');
-      return true;
-    }
-    else if((c <= 31 && c != 10 && c != 13) || c == 127) {
-      ++nSusp;
-    }
-  }
-
-  var percSusp = (nSusp / nMax) * 100,
-      result = percSusp >= threshold;
-
-  console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
-  return result;
-}
+    isTrue = require('../truthiness'),
+    types = require('../types');
 
 var router = express.Router();
 
@@ -60,11 +23,19 @@ router.get('/', function(req, res) {
 router.post('/upload', auth.required);
 router.post('/upload', function(req, res) {
   var localPath,
+      fileExt,
       fileName;
 
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
-    fileName = shortid.generate() + getFileExt(req.files.fileupload.path);
+
+    fileExt = types.fileExtension(req.files.fileupload.path);
+    if(fileExt != null) {
+      fileName = shortid.generate() + '.' + fileExt;
+    } else {
+      fileName = shortid.generate();
+    }
+
     fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + fileName, data, function(err) {
         postWrite(err);
@@ -73,6 +44,7 @@ router.post('/upload', function(req, res) {
   }
   else if(_.has(req.body, 'content')) {
     localPath = __dirname + '/../files/';
+
     if(_.has(req.body, 'extension')) {
       fileName = shortid.generate() + '.' + req.body.extension;
     } else {
@@ -85,20 +57,37 @@ router.post('/upload', function(req, res) {
   }
   else if(_.has(req.body, 'url')) {
     localPath = __dirname + '/../files/';
-    fileName = shortid.generate() + getUrlExt(req.body.url);
     try {
-      // TODO: detect file extension from mimetype if not present
-      request.get(req.body.url)
-        .pipe(fs.createWriteStream(localPath + fileName))
-        .on('close', function() {
-          postWrite(null);
-        });
+      request.head(req.body.url).on('response', function(response) {
+        var mimeType = _.has(response.headers, 'content-type') ?
+                        response.headers['content-type'] : null;
+
+        if(mimeType != null) {
+          fileExt = types.getExtension(mimeType);
+          if(fileExt != null) {
+            fileName = shortid.generate() + '.' + fileExt;
+          } else {
+            fileName = shortid.generate();
+          }
+        } else {
+          fileExt = types.urlExtension(req.body.url);
+          if(fileExt != null) {
+            fileName = shortid.generate() + '.' + fileExt;
+          } else {
+            fileName = shortid.generate();
+          }
+        }
+
+        request.get(req.body.url) // ...
+          .pipe(fs.createWriteStream(localPath + fileName))
+          .on('close', function() { postWrite(null); });
+      });
     }
     catch(e) {
       if(req.apiRequest) {
         res.api(true, {'message': "Invalid URL."});
       } else {
-        res.render('error', {
+        res.render('info', {
           'title': 'Error',
           'message': "Invalid URL."
         });
@@ -479,8 +468,7 @@ router.get('/:file', function(req, res, rf) {
       u.encrypted = isTrue(u.encrypted) || false;
       u.public = isTrue(u.public) || false;
 
-      var filePath = path.resolve(__dirname + '/../files/' + fileName),
-          fileExt = getFileExt(filePath).substr(1);
+      var filePath = path.resolve(__dirname + '/../files/' + fileName);
 
       if(req.device.type == 'bot') {
         sendFile(req, res);
@@ -489,8 +477,26 @@ router.get('/:file', function(req, res, rf) {
 
       fs.readFile(filePath, function(err, data) {
         if(!err) {
+          var fileExt = types.fileExtension(fileName);
+          if(fileExt != null) {
+            if(types.isImage(fileExt)) {
+              fileType = 'image';
+            } else if(types.isAudio(fileExt)) {
+              fileType = 'audio';
+            } else if(types.isVideo(fileExt)) {
+              fileType = 'video';
+            } else {
+              fileType = u.encrypted == false && types.isBinary(data, binaryThreshold) ? 'binary' : null;
+            }
+
+            mimeType = types.getMimeType(fileExt);
+          }
+          else {
+            fileType = u.encrypted == false && types.isBinary(data, binaryThreshold) ? 'binary' : null;
+            mimeType = null;
+          }
+
           var env = {
-            'returnPath': req.headers.referer || null,
             'fileName': fileName,
             'title': u.title,
             'description': u.description,
@@ -499,12 +505,8 @@ router.get('/:file', function(req, res, rf) {
             'encrypted': u.encrypted,
             'content': data.toString(),
             'session': req.session,
-            'fileExt': fileExt,
-            'isImage': isImage(fileExt)
-          }
-
-          if(env.encrypted == false && env.isImage == false) {
-            env.isBinary = isBinary(env.content, binaryThreshold);
+            'fileType': fileType,
+            'mimeType': mimeType
           }
 
           res.render('view', env);

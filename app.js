@@ -96,10 +96,10 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   if(res.headersSent == false) {
     res.status(err.status || 500);
+    res.render('error', {
+      'e': err
+    });
   }
-  res.render('error', {
-    'e': err
-  });
 });
 
 module.exports = app;
