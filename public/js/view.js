@@ -1,20 +1,26 @@
 binaryThreshold = 15;
 
-decryptError = true;
-decryptErrorColour = "#C02020"
-decryptErrorTimeout = null;
+decryptError = false;
+decryptErrorColour = '#B35A5A';
+
+decryptRestoreColour = null;
+decryptRestoreTimeout = null;
 
 function setDecryptError() {
-  clearTimeout(decryptErrorTimeout);
+  if(decryptError == false) {
+    decryptError = true;
+    decryptErrorTimeout = window.setTimeout(restoreDecryptColour, 3000);
+    decryptRestoreColour = $('#decryption').css('background-color');
+  }
 
-  decryptError = true;
-  decryptErrorTimeout = null;
-
-  $('#passwordEntry').css('color', decryptErrorColour);
+  var d = $('#decryption');
+  d.css('background-color', decryptErrorColour);
 }
 
-function clearDecryptError() {
-  $('#passwordEntry').css('color', 'unset');
+function restoreDecryptColour() {
+  decryptError = false;
+  $('#decryption').css('background-color', decryptRestoreColour);
+  console.log("decrypt error cleared");
 }
 
 $(function() {
@@ -41,10 +47,6 @@ $(function() {
 
   pEntry.on('input', function() {
     $('#decryptButton').attr('disabled', pEntry.val().length == 0);
-    if(decryptError) {
-      decryptError = false;
-      decryptErrorTimeout = window.setTimeout(clearDecryptError, 800);
-    }
   });
 });
 

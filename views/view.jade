@@ -41,19 +41,23 @@ html
       h1#title= title || fileName
       -if(description != null)
         span#description= description
-      div#info
-        | by 
-        bold
-          a(href='/user/#{user}')= user
-        |  on 
-        span.uploadTime= time
-        script(type='text/javascript').
-          renderTimes();
+      div#info.childPad
+        div
+          | by 
+          bold
+            a(href='/user/#{user}')= user
+          |  on 
+          span.uploadTime= time
+          script(type='text/javascript').
+            renderTimes();
+        -if(title != null)
+          span#fileName File name:
+            | <u>#{fileName}</u>
+          span.divider
+        span#fileSize File size:
+          | <u>#{fileSize}</u>
     div#optionBar.childPad
       -if(encrypted)
-        span#decryption
-          input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password')
-          button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
         a#downloadLink(style='display:none;' download='#{fileName}') Download
       -else
         a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
@@ -69,6 +73,9 @@ html
           span.divider
           a.warnLink(href='/delete/#{fileName}') Delete
     -if(encrypted)
+      center#decryption
+        input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password')
+        button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
       if(fileType == 'image')
         center#imageContainer(style='display:none;')
           img#content

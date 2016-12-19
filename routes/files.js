@@ -502,10 +502,32 @@ router.get('/:file', function(req, res, rf) {
             'content': data.toString(),
             'session': req.session,
             'fileType': fileType,
-            'mimeType': mimeType,
-            'fileExt': fileExt
+            'fileExt': fileExt,
+            'mimeType': mimeType
           }
 
+          var units = ['B', 'KB', 'MB', 'GB', 'TB'],
+              cUnit = 0,
+              rawSize = data.length;
+
+          // convert base64 size
+          if(u.encrypted) {
+            rawSize *= 3;
+            rawSize /= 4;
+            var i = rawSize - 1;
+            while(data[i] == '=') {
+              --rawSize;
+            }
+          }
+
+          // increment to most readable unit
+          var readableSize = rawSize;
+          while(cUnit < 5 && readableSize > 1024) {
+            ++cUnit;
+            readableSize /= 1024;
+          }
+
+          env.fileSize = parseFloat(readableSize).toFixed(2) + " " + units[cUnit];
           res.render('view', env);
         }
         else {
