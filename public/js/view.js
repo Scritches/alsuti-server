@@ -30,7 +30,11 @@ $(function() {
       decrypt();
     }
   }
-  else if(fileType != 'image' && fileType != 'binary') {
+  else if(fileType != 'image' &&
+          fileType != 'audio' &&
+          fileType != 'video' &&
+          fileType != 'binary')
+  {
     renderText(null);
   }
 
@@ -216,7 +220,7 @@ function renderText(data) {
 
   $('code').each(function(i, block) {
     block.className = fileType;
-    if(fileType == 'text' || fileType == null) {
+    if(fileExt == 'txt' || fileExt == 'log') {
       block.className = 'hljs txt';
     } else {
       hljs.highlightBlock(block);

@@ -64,18 +64,14 @@ router.post('/upload', function(req, res) {
 
         if(mimeType != null) {
           fileExt = types.getExtension(mimeType);
-          if(fileExt != null) {
-            fileName = shortid.generate() + '.' + fileExt;
-          } else {
-            fileName = shortid.generate();
-          }
         } else {
           fileExt = types.urlExtension(req.body.url);
-          if(fileExt != null) {
-            fileName = shortid.generate() + '.' + fileExt;
-          } else {
-            fileName = shortid.generate();
-          }
+        }
+
+        if(fileExt != null) {
+          fileName = shortid.generate() + '.' + fileExt;
+        } else {
+          fileName = shortid.generate();
         }
 
         request.get(req.body.url) // ...
@@ -506,7 +502,8 @@ router.get('/:file', function(req, res, rf) {
             'content': data.toString(),
             'session': req.session,
             'fileType': fileType,
-            'mimeType': mimeType
+            'mimeType': mimeType,
+            'fileExt': fileExt
           }
 
           res.render('view', env);
