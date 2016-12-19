@@ -1,27 +1,28 @@
 binaryThreshold = 15;
 
 decryptError = false;
-notifyError = false;
+notifyDecryptError = false;
+
+clearDecryptErrorTimeout = null;
+
+decryptNormalColour = null;
 decryptErrorColour = '#B35A5A';
 
-decryptRestoreColour = null;
-decryptRestoreTimeout = null;
-
 function setDecryptError() {
-  if(decryptError == false) {
-    decryptError = true;
-    decryptErrorTimeout = window.setTimeout(restoreDecryptColour, 3000);
-    decryptRestoreColour = $('#decryption').css('background-color');
-  }
+  decryptError = true;
+  window.clearTimeout(decryptErrorTimeout);
+  clearDecryptErrorTimeout = window.setTimeout(clearDecryptError, 3000);
 
-  var d = $('#decryption');
-  d.css('background-color', decryptErrorColour);
-  notifyError = true;
+  if(notifyDecryptError == false) {
+    notifyDecryptError = true;
+    var d = $('#decryption');
+    decryptNormalColour = d.css('background-color');
+    d.css('background-color', decryptErrorColour);
+  }
 }
 
-function restoreDecryptColour() {
+function clearDecryptError() {
   decryptError = false;
-  console.log("decrypt error cleared");
 }
 
 $(function() {
@@ -48,8 +49,9 @@ $(function() {
 
   pEntry.on('input', function() {
     $('#decryptButton').attr('disabled', pEntry.val().length == 0);
-    if(notifyError && decryptError == false) {
-      $('#decryption').css('background-color', decryptRestoreColour);
+    if(decryptError == false && notifyDecryptError) {
+      notifyDecryptError = false;
+      $('#decryption').css('background-color', decryptNormalColour);
     }
   });
 });
