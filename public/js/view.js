@@ -1,6 +1,7 @@
 binaryThreshold = 15;
 
 decryptError = false;
+notifyError = false;
 decryptErrorColour = '#B35A5A';
 
 decryptRestoreColour = null;
@@ -15,11 +16,11 @@ function setDecryptError() {
 
   var d = $('#decryption');
   d.css('background-color', decryptErrorColour);
+  notifyError = true;
 }
 
 function restoreDecryptColour() {
   decryptError = false;
-  $('#decryption').css('background-color', decryptRestoreColour);
   console.log("decrypt error cleared");
 }
 
@@ -47,6 +48,9 @@ $(function() {
 
   pEntry.on('input', function() {
     $('#decryptButton').attr('disabled', pEntry.val().length == 0);
+    if(notifyError && decryptError == false) {
+      $('#decryption').css('background-color', decryptRestoreColour);
+    }
   });
 });
 
