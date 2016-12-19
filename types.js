@@ -33,13 +33,13 @@ mimeMap = {
 };
 
 function fileExtension(str) {
-  var em = str.match(/(?!\.)[a-z0-9]{1,5}$/i);
-  return em != null ? em[0] : null;
+  var em = str.match(/(?:\.)([a-z0-9]{1,5})$/i);
+  return em != null ? em[1] : null;
 }
 
 function urlExtension(url) {
-  var em = url.match(/(?!\.)[a-z0-9]{1,5}(?:\?\S+)?$/i);
-  return em != null && em.length == 2 ? em[0] : null;
+  var em = url.match(/(?:\.)([a-z0-9]{1,5})(?:\?\S+)?$/i);
+  return em != null && em.length == 2 ? em[1] : null;
 }
 
 function getExtension(mimeType) {

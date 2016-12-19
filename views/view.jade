@@ -7,18 +7,20 @@ html
       title= fileName
     meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet' href='/stylesheets/style.css')
+    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css')
     script(type='text/javascript' src='/js/lib/jquery.min.js')
     script(type='text/javascript' src='/js/lib/js.cookie.js')
     script(type='text/javascript' src='/js/lib/aes.js')
     script(type='text/javascript' src='/js/view.js')
     script(type='text/javascript' src='/js/time.js')
-    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js')
     script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
     script(type='text/javascript').
       var fileName = '#{fileName}',
           encrypted = #{encrypted},
           fileType = '#{fileType}',
-          mimeType = '#{mimeType}';
+          mimeType = '#{mimeType}',
+          fileExt = '#{fileExt}';
     -if(encrypted)
       script(type='text/javascript').
         cipherText = "#{content}";
@@ -55,7 +57,7 @@ html
         a#downloadLink(style='display:none;' download='#{fileName}') Download
       -else
         a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
-      -if(isImage == false)
+      -if(mimeType == null)
         span#textTools.childPad(style='display:none;')
           span.divider
           button#copyTextButton(onclick='copyToClipboard();') Copy

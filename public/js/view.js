@@ -29,12 +29,7 @@ $(function() {
       pEntry.val(window.location.hash.substr(1));
       decrypt();
     }
-  }
-  else if(fileType != 'image' &&
-          fileType != 'audio' &&
-          fileType != 'video' &&
-          fileType != 'binary')
-  {
+  } else {
     renderText(null);
   }
 
@@ -218,11 +213,10 @@ function renderText(data) {
 
   $('#textTools').show();
 
+  console.log("HIGHLIGHTING!");
   $('code').each(function(i, block) {
-    block.className = fileType;
-    if(fileExt == 'txt' || fileExt == 'log') {
-      block.className = 'hljs txt';
-    } else {
+    if(fileExt != 'txt' && fileExt != 'log') {
+      block.className = fileExt;
       hljs.highlightBlock(block);
     }
   });
