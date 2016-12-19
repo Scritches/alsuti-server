@@ -165,8 +165,7 @@ function renderImage(data) {
 function renderAudio(data) {
   var blob = bytesToBlob(data, mimeType),
       blobURL = URL.createObjectURL(blob),
-      dLink = $('#downloadLink'),
-      audio = $("#audio");
+      dLink = $('#downloadLink');
 
   dLink.attr('href', blobURL);
   dLink.show();
@@ -213,7 +212,6 @@ function renderText(data) {
 
   $('#textTools').show();
 
-  console.log("HIGHLIGHTING!");
   $('code').each(function(i, block) {
     if(fileExt != 'txt' && fileExt != 'log') {
       block.className = fileExt;
