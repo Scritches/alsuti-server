@@ -202,9 +202,10 @@ table#uploadListing tr td:not(.expand) {
   clear: both;
 }
 img#content,
-#audioContainer audio,
-#videoContainer video
+audio#content,
+video#content
 {
+  width: 80%;
   max-width: 80%;
 }
 #binaryNotice {
