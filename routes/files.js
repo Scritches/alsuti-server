@@ -36,7 +36,7 @@ router.post('/upload', function(req, res) {
       fileName = shortid.generate();
     }
 
-    fs.readFile(req.files.fileupload.path, {'encoding':'utf8'}, function(err, data) {
+    fs.readFile(req.files.fileupload.path, function(err, data) {
       fs.writeFile(localPath + fileName, data, function(err) {
         postWrite(err);
       });
