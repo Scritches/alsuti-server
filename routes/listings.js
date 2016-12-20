@@ -44,11 +44,11 @@ function renderListing(req, res, zHash, title, listingType) {
   }
 
   var db = req.app.get('database'),
-      count = parseInt(req.query.count) || 15,
+      count = Math.min(parseInt(req.query.count), 50) || 15;
+
+  var m = db.multi(),
       start = count * (page - 1),
       end = (start + count) - 1;
-
-  var m = db.multi();
 
   m.zcount(zHash, '-inf', '+inf');
   m.zrevrange(zHash, start, end);

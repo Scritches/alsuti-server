@@ -35,20 +35,19 @@ body(onload='renderTimes();')
   div#header
     h1#title= title
     div#options
-      span#listingCountContainer
-        | Show 
-        select#listingCount(onchange='updateListing();')
-          option 15
-          option 20
-          option 25
-          option 30
-          option 35
-          option 40
-          option 45
-          option 50
-        |  files per page
-        script(type='text/javascript').
-          $('#listingCount').val('#{count}');
+      | Show 
+      select#listingCount(onchange='updateListing();')
+        option 15
+        option 20
+        option 25
+        option 30
+        option 35
+        option 40
+        option 45
+        option 50
+      |  files per page
+      script(type='text/javascript').
+        $('#listingCount').val('#{count}');
       span#page.floatRight Page #{page}
   -if(uploads.length == 0)
     span There's nothing here.
