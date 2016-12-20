@@ -14,7 +14,7 @@ decryptNormalColour = null;
 
 function saveSettings() {
   Cookies.set('lineNumbers', lineNumbers ? 'on' : 'off', { expires: 365, path: '/' });
-  Cookies.set('imageScale', $('#imageScale').val() + '%');
+  Cookies.set('imageScale', $('#imageScale').val(), { expires: 365, path: '/' });
 }
 
 $(function() {
