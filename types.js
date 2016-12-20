@@ -49,6 +49,7 @@ function getExtension(mimeType) {
   var cmp = mimeType.split(';')[0].split('/'),
       gt = cmp[0],
       ft = cmp[1];
+
   if(gt in mimeMap && ft in mimeMap[gt]) {
     return mimeMap[gt][ft][0];
   }

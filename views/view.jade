@@ -29,9 +29,9 @@ html
       -if(session.validate())
         a.uploadLink(href='/') Upload
         span.divider
-        a.listingLink(href='/private') Private
+        a.green(href='/private') Private
         span.divider
-      a.listingLink(href='/public') Public
+      a.green(href='/public') Public
       span.floatRight
         -if(session.validate())
           a(href='/logout') Log Out
@@ -56,29 +56,38 @@ html
           span.divider
         span#fileSize File size:
           | <u>#{fileSize}</u>
-    div#optionBar.childPad
+    div#contentTools.childPad
       -if(encrypted)
-        a#downloadLink(style='display:none;' download='#{fileName}') Download
+        a#downloadLink(style='display:none;' download='#{title || fileName}') Download
       -else
-        a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
-      -if(mimeType == null)
+        a#downloadLink(href='/x/#{fileName}' download='#{title || fileName}') Download
+      -if(fileType == null)
         span#textTools.childPad(style='display:none;')
           span.divider
-          button#copyTextButton(onclick='copyToClipboard();') Copy
-          input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers()')
-          label#lineNumbersLabel(for='lineNumbersCheckbox') Line Numbers
+          a#copyLink(href='#' onclick='copyToClipboard();') Copy
+          span.divider
+          span
+            | Line Numbers: 
+            a#lineNumbers(href='#' onclick='setLineNumbers(); saveSettings()')
+      -else if(fileType == 'image')
+        span#imageTools.childPad(style='display:none;')
+          span.divider
+          input#imageScale(type='range' value='80' oninput='scaleImage();' onchange='saveSettings()')
       -if(session.admin || session.validate(user))
-        span#ownerTools.floatRight.childPad
+        span#ownerTools.childPad.floatRight
           a(href='/edit/#{fileName}') Edit
           span.divider
-          a.warnLink(href='/delete/#{fileName}') Delete
+          a.red(href='/delete/#{fileName}') Delete
     -if(encrypted)
       center#decryption
-        input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password')
-        button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
+        div#decryptionStatus This file is encrypted.
+        span.childPad
+          input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password')
+          button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
       if(fileType == 'image')
         center#imageContainer(style='display:none;')
-          img#content
+          a#imageLink
+            img#content
       -else if(fileType == 'audio')
         center#audioContainer(style='display:none;')
           audio#content(controls)
@@ -94,7 +103,8 @@ html
     -else
       -if(fileType == 'image')
         center#imageContainer
-          img#content(src='/x/#{fileName}')
+          a#imageLink(href='/x/#{fileName}')
+            img#content(src='/x/#{fileName}')
       -else if(fileType == 'audio')
         center#audioContainer
           audio#content(controls)

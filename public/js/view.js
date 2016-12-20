@@ -1,35 +1,25 @@
 binaryThreshold = 15;
+lineNumbers = false;
 
-decryptError = false;
-notifyDecryptError = false;
+decryptErrorColour = '#E65C5C';
+decryptErrorState = 0; // 0: no error
+                       // 1: locked; persists notification
+                       // 2: unlocked; allows notification to be cleared
 
-clearDecryptErrorTimeout = null;
+updateDecryptErrorTimeout = null;
+passwordChangedInErrorState = false;
 
+decryptNormalStatus = null;
 decryptNormalColour = null;
-decryptErrorColour = '#B35A5A';
 
-function setDecryptError() {
-  decryptError = true;
-  window.clearTimeout(decryptErrorTimeout);
-  clearDecryptErrorTimeout = window.setTimeout(clearDecryptError, 3000);
-
-  if(notifyDecryptError == false) {
-    notifyDecryptError = true;
-    var d = $('#decryption');
-    decryptNormalColour = d.css('background-color');
-    d.css('background-color', decryptErrorColour);
-  }
-}
-
-function clearDecryptError() {
-  decryptError = false;
+function saveSettings() {
+  Cookies.set('lineNumbers', lineNumbers ? 'on' : 'off', { expires: 365, path: '/' });
+  Cookies.set('imageScale', $('#imageScale').val() + '%');
 }
 
 $(function() {
   var pEntry = $('#passwordEntry'),
       dButton = $('#decryptButton');
-
-  loadOptions();
 
   if(encrypted) {
     pEntry.focus();
@@ -37,8 +27,12 @@ $(function() {
       pEntry.val(window.location.hash.substr(1));
       decrypt();
     }
-  } else {
-    renderText(null);
+  }
+  else if(fileType == 'image') {
+    initImage();
+  }
+  else if(fileType == null) {
+    initText();
   }
 
   pEntry.keyup(function(event) {
@@ -49,47 +43,15 @@ $(function() {
 
   pEntry.on('input', function() {
     $('#decryptButton').attr('disabled', pEntry.val().length == 0);
-    if(decryptError == false && notifyDecryptError) {
-      notifyDecryptError = false;
+    if(decryptErrorState == 1) {
+      passwordChangedInErrorState = true;
+    } else if(decryptErrorState == 2) {
       $('#decryption').css('background-color', decryptNormalColour);
+      $('#decryptionStatus').text(decryptNormalStatus);
+      decryptErrorState = 0;
     }
   });
 });
-
-function saveOptions() {
-  Cookies.set('lineNumbers', $('#lineNumbersCheckbox').prop('checked') ? 'on' : 'off',
-              { expires: 365, path: '/' });
-}
-
-function loadOptions() {
-  $('#lineNumbersCheckbox').prop('checked', Cookies.get('lineNumbers') == 'on');
-}
-
-function toggleLineNumbers() {
-  var code = $('code');
-
-  if($('#lineNumbersCheckbox').prop('checked')) {
-    // disable line wrapping
-    code.css('white-space', 'pre');
-    code.css('overflow-wrap', '');
-
-    // add line numbers
-    code.each(function(i, block) {
-      hljs.lineNumbersBlock(block);
-    });
-  }
-  else {
-    // remove line numbers
-    $('code.hljs-line-numbers').each(function(i, block) {
-      $(block).remove();
-    });
-    // re-enable line wrapping
-    code.css('white-space', 'pre-wrap');
-    code.css('overflow-wrap', 'break-word');
-  }
-
-  saveOptions();
-}
 
 function copyToClipboard() {
   var $temp = $("<input>");
@@ -97,6 +59,57 @@ function copyToClipboard() {
   $temp.val($('#content').text()).select();
   document.execCommand("copy");
   $temp.remove();
+}
+
+function setLineNumbers(state) {
+  var code = $('code');
+
+  if(typeof state === 'undefined') {
+    state = lineNumbers ? false : true;
+  }
+
+  if(state) {
+    if(lineNumbers == false) {
+      // disable line wrapping
+      code.css('white-space', 'pre');
+      code.css('overflow-wrap', '');
+
+      // add line numbers
+      code.each(function(i, block) {
+        hljs.lineNumbersBlock(block);
+      });
+    }
+
+    $('#lineNumbers').text('on');
+    $('#lineNumbers').removeClass('red');
+    $('#lineNumbers').addClass('green');
+  }
+  else {
+    // remove line numbers
+    $('code.hljs-line-numbers').each(function(i, block) {
+      $(block).remove();
+    });
+
+    // re-enable line wrapping
+    code.css('white-space', 'pre-wrap');
+    code.css('overflow-wrap', 'break-word');
+
+    $('#lineNumbers').text('off');
+    $('#lineNumbers').removeClass('green');
+    $('#lineNumbers').addClass('red');
+  }
+
+  lineNumbers = state;
+}
+
+function scaleImage(perc) {
+  if(typeof perc == 'undefined') {
+    perc = $('#imageScale').val();
+  } else {
+    $('#imageScale').val(perc);
+  }
+
+  $('img#content').css('max-width', perc + '%');
 }
 
 function decrypt() {
@@ -135,39 +148,56 @@ function decrypt() {
   }
 }
 
-// binary hueristics
-function isBinary(data, threshold) {
-  var nSusp = 0,
-      nMax = Math.min(2048, data.length);
-
-  for(var i=0; i < nMax; ++i) {
-    var c = data.codePointAt(i);
-    if(c == 0) {
-      console.log('isBinary(): null byte found; definitely binary');
-      return true;
-    }
-    else if((c <= 31 && c != 10 && c != 13) || c == 127) {
-      ++nSusp;
-    }
+function setDecryptError() {
+  if(decryptErrorState == 1) {
+    return;
   }
 
-  var percSusp = (nSusp / nMax) * 100,
-      result = percSusp >= threshold;
+  var d = $('#decryption'),
+      ds = $('#decryptionStatus');
 
-  console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
-  return result;
+  decryptNormalColour = d.css('background-color');
+  decryptNormalStatus = ds.text();
+
+  d.css('background-color', decryptErrorColour);
+  ds.text('Wrong Password');
+  
+  decryptErrorState = 1;
+  clearDecryptErrorTimeout = window.setTimeout(updateDecryptError, 5000);
+}
+
+function updateDecryptError() {
+  if(passwordChangedInErrorState) {
+    $('#decryption').css('background-color', decryptNormalColour);
+    $('#decryptionStatus').text(decryptNormalStatus);
+    passwordChangedInErrorState = false;
+    decryptErrorState = 0;
+  }
+  else if(decryptErrorState == 1) {
+    decryptErrorState = 2;
+  }
 }
 
 function renderImage(data) {
-  var blob = bytesToBlob(data, mimeType),
-      blobURL = URL.createObjectURL(blob),
-      dLink = $('#downloadLink');
+  if(data != null) {
+    var blob = bytesToBlob(data, mimeType),
+        blobURL = URL.createObjectURL(blob),
+        dLink = $('#downloadLink');
 
-  dLink.attr('href', blobURL);
-  dLink.show();
+    dLink.attr('href', blobURL);
+    dLink.show();
 
-  $('img#content').attr('src', blobURL);
-  $('#imageContainer').show();
+    $('#imageLink').attr('href', blobURL);
+    $('img#content').attr('src', blobURL);
+    $('#imageContainer').show();
+  }
+
+  initImage();
+}
+
+function initImage() {
+  $('#imageTools').show();
+  scaleImage(parseInt(Cookies.get('imageScale')));
 }
 
 function renderAudio(data) {
@@ -206,18 +236,20 @@ function renderBinary(data) {
 }
 
 function renderText(data) {
-  if(data != null) {
-    var blob = bytesToBlob(data, 'text/plain'),
-        blobURL = URL.createObjectURL(blob),
-        dLink = $('#downloadLink');
+  var blob = bytesToBlob(data, 'text/plain'),
+      blobURL = URL.createObjectURL(blob),
+      dLink = $('#downloadLink');
 
-    dLink.attr('href', blobURL);
-    dLink.show();
+  dLink.attr('href', blobURL);
+  dLink.show();
 
-    $('code#content').text(data);
-    $('#textContainer').show();
-  }
+  $('code#content').text(data);
+  $('#textContainer').show();
 
+  initText();
+}
+
+function initText() {
   $('#textTools').show();
 
   $('code').each(function(i, block) {
@@ -227,7 +259,30 @@ function renderText(data) {
     }
   });
 
-  toggleLineNumbers();
+  setLineNumbers(Cookies.get('lineNumbers') == 'on');
+}
+
+// binary hueristics
+function isBinary(data, threshold) {
+  var nSusp = 0,
+      nMax = Math.min(2048, data.length);
+
+  for(var i=0; i < nMax; ++i) {
+    var c = data.codePointAt(i);
+    if(c == 0) {
+      console.log('isBinary(): null byte found; definitely binary');
+      return true;
+    }
+    else if((c <= 31 && c != 10 && c != 13) || c == 127) {
+      ++nSusp;
+    }
+  }
+
+  var percSusp = (nSusp / nMax) * 100,
+      result = percSusp >= threshold;
+
+  console.log("isBinary(): " + percSusp + "% suspicious; " + (result ? "likely binary" : "plain text"));
+  return result;
 }
 
 function bytesToBlob(inputBytes, contentType) {
