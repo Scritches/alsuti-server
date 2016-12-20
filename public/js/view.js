@@ -103,7 +103,7 @@ function setLineNumbers(state) {
 }
 
 function scaleImage(perc) {
-  if(typeof perc == 'undefined') {
+  if(typeof perc === 'undefined') {
     perc = $('#imageScale').val();
   } else {
     $('#imageScale').val(perc);
