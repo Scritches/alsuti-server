@@ -61,7 +61,7 @@ html
         a#downloadLink(style='display:none;' download='#{title || fileName}') Download
       -else
         a#downloadLink(href='/x/#{fileName}' download='#{title || fileName}') Download
-      -if(fileType == null)
+      -if(fileType == 'text' || fileType == null)
         span#textTools.childPad(style='display:none;')
           span.divider
           a#copyLink(href='#' onclick='copyToClipboard();') Copy

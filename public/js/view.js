@@ -31,7 +31,7 @@ $(function() {
   else if(fileType == 'image') {
     initImage();
   }
-  else if(fileType == null) {
+  else if(fileType == 'text') {
     initText();
   }
 
@@ -83,6 +83,7 @@ function setLineNumbers(state) {
     $('#lineNumbers').text('on');
     $('#lineNumbers').removeClass('red');
     $('#lineNumbers').addClass('green');
+    $('code#content').css('border-left-width', "1px");
   }
   else {
     // remove line numbers
@@ -97,6 +98,7 @@ function setLineNumbers(state) {
     $('#lineNumbers').text('off');
     $('#lineNumbers').removeClass('green');
     $('#lineNumbers').addClass('red');
+    $('code#content').css('border-left-width', "0px");
   }
 
   lineNumbers = state;
@@ -149,7 +151,7 @@ function decrypt() {
 }
 
 function setDecryptError() {
-  if(decryptErrorState == 1) {
+  if(decryptErrorState != 0) {
     return;
   }
 

@@ -4,6 +4,7 @@ var _ = require('underscore')._,
     express = require('express'),
     fs = require('fs'),
     path = require('path'),
+    jo = require('jpeg-autorotate'),
     request = require('request'),
     shortid = require('shortid'),
     auth = require('./auth'),
@@ -24,7 +25,8 @@ router.post('/upload', auth.required);
 router.post('/upload', function(req, res) {
   var localPath,
       fileExt,
-      fileName;
+      fileName,
+      filePath;
 
   if(_.has(req.files, 'fileupload')) {
     localPath = __dirname + '/../files/';
@@ -36,11 +38,23 @@ router.post('/upload', function(req, res) {
       fileName = shortid.generate();
     }
 
-    fs.readFile(req.files.fileupload.path, function(err, data) {
-      fs.writeFile(localPath + fileName, data, function(err) {
-        postWrite(err);
+    filePath = localPath + fileName;
+    if(fileExt != null && mimeMap['image']['jpeg'].indexOf(fileExt) != -1) {
+      // autorotate jpeg images
+      fs.readFile(req.files.fileupload.path, function(err, data) {
+        if(!err) {
+          writeRotatedJPEG(data);
+        } else {
+          readError();
+        }
       });
-    });
+    }
+    else {
+      // write everything else using pipes
+      fs.createReadStream(req.files.fileupload.path)
+        .pipe(fs.createWriteStream(filePath))
+        .on('close', function() { finalizeUpload(null); });
+    }
   }
   else if(_.has(req.body, 'content')) {
     localPath = __dirname + '/../files/';
@@ -51,8 +65,9 @@ router.post('/upload', function(req, res) {
       fileName = shortid.generate();
     }
 
-    fs.writeFile(localPath + fileName, req.body.content, function(err) {
-      postWrite(err);
+    filePath = localPath + fileName;
+    fs.writeFile(filePath, req.body.content, function(err) {
+      finalizeUpload(err);
     });
   }
   else if(_.has(req.body, 'url')) {
@@ -74,9 +89,10 @@ router.post('/upload', function(req, res) {
           fileName = shortid.generate();
         }
 
+        filePath = localPath + fileName;
         request.get(req.body.url) // ...
-          .pipe(fs.createWriteStream(localPath + fileName))
-          .on('close', function() { postWrite(null); });
+          .pipe(fs.createWriteStream(filePath))
+          .on('close', function() { finalizeUpload(null); })
       });
     }
     catch(e) {
@@ -101,20 +117,15 @@ router.post('/upload', function(req, res) {
     return;
   }
 
-  function postWrite(err) {
-    if(err) {
-      if(req.apiRequest) {
-        res.api(true, {'message': "Cannot write file."});
-      } else {
-        res.render('info', {
-          'title': "Upload Error",
-          'message': "Cannot write file."
-        });
-      }
+  function writeRotatedJPEG(data) {
+    jo.rotate(data, {quality: 95}, function(err, buffer, orientation) {
+      fs.writeFile(filePath, err == null ? buffer : data, function(err) {
+        finalizeUpload(null);
+      });
+    });
+  }
 
-      return;
-    }
-
+  function finalizeUpload(err) {
     var time = Date.now(),
         db = req.app.get('database'),
         m = db.multi(),
@@ -178,6 +189,28 @@ router.post('/upload', function(req, res) {
         });
       }
     });
+  }
+
+  function readError() {
+    if(req.apiRequest) {
+      res.api(true, {'message': "Cannot read from file/URL."});
+    } else {
+      res.render('info', {
+        'title': "Upload Error",
+        'message': "Cannot read file/URL."
+      });
+    }
+  }
+
+  function writeError() {
+    if(req.apiRequest) {
+      res.api(true, {'message': "Cannot write file."});
+    } else {
+      res.render('info', {
+        'title': "Upload Error",
+        'message': "Cannot write file."
+      });
+    }
   }
 });
 
@@ -473,19 +506,19 @@ router.get('/:file', function(req, res, rf) {
 
       fs.readFile(filePath, function(err, data) {
         if(!err) {
+          var fileType,
+              mimeType;
+
           var fileExt = types.fileExtension(fileName);
           if(fileExt != null) {
-            if(types.isImage(fileExt)) {
-              fileType = 'image';
-            } else if(types.isAudio(fileExt)) {
-              fileType = 'audio';
-            } else if(types.isVideo(fileExt)) {
-              fileType = 'video';
+            var t = types.getMimeType(fileExt);;
+            if(t != null) {
+              fileType = t[0];
+              mimeType = t[1];
             } else {
-              fileType = u.encrypted == false && types.isBinary(data, binaryThreshold) ? 'binary' : null;
+              fileType = null;
+              mimeType = null;
             }
-
-            mimeType = types.getMimeType(fileExt);
           }
           else {
             fileType = u.encrypted == false && types.isBinary(data, binaryThreshold) ? 'binary' : null;

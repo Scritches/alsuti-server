@@ -32,6 +32,11 @@ mimeMap = {
     'mp4': ['mp4', 'mp4v', 'mpg4'],
     'mpeg': ['mpeg', 'mpg', 'mpe', 'm1v', 'm2v'],
     'x-matroska': ['mkv', 'mk3d', 'mks']
+  },
+  'text': {
+    'plain': ['txt', 'log'],
+    'html': ['html', 'htm'],
+    'markdown': ['md']
   }
 };
 
@@ -59,7 +64,7 @@ function getMimeType(ext) {
   for(var gt in mimeMap) {
     for(var ft in mimeMap[gt]) {
       if(mimeMap[gt][ft].indexOf(ext) != -1) {
-        return gt + '/' + ft;
+        return [gt, ft];
       }
     }
   }
@@ -68,9 +73,12 @@ function getMimeType(ext) {
 }
 
 function isImage(ext) {
-  return ['bmp', 'gif', 'jpg', 'jpeg',
-          'jpe', 'png', 'svg', 'svgz',
-          'webp'].indexOf(ext) != -1;
+  for(var ft in mimeMap['image']) {
+    if(mimeMap['image'][ft].indexOf(ext) != -1)
+      return true;
+  }
+
+  return false;
 }
 
 function isAudio(ext) {
@@ -85,6 +93,15 @@ function isAudio(ext) {
 function isVideo(ext) {
   for(var ft in mimeMap['video']) {
     if(mimeMap['video'][ft].indexOf(ext) != -1)
+      return true;
+  }
+
+  return false;
+}
+
+function isText(ext) {
+  for(var ft in mimeMap['text']) {
+    if(mimeMap['text'][ft].indexOf(ext) != -1)
       return true;
   }
 
@@ -125,5 +142,6 @@ module.exports = {
   'isImage': isImage,
   'isAudio': isAudio,
   'isVideo': isVideo,
+  'isText': isText,
   'isBinary': isBinary
 }

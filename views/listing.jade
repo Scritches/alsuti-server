@@ -12,17 +12,17 @@ body(onload='renderTimes();')
   div#globalBar.childPad
     -if(listingType == 'private')
       -if(session.validate())
-        a.pink(href='/') Upload
+        a(href='/') Upload
         span.divider
       a.green(href='/public') Public
     -else if(listingType == 'public')
       -if(session.validate())
-        a.pink(href='/') Upload
+        a(href='/') Upload
         span.divider
         a.green(href='/private') Private
     -else if(listingType == 'userPublic')
       -if(session.validate())
-        a.pink(href='/') Upload
+        a(href='/') Upload
         span.divider
         a.green(href='/private') Private
         span.divider

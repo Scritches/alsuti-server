@@ -14,6 +14,7 @@
     "express": "~4.9.0",
     "express-device": "latest",
     "jade": "~1.6.0",
+    "jpeg-autorotate": "latest",
     "redis": "latest",
     "request": "latest",
     "serve-favicon": "~2.1.3",
