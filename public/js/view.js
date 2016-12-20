@@ -198,8 +198,12 @@ function renderImage(data) {
 }
 
 function initImage() {
+  var scaleSetting = Cookies.get('imageScale');
+  if(scaleSetting != undefined) {
+    scaleImage(parseInt(scaleSetting));
+  }
+
   $('#imageTools').show();
-  scaleImage(parseInt(Cookies.get('imageScale')));
 }
 
 function renderAudio(data) {
@@ -252,8 +256,6 @@ function renderText(data) {
 }
 
 function initText() {
-  $('#textTools').show();
-
   $('code').each(function(i, block) {
     if(fileExt != 'txt' && fileExt != 'log') {
       block.className = fileExt;
@@ -262,6 +264,7 @@ function initText() {
   });
 
   setLineNumbers(Cookies.get('lineNumbers') == 'on');
+  $('#textTools').show();
 }
 
 // binary hueristics
