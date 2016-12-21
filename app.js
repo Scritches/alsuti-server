@@ -52,9 +52,9 @@ catch(e) {
   console.log("Note: no favicon found");
 }
 
-app.use(device.capture({'parseUserAgent': true}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true, limit: '500mb' }));
+app.use(device.capture({'parseUserAgent': true}));
 app.use(multer());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -66,6 +66,10 @@ app.use(function(req, res, next) {
     req.apiRequest = isTrue(req.body.api) || false;
   } else {
     req.apiRequest = isTrue(req.headers.api) || false;
+  }
+
+  // cache
+  if(res.getHeader('Cache-Control') == null) {
   }
 
   // api response helper

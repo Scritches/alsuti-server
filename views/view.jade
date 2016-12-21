@@ -29,9 +29,9 @@ html
       -if(session.validate())
         a.uploadLink(href='/') Upload
         span.divider
-        a.green(href='/private') Private
+        a(href='/private') Private
         span.divider
-      a.green(href='/public') Public
+      a(href='/public') Public
       span.floatRight
         -if(session.validate())
           a(href='/logout') Log Out
@@ -58,21 +58,25 @@ html
           | <u>#{fileSize}</u>
     div#contentTools.childPad
       -if(encrypted)
-        a#downloadLink(style='display:none;' download='#{title || fileName}') Download
+        span#genericTools.childPad(style='display:none;')
+          a#downloadLink(download='#{title || fileName}') Download
+          span.divider
+          a.red#persistLink(href='#' onclick='setPersist();') Persist
       -else
-        a#downloadLink(href='/x/#{fileName}' download='#{title || fileName}') Download
+        span#gericTools.childPad
+          a#downloadLink(href='/x/#{fileName}' download='#{title || fileName}') Download
       -if(fileType == 'text' || fileType == null)
         span#textTools.childPad(style='display:none;')
           span.divider
           a#copyLink(href='#' onclick='copyToClipboard();') Copy
           span.divider
-          span
-            | Line Numbers: 
-            a#lineNumbers(href='#' onclick='setLineNumbers(); saveSettings()')
+          a.red#lineNumbers(href='#' onclick='setLineNumbers(); saveSettings()') Line Numbers
       -else if(fileType == 'image')
         span#imageTools.childPad(style='display:none;')
           span.divider
-          input#imageScale(type='range' value='80' oninput='scaleImage();' onchange='saveSettings()')
+          label
+            | Scale: 
+            input#imageScale(type='number' min='10' max='100' value='75' oninput='scaleImage();' onchange='saveSettings()')
       -if(session.admin || session.validate(user))
         span#ownerTools.childPad.floatRight
           a(href='/edit/#{fileName}') Edit
@@ -82,7 +86,7 @@ html
       center#decryption
         div#decryptionStatus This file is encrypted.
         span.childPad
-          input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password')
+          input#passwordEntry(type='password' placeholder='Password' autofocus)
           button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
       if(fileType == 'image')
         center#imageContainer(style='display:none;')

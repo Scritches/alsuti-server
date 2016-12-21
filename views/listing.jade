@@ -14,7 +14,7 @@ body(onload='renderTimes();')
       -if(session.validate())
         a(href='/') Upload
         span.divider
-      a.green(href='/public') Public
+      a(href='/public') Public
     -else if(listingType == 'public')
       -if(session.validate())
         a(href='/') Upload
@@ -24,7 +24,7 @@ body(onload='renderTimes();')
       -if(session.validate())
         a(href='/') Upload
         span.divider
-        a.green(href='/private') Private
+        a(href='/private') Private
         span.divider
       a.green(href='/public') Public
     span.floatRight

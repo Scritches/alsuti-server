@@ -32,7 +32,9 @@ body
         input(type='text' name='title' placeholder='Title')
         input(type='text' name='description' placeholder='Description')
         textarea#r(form='pasteForm' name='content')
-        input(type='hidden', name='extension', value='txt')
+        label
+          input(type='checkbox' name='extension' value='txt' checked)
+          | Plain Text
         label
           input(type='checkbox' name='public' value='yes')
           | Public

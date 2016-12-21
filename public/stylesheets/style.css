@@ -10,14 +10,13 @@ body {
 a {
   color: #3689B3;
 }
-a.pink {
+.pink {
   color: #B336B3;
 }
-a.green {
+.green {
   color: #75B336;
 }
-.error,
-a.red {
+.red {
   color: #B33636;
 }
 
@@ -94,7 +93,9 @@ form#editForm input[type=text] {
   margin: 0px;
   vertical-align: middle;
 }
-
+#imageScale {
+  width: 50px;
+}
 /* header margins */
 #header * {
   margin-bottom: 5px;

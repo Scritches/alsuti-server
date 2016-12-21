@@ -4,7 +4,7 @@ Copyright (C) 2016-2017 Andrew Felske (origin206@protonmail.ch)
 
 Initial code written by Luke Slater (tinmachin3@gmail.com).
 Heavily rewritten with redis support to assist with feature
-development and scalability.
+development.
 
 ----
 

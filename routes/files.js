@@ -182,6 +182,7 @@ router.post('/upload', function(req, res) {
             res.api(true, {'message': "Database error."});
           } else {
             res.render('info', {
+              'error': true,
               'title': "Database Error",
               'message': "Failed to store metadata."
             });
@@ -196,6 +197,7 @@ router.post('/upload', function(req, res) {
       res.api(true, {'message': "Cannot read from file/URL."});
     } else {
       res.render('info', {
+        'error': true,
         'title': "Upload Error",
         'message': "Cannot read file/URL."
       });
@@ -207,6 +209,7 @@ router.post('/upload', function(req, res) {
       res.api(true, {'message': "Cannot write file."});
     } else {
       res.render('info', {
+        'error': true,
         'title': "Upload Error",
         'message': "Cannot write file."
       });
@@ -322,6 +325,7 @@ router.post('/edit', function(req, res) {
               res.api(true, {'message': "Database error."});
             } else {
               res.render('info', {
+                'error': true,
                 'title': "Database Error",
                 'message': "Failed to edit file details.",
                 'returnPath': returnPath
@@ -445,6 +449,7 @@ router.post('/delete', function(req, res) {
                 res.api(true, {'message': "Database error."});
               } else {
                 res.render('info', {
+                  'error': true,
                   'title': "Database Error",
                   'message': "Something went wrong."
                 });
@@ -483,6 +488,11 @@ function sendFile(req, res) {
 }
 
 router.get('/:file', function(req, res, rf) {
+  if(req.apiRequest || req.device.type == 'bot') {
+    sendFile(req, res);
+    return;
+  }
+
   var db = req.app.get('database'),
       fileName = req.params.file,
       fHash = 'file:' + fileName;
@@ -498,12 +508,6 @@ router.get('/:file', function(req, res, rf) {
       u.public = isTrue(u.public) || false;
 
       var filePath = path.resolve(__dirname + '/../files/' + fileName);
-
-      if(req.device.type == 'bot') {
-        sendFile(req, res);
-        return;
-      }
-
       fs.readFile(filePath, function(err, data) {
         if(!err) {
           var fileType,
@@ -511,17 +515,17 @@ router.get('/:file', function(req, res, rf) {
 
           var fileExt = types.fileExtension(fileName);
           if(fileExt != null) {
-            var t = types.getMimeType(fileExt);;
+            var t = types.getMimeType(fileExt);
             if(t != null) {
               fileType = t[0];
-              mimeType = t[1];
+              mimeType = t[0] + '/' + t[1];
             } else {
               fileType = null;
               mimeType = null;
             }
           }
           else {
-            fileType = u.encrypted == false && types.isBinary(data, binaryThreshold) ? 'binary' : null;
+            fileType = u.encrypted == false && types.isBinary(data, binaryThreshold) ? 'binary' : 'text';
             mimeType = null;
           }
 
@@ -539,11 +543,8 @@ router.get('/:file', function(req, res, rf) {
             'mimeType': mimeType
           }
 
-          var units = ['B', 'KB', 'MB', 'GB', 'TB'],
-              cUnit = 0,
-              rawSize = data.length;
-
           // convert base64 size
+          var rawSize = data.length;
           if(u.encrypted) {
             rawSize *= 3;
             rawSize /= 4;
@@ -553,14 +554,21 @@ router.get('/:file', function(req, res, rf) {
             }
           }
 
-          // increment to most readable unit
-          var readableSize = rawSize;
-          while(cUnit < 5 && readableSize > 1024) {
-            ++cUnit;
-            readableSize /= 1024;
+          function readableSize(rawSize) {
+            var readableSize = rawSize,
+                units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+            var u;
+            for(u=0; u < 5 && readableSize > 1024; ++u) {
+              readableSize /= 1024;
+            }
+
+            return readableSize + ' ' + units[u];
           }
 
-          env.fileSize = parseFloat(readableSize).toFixed(2) + " " + units[cUnit];
+          env.fileSize = parseFloat(readableSize(rawSize)).toFixed(2) + " " + units[cUnit];
+
+          res.setHeader('Cache-Control', "public, immutable");
           res.render('view', env);
         }
         else {
@@ -568,6 +576,7 @@ router.get('/:file', function(req, res, rf) {
             res.api(true, "Cannot read file.");
           } else {
             res.render('info', {
+              'error': true,
               'title': "Error",
               'message': "Cannot read file.",
               'returnPath': req.headers.referer || null
@@ -581,6 +590,7 @@ router.get('/:file', function(req, res, rf) {
         res.api(true, "No such file.");
       } else {
         res.render('info', {
+          'error': true,
           'title': "Error",
           'message': "No such file.",
           'returnPath': req.headers.referer || null
