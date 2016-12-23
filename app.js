@@ -32,7 +32,6 @@ db.on("error", function(err) {
 });
 
 // app globals
-
 app.set('database', db);
 app.set('cookieAge', 1000 * 60 * 60 * 24 * 7); // for a maximum of 7 days ..
 app.set('sessionAge', 1000 * 60 * 60 * 1);     // .. enforce a 1 hour activity timeout
@@ -41,6 +40,9 @@ app.set('sessionAge', 1000 * 60 * 60 * 1);     // .. enforce a 1 hour activity t
 app.set('json spaces', 2);
 app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, 'views'));
+
+// pretty html output
+app.locals.pretty = true;
 
 // use favicon if it exists
 var faviconPath = __dirname + '/public/favicon.ico';
@@ -98,12 +100,10 @@ app.use(function(req, res, next) {
 
 // development error handler; prints stacktrace
 app.use(function(err, req, res, next) {
-  if(res.headersSent == false) {
-    res.status(err.status || 500);
-    res.render('error', {
-      'e': err
-    });
-  }
+  res.status(err.status || 500);
+  res.render('error', {
+    'e': err
+  });
 });
 
 module.exports = app;

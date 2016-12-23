@@ -2,13 +2,23 @@ body {
   font-family: "Lucida Grande", Helvetica;
   font-size: 14px;
   margin: 0px;
-  min-width: 320px;
   padding: 10px;
 }
 
 /* common */
 a {
   color: #3689B3;
+  text-decoration: underline;
+}
+a:hover {
+  cursor: pointer;
+}
+a#downloadLink,
+a#copyLink {
+  text-decoration: none;
+}
+.bold {
+  font-weight: bold;
 }
 .pink {
   color: #B336B3;
@@ -19,12 +29,17 @@ a {
 .red {
   color: #B33636;
 }
-
-.childPad > * {
+.hpad > * {
   margin-right: 5px;
 }
-.childPad > *:last-child {
+.hpad > *:last-child {
   margin-right: 0px;
+}
+.vpad > * {
+  margin-bottom: 5px;
+}
+.vpad > *:last-child {
+  margin-bottom: 0px;
 }
 .floatLeft {
   float: left;
@@ -33,19 +48,48 @@ a {
   float: right;
 }
 span.divider:after {
-  color: #606060;
+  color: #A0A0A0;
   content: '|';
 }
+.hidden {
+  display: none;
+}
 
-form > * {
-  margin: 10px;
+/* common input */
+form {
+  margin: 10px 0px 0px;
+}
+
+form > textarea,
+form > input[type=text] {
+  box-sizing: border-box;
+}
+
+form > input[type=text],
+form > textarea {
+  display: block;
+}
+
+form > input[type=text],
+form > input[type=file],
+form > select,
+form > textarea {
+  margin-bottom: 10px;
+}
+
+form > input#url,
+form > textarea#title,
+form > textarea#description {
+  width: 300px;
+  resize: none;
+}
+form > textarea#content {
+  min-width: 300px;
+  min-height: 200px;
+  resize: vertical;
 }
 
 /* login/register/delete/edit pages */
-#actionMessage {
-  margin: 10px;
-  padding: 0px;
-}
 form#editForm,
 form#deleteForm {
   margin: 10px;
@@ -55,25 +99,19 @@ form#deleteForm {
 form#editForm > * {
   display: block;
 }
-form#editForm input[type=text] {
-  width: 60%;
-}
 
 /* significant stuff */
 #globalBar {
   display: block;
-  overflow: auto;
   margin-bottom: 10px;
 }
 #header {
-  overflow: auto;
   margin-bottom: 10px;
 }
-#title {
+h1#title {
   display: block;
   font-size: 150%;
   font-weight: bold;
-  margin: 0px;
 }
 #description {
   display: block;
@@ -82,83 +120,101 @@ form#editForm input[type=text] {
   color: #606060;
   font-size: 90%;
 }
-
-#contentTools {
-  margin-bottom: 10px;
-  overflow: auto;
+#uploadInfo {
+  margin-bottom: 2.5px;
 }
-#contentTools input,
-#contentTools select
-{
+#tools {
+  margin-bottom: 10px;
+  user-select: none;
+}
+#tools select {
   margin: 0px;
   vertical-align: middle;
+}
+a.switch {
+  text-decoration: none;
+  border-bottom: 1px dashed;
+}
+a.switch.enabled {
+  border-bottom: 1px double;
 }
 #imageScale {
   width: 50px;
 }
-/* header margins */
-#header * {
-  margin-bottom: 5px;
+
+/* upload menu */
+
+.menu {
+  display: inline-block;
+  position: relative;
 }
-#header *:last-child {
+.menu:before {
+  background-color: #202020;
+  border-radius: 2.5px;
+  color: #F4F4F4;
+  content: "Alsuti";
+  padding: 5px;
+  text-decoration: none;
+}
+.menu:hover:before {
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.menu-wrapper {
+  display: none;
+  position: absolute;
+  transition: all 0.75s ease-in;
+}
+.menu-content {
+  background-color: #222;
+  border-bottom-left-radius: 2.5px;
+  border-bottom-right-radius: 2.5px;
+  border-top-right-radius: 2.5px;
+}
+.menu:hover .menu-wrapper {
+  display: block;
+  padding: 5px 20px 20px 20px;
+  left: -20px;
+}
+
+.menu-content > * {
+  color: #F4F4F4;
+  display: block;
+  padding: 7.5px;
+  text-decoration: none;
+}
+.menu-content a:hover {
+  background-color: #444;
+}
+
+/* header margins */
+#header > * {
+  margin-bottom: 10px;
+}
+#header > *:last-child {
   margin-bottom: 0px;
 }
 
 /* upload forms */
-#upload {
-  border-radius: 5px;
-  margin: 0 auto;
-}
-
-#fileUpload,
-#pasteUpload,
-#rehostUpload
-{
-  display: block;
-  padding: 5px 10px;
-}
-
-form#fileForm input[type=file],
-form#fileForm input[type=text],
-form#pasteForm input[type=text],
-form#pasteForm textarea,
-form#rehostForm input[type=text]
-{
-  display: block;
-  width: 95%;
-}
-
-#fileUpload {
-  background-color: #FFDDCC;
-}
-#pasteUpload {
-  background-color: #CCE6FF;
-}
-#rehostUpload {
-  background-color: #D5FFCC;
-}
-
-#pasteUpload textarea {
-  resize: vertical;
-  min-height: 100px;
+#actionMessage {
+  margin: 10px;
+  padding: 0px;
 }
 
 /* listing table */
 table#uploadListing {
   border: 1px solid #C8C8C8;
-  font-family: monospace;
 }
 table#uploadListing tr:nth-child(odd) {
-  background-color: #F4F4F4;
+  background-color: #F8F8F8;
 }
 table#uploadListing tr:nth-child(even) {
-  background-color: #E8E8E8;
+  background-color: #ECECEC;
 }
 table#uploadListing tr td:first-child {
-  background-color: #E8E8E8;
+  background-color: #ECECEC;
   border-right: 1px solid #CCC;
   color: #808080;
-  text-align: right;
 }
 table#uploadListing tr td.expand {
   width: 100%;
@@ -166,23 +222,22 @@ table#uploadListing tr td.expand {
 table#uploadListing tr td:not(.expand) {
   white-space: pre;
 }
+table#uploadListing tr td.alignRight {
+  text-align: right;
+}
 
 /* listing page bar */
 #pageBar {
   margin: 10px 5px;
   overflow: auto;
 }
-.hidden {
-  visibility: hidden;
-}
 
 /* decryption */
 #decryption {
-  background-color: #B8CFE6;
-  border-radius: 5px;
+  background-color: #E6B8B8;
   color: #000;
-  display: block;
-  padding: 25px;
+  margin: 0 auto;
+  padding: 10px;
   transition: all 0.2s ease-in;
 }
 #decryptionStatus {
@@ -190,7 +245,7 @@ table#uploadListing tr td:not(.expand) {
   font-weight: bold;
 }
 #decryption > * {
-  margin-bottom: 12.5px;
+  margin-bottom: 10px;
 }
 #decryption > *:last-child {
   margin-bottom: 0px;
@@ -199,7 +254,7 @@ table#uploadListing tr td:not(.expand) {
 /* content */
 #textContainer {
   border: 1px solid #CCC;
-  background-color: #E0E0E0;
+  background-color: #ECECEC;
   clear: both;
 }
 img#content {
@@ -220,15 +275,14 @@ video#content
 }
 code.hljs-line-numbers {
   border: 0px;
-  background-color: #E8E8E8;
+  background-color: #ECECEC;
   color: #808080;
   padding: 5px 7.5px;
-  height: auto;
   display: inline-block;
 }
 code {
   border-left: 0px solid #CCC;
-  background-color: #F4F4F4;
+  background-color: #F8F8F8;
   display: block;
   font-family: Consolas,
                Monaco,
@@ -238,9 +292,8 @@ code {
                DejaVu Sans Mono,
                Bitstream Vera Sans Mono,
                Courier New;
-  line-height: 100%;
-  overflow-wrap: none;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   padding: 5px;
   overflow-x: auto;
-  white-space: pre;
 }

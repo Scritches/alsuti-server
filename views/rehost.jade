@@ -1,0 +1,17 @@
+doctype html
+head
+  title Rehost
+  meta(name='viewport' content='width=device-width, initial-scale=1')
+  link(rel='stylesheet' href='/stylesheets/style.css')
+body
+  include globalBar
+  h1#title Rehost
+  form#rehostForm(method='post' action='/upload' enctype='multipart/form-data')
+    input#url(type='text' name='url' placeholder="URL" autofocus)
+    textarea#title(type='text' name='title' placeholder='Title' rows=1)
+    textarea#description(form='pasteForm' name='description' placeholder='Description')
+    span.hpad
+      label
+        input(type='checkbox' name='public' value='yes')
+        | Public
+      input(type='submit' value='Rehost')

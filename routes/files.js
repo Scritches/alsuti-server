@@ -13,10 +13,23 @@ var _ = require('underscore')._,
 
 var router = express.Router();
 
-router.get('/', auth.required);
-router.get('/', function(req, res) {
+router.get('/upload', auth.required);
+router.get('/upload', function(req, res) {
   res.render('upload', {
-    'title': "Upload",
+    'session': req.session
+  });
+});
+
+router.get('/paste', auth.required);
+router.get('/paste', function(req, res) {
+  res.render('paste', {
+    'session': req.session
+  });
+});
+
+router.get('/rehost', auth.required);
+router.get('/rehost', function(req, res) {
+  res.render('rehost', {
     'session': req.session
   });
 });
@@ -278,9 +291,24 @@ router.post('/edit', function(req, res) {
             title = data[2],
             desc = data[3],
             _public = isTrue(data[4]);
-            newTitle = req.body.title.trim() || null,
-            newDesc = req.body.description.trim() || null,
-            nowPublic = isTrue(req.body.public) || false;
+
+        if(_.has(req.body, 'title')) {
+          newTitle = req.body.title.trim();
+        } else {
+          newTitle = null;
+        }
+
+        if(_.has(req.body, 'description')) {
+          newDesc = req.body.description.trim();
+        } else {
+          newDesc = null;
+        }
+
+        if(_.has(req.body, 'public')) {
+          nowPublic = isTrue(req.body.public);
+        } else {
+          nowPublic = false;
+        }
 
         if(newTitle != title) {
           if(newTitle != null && newTitle.length > 0) {
@@ -301,6 +329,7 @@ router.post('/edit', function(req, res) {
         if(nowPublic != _public) {
           // update public flag
           m.hset(fHash, 'public', nowPublic);
+          // transfer slug to appropriate list(s)
           if(nowPublic) {
             m.zrem('user:' + user + ':private', fileName);
             m.zadd('public', time, fileName);
@@ -510,23 +539,28 @@ router.get('/:file', function(req, res, rf) {
       var filePath = path.resolve(__dirname + '/../files/' + fileName);
       fs.readFile(filePath, function(err, data) {
         if(!err) {
-          var fileType,
-              mimeType;
-
           var fileExt = types.fileExtension(fileName);
+
+          var fileType,
+              subType;
+
           if(fileExt != null) {
             var t = types.getMimeType(fileExt);
             if(t != null) {
               fileType = t[0];
-              mimeType = t[0] + '/' + t[1];
+              sybType = t[1];
             } else {
               fileType = null;
-              mimeType = null;
+              subType = null;
             }
           }
+          else if(u.encrypted == false && types.isBinary(data, binaryThreshold)) {
+            fileType = 'application';
+            subType = 'octet-stream';
+          }
           else {
-            fileType = u.encrypted == false && types.isBinary(data, binaryThreshold) ? 'binary' : 'text';
-            mimeType = null;
+            fileType = null;
+            subType = null;
           }
 
           var env = {
@@ -539,37 +573,39 @@ router.get('/:file', function(req, res, rf) {
             'content': data.toString(),
             'session': req.session,
             'fileType': fileType,
-            'fileExt': fileExt,
-            'mimeType': mimeType
+            'subType': subType,
+            'fileExt': fileExt
           }
 
-          // convert base64 size
-          var rawSize = data.length;
-          if(u.encrypted) {
-            rawSize *= 3;
-            rawSize /= 4;
-            var i = rawSize - 1;
-            while(data[i] == '=') {
-              --rawSize;
-            }
-          }
-
-          function readableSize(rawSize) {
-            var readableSize = rawSize,
-                units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-            var u;
-            for(u=0; u < 5 && readableSize > 1024; ++u) {
-              readableSize /= 1024;
+          fs.stat(filePath, function(err, stats) {
+            var fileSizeInBytes = stats["size"]
+            // convert base64 size
+            var size = data.length;
+            if(u.encrypted) {
+              size *= 3;
+              size /= 4;
+              var i = size - 1;
+              while(data[i] == '=') {
+                --size;
+              }
             }
 
-            return readableSize + ' ' + units[u];
-          }
+            function readableSize(size) {
+              var units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
-          env.fileSize = parseFloat(readableSize(rawSize)).toFixed(2) + " " + units[cUnit];
+              var u;
+              for(u=0; u < 5 && size > 1024; ++u) {
+                size /= 1024;
+              }
 
-          res.setHeader('Cache-Control', "public, immutable");
-          res.render('view', env);
+              return parseFloat(size).toFixed(2) + " " + units[u];
+            }
+
+            env.fileSize = readableSize(size);
+
+            res.setHeader('Cache-Control', "public, immutable");
+            res.render('view', env);
+          });
         }
         else {
           if(req.apiRequest) {

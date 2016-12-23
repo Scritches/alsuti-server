@@ -1,5 +1,7 @@
 binaryThreshold = 15;
+
 lineNumbers = false;
+imageScale = undefined;
 
 decryptErrorColour = '#E65C5C';
 decryptErrorState = 0; // 0: no error
@@ -12,33 +14,21 @@ passwordChangedInErrorState = false;
 decryptNormalStatus = null;
 decryptNormalColour = null;
 
-persist = undefined;
-persistPassword = null;
-
 $(function() {
   var pEntry = $('#passwordEntry'),
       dButton = $('#decryptButton');
 
   if(encrypted) {
-    var pw = localStorage.getItem(fileName);
-    if(pw != null) {
-      setPersist(true);
-      pEntry.val(atob(pw));
-      decrypt();
-    }
-    else {
-      setPersist(false);
-      pEntry.focus();
-      if(window.location.hash) {
-        pw = window.location.hash.substr(1);
-        decrypt(pw);
-      }
+    if(window.location.hash && window.location.hash.length > 1) {
+      decrypt(window.location.hash.substr(1));
     }
   }
   else if(fileType == 'image') {
     initImage(null);
   }
-  else if(fileType == 'text') {
+  else if(fileType == 'text' ||
+          fileType == null)
+  {
     initText(null);
   }
 
@@ -61,100 +51,10 @@ $(function() {
   });
 });
 
-function saveSettings() {
-  Cookies.set('lineNumbers', lineNumbers ? 'on' : 'off', { expires: 365, path: '/' });
-  Cookies.set('imageScale', $('#imageScale').val(), { expires: 365, path: '/' });
-}
-
-function setPersist(state) {
-  if(typeof state === 'undefined') {
-    state = persist ? false : true;
+function decrypt(pw) {
+  if(typeof pw === 'undefined') {
+    pw = $('#passwordEntry').val();
   }
-
-  var pLink = $('#persistLink');
-  if(state) {
-    if(persist == false) {
-      localStorage.setItem(fileName, btoa(persistPassword));
-    }
-
-    pLink.removeClass('red');
-    pLink.addClass('green');
-  }
-  else {
-    if(persist) {
-      localStorage.removeItem(fileName);
-    }
-
-    pLink.removeClass('green');
-    pLink.addClass('red');
-  }
-
-  persist = state;
-}
-
-function copyToClipboard() {
-  var $temp = $("<input>");
-  $("body").append($temp);
-  $temp.val($('#content').text()).select();
-  document.execCommand("copy");
-  $temp.remove();
-}
-
-function setLineNumbers(state) {
-  var code = $('code');
-
-  if(typeof state === 'undefined') {
-    state = lineNumbers ? false : true;
-  }
-
-  if(state) {
-    if(lineNumbers == false) {
-      // disable line wrapping
-      code.css('white-space', 'pre');
-      code.css('overflow-wrap', '');
-
-      // add line numbers
-      code.each(function(i, block) {
-        hljs.lineNumbersBlock(block);
-      });
-    }
-
-    $('#lineNumbers').removeClass('red');
-    $('#lineNumbers').addClass('green');
-    $('code#content').css('border-left-width', "1px");
-  }
-  else {
-    if(lineNumbers) {
-      // remove line numbers
-      $('code.hljs-line-numbers').each(function(i, block) {
-        $(block).remove();
-      });
-    }
-
-    // re-enable line wrapping
-    code.css('white-space', 'pre-wrap');
-    code.css('overflow-wrap', 'break-word');
-
-    $('#lineNumbers').removeClass('green');
-    $('#lineNumbers').addClass('red');
-    $('code#content').css('border-left-width', "0px");
-  }
-
-  lineNumbers = state;
-}
-
-function scaleImage(perc) {
-  if(typeof perc === 'undefined') {
-    perc = $('#imageScale').val();
-  } else {
-    $('#imageScale').val(perc);
-  }
-
-  $('img#content').css('max-width', perc + '%');
-}
-
-function decrypt(password) {
-  var pw = $('#passwordEntry').val();
 
   function tryDecrypt() {
     try {
@@ -169,44 +69,47 @@ function decrypt(password) {
   data = tryDecrypt();
   if(!data) {
     setDecryptError();
-    return;
+    return false;
   }
-
-  cipherText = null;
-  if(persistPassword == null)
-    persistPassword = pw;
-
-  function readableSize(rawSize) {
-    var readableSize = rawSize,
-        units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-    var u;
-    for(u=0; u < 5 && readableSize >= 1000; ++u) {
-      readableSize /= 1024;
-    }
-
-    return parseFloat(readableSize).toFixed(2) + ' ' + units[u];
-  }
-
-  $('#fileSize').text("File size: " + readableSize(data.length));
 
   $('#decryption').remove();
-  $('#genericTools').show();
+  $('#tools').show();
 
-  var blob = bytesToBlob(data),
-      url = URL.createObjectURL(blob);
+  cipherText = null;
+  persistPassword = pw;
 
+  function readableSize(size) {
+    var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+    var u;
+    for(u=0; u < 5 && size >= 1024; ++u) {
+      size /= 1024;
+    }
+
+    return parseFloat(size).toFixed(2) + ' ' + units[u];
+  }
+
+  var blob = bytesToBlob(data);
+  $('#fileSize').html("Size: <u>" + readableSize(blob.size) + "</u>");
+
+  var url = URL.createObjectURL(blob);
   if(fileType == 'image') {
     initImage(url);
   } else if(fileType == 'audio') {
     initAudio(url);
   } else if(fileType == 'video') {
     initVideo(url);
+  } else if(fileType == 'application') {
+    initBinary(url);
   } else if(isBinary(data, binaryThreshold)) {
+    fileType = 'application';
+    subType = 'octet-stream'
     initBinary(url);
   } else {
     initText(url);
   }
+
+  return true;
 }
 
 function setDecryptError() {
@@ -239,7 +142,24 @@ function updateDecryptError() {
   }
 }
 
+function saveSettings() {
+  if(fileType == 'image') {
+    Cookies.set('imageScale', imageScale, {'expires': 90, 'path': '/' + fileName});
+  } else if(fileType == 'text' || fileType == null) {
+    Cookies.set('lineNumbers', lineNumbers ? 'on' : 'off', {'expires': 90, 'path': '/' + fileName});
+  }
+}
+
+// images
+
 function initImage(url) {
+  var savedScale = Cookies.get('imageScale');
+  if(savedScale) {
+    $('#imageScale').val(parseInt(savedScale));
+  }
+
+  scaleImage(); // propagate initial scale
+
   if(url != null) {
     var dLink = $('#downloadLink');
 
@@ -251,13 +171,20 @@ function initImage(url) {
     $('#imageContainer').show();
   }
 
-  var scaleSetting = Cookies.get('imageScale');
-  if(scaleSetting != undefined) {
-    scaleImage(parseInt(scaleSetting));
-  }
-
   $('#imageTools').show();
 }
+
+function scaleImage(perc) {
+  if(typeof perc === 'undefined') {
+    imageScale = $('#imageScale').val();
+  } else {
+    imageScale = perc;
+  }
+
+  $('img#content').css('max-width', imageScale + '%');
+}
+
+// audio
 
 function initAudio(url) {
   var dLink = $('#downloadLink');
@@ -269,6 +196,8 @@ function initAudio(url) {
   $('#audioContainer').show();
 }
 
+// video
+
 function initVideo(url) {
   var dLink = $('#downloadLink');
 
@@ -279,6 +208,8 @@ function initVideo(url) {
   $('#videoContainer').show();
 }
 
+// binary
+
 function initBinary(url) {
   var dLink = $('#downloadLink');
 
@@ -288,29 +219,6 @@ function initBinary(url) {
   $('#binaryNotice').show();
 }
 
-function initText(url) {
-  if(url != null) {
-    var dLink = $('#downloadLink');
-
-    dLink.attr('href', url);
-    dLink.show();
-
-    $('code#content').text(data);
-    $('#textContainer').show();
-  }
-
-  $('code').each(function(i, block) {
-    if(fileExt != 'txt' && fileExt != 'log') {
-      block.className = fileExt;
-      hljs.highlightBlock(block);
-    }
-  });
-
-  setLineNumbers(Cookies.get('lineNumbers') == 'on');
-  $('#textTools').show();
-}
-
-// binary hueristics
 function isBinary(data, threshold) {
   var nSusp = 0,
       nMax = Math.min(2048, data.length);
@@ -333,6 +241,87 @@ function isBinary(data, threshold) {
   return result;
 }
 
+// text
+
+function initText(url) {
+  setLineNumbers(Cookies.get('lineNumbers') == 'on');
+  $('#textTools').show();
+
+  if(url != null) {
+    var dLink = $('#downloadLink');
+
+    dLink.attr('href', url);
+    dLink.show();
+
+    $('code#content').text(data);
+    $('#textContainer').show();
+  }
+
+  $('code').each(function(i, block) {
+    if(fileType == null || (fileType == 'text' && subType != 'plain')) {
+      block.className = subType;
+      hljs.highlightBlock(block);
+    }
+  });
+}
+
+function copyToClipboard() {
+  var $temp = $("<input>");
+  $("body").append($temp);
+  $temp.val($('#content').text()).select();
+  document.execCommand("copy");
+  $temp.remove();
+}
+
+function setLineNumbers(state) {
+  var code = $('code');
+
+  if(typeof state === 'undefined') {
+    state = lineNumbers ? false : true;
+  }
+
+  if(state) {
+    if(lineNumbers == false) {
+      // disable line wrapping
+      code.css('white-space', 'pre');
+      code.css('overflow-wrap', '');
+
+      // add line numbers
+      code.each(function(i, block) {
+        hljs.lineNumbersBlock(block);
+      });
+    }
+
+    $('#lineNumbers').addClass('enabled');
+    $('#lineNumbers').removeClass('green');
+    $('#lineNumbers').addClass('pink');
+
+    $('code#content').css('border-left-width', "1px");
+  }
+  else {
+    if(lineNumbers) {
+      // remove line numbers
+      $('code.hljs-line-numbers').each(function(i, block) {
+        $(block).remove();
+      });
+    }
+
+    // re-enable line wrapping
+    code.css('white-space', 'pre-wrap');
+    code.css('overflow-wrap', 'break-word');
+
+    $('#lineNumbers').removeClass('enabled');
+    $('#lineNumbers').removeClass('pink');
+    $('#lineNumbers').addClass('green');
+
+    $('code#content').css('border-left-width', "0px");
+  }
+
+  lineNumbers = state;
+}
+
+// blob generation
+
 function bytesToBlob(inputBytes) {
   var sliceSize = 2048,
       nSlices = Math.ceil(inputBytes.length / sliceSize),
@@ -350,5 +339,5 @@ function bytesToBlob(inputBytes) {
     byteArrays[s] = new Uint8Array(sliceBytes);
   }
 
-  return new Blob(byteArrays, { 'type': mimeType || '' });
+  return new Blob(byteArrays, { 'type': fileType ? (fileType + '/' + subType) : '' });
 }

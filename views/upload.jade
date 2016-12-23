@@ -4,48 +4,15 @@ head
   meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='/stylesheets/style.css')
 body
-  div#globalBar
-    span.childPad
-      -if(session.validate())
-        a.listingLink(href='/private') Private
-        span.divider
-      a.listingLink(href='/public') Public
-      span.floatRight
-        -if(session.validate())
-          a(href='/logout') Log Out
-        -else
-          a(href='/login') Log In
-  center#upload
-    div#fileUpload
-      h1#title Upload
-      form#fileForm(method='post' action='/upload' enctype='multipart/form-data')
-        input(type='file' name='fileupload')
-        input(type='text' name='title' placeholder='Title')
-        input(type='text' name='description' placeholder='Description')
+  include globalBar
+  div#fileUpload
+    h1#title Upload
+    form#fileForm(method='post' action='/upload' enctype='multipart/form-data')
+      input(type='file' name='fileupload')
+      textarea#title(type='text' name='title' placeholder='Title' rows=1)
+      textarea#description(form='pasteForm' name='description' placeholder='Description')
+      span.hpad
         label
           input(type='checkbox' name='public' value='yes')
           | Public
         input(type='submit' value='Upload')
-    div#pasteUpload
-      h1#title Paste
-      form#pasteForm(method='post' action='/upload' enctype='multipart/form-data')
-        input(type='text' name='title' placeholder='Title')
-        input(type='text' name='description' placeholder='Description')
-        textarea#r(form='pasteForm' name='content')
-        label
-          input(type='checkbox' name='extension' value='txt' checked)
-          | Plain Text
-        label
-          input(type='checkbox' name='public' value='yes')
-          | Public
-        input(type='submit' value='Paste')
-    div#rehostUpload
-      h1#title Rehost
-      form#rehostForm(method='post' action='/upload')
-        input(type='text' name='url' placeholder='URL')
-        input(type='text' name='title' placeholder='Title')
-        input(type='text' name='description' placeholder='Description')
-        label
-          input(type='checkbox' name='public' value='yes')
-          | Public
-        input(type='submit' value='Rehost')

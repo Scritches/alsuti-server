@@ -1,3 +1,17 @@
+mixin jsTools
+  -if(fileType == 'image')
+    span#imageTools.hpad(style='display:none;')
+      span.divider
+      label
+        | Scale: 
+        input#imageScale(type='number' min='10' max='100' value='100' oninput="scaleImage();" onchange="saveSettings();")
+  -else if(fileType == 'text' || fileType == null)
+    span#textTools.hpad(style='display:none;')
+      span.divider
+      a#copyLink.plain(onclick='copyToClipboard();') Copy
+      span.divider
+      a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
+
 doctype html
 html
   head
@@ -8,85 +22,59 @@ html
     meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet' href='/stylesheets/style.css')
     link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css')
-    script(type='text/javascript' src='/js/lib/jquery.min.js')
-    script(type='text/javascript' src='/js/lib/js.cookie.js')
-    script(type='text/javascript' src='/js/lib/aes.js')
-    script(type='text/javascript' src='/js/view.js')
-    script(type='text/javascript' src='/js/time.js')
+    script(src='/js/lib/jquery.min.js')
+    script(src='/js/lib/js.cookie.js')
+    script(src='/js/lib/aes.js')
+    script(src='/js/view.js')
+    script(src='/js/time.js')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js')
-    script(type='text/javascript' src='/js/lib/highlightjs-line-numbers.js')
-    script(type='text/javascript').
+    script(src='/js/lib/highlightjs-line-numbers.js')
+    script.
       var fileName = '#{fileName}',
-          encrypted = #{encrypted},
-          fileType = '#{fileType}',
-          mimeType = '#{mimeType}',
-          fileExt = '#{fileExt}';
+          fileExt = '#{fileExt}',
+          encrypted = #{encrypted};
+    -if(fileType == null)
+      script.
+        var fileType = null,
+            subType = null;
+    -else
+      script.
+        var fileType = '#{fileType}',
+            subType = '#{subType}';
     -if(encrypted)
-      script(type='text/javascript').
+      script.
         cipherText = "#{content}";
   body
-    div#globalBar.childPad
-      -if(session.validate())
-        a.uploadLink(href='/') Upload
-        span.divider
-        a(href='/private') Private
-        span.divider
-      a(href='/public') Public
-      span.floatRight
-        -if(session.validate())
-          a(href='/logout') Log Out
-        -else
-          a(href='/login') Log In
+    include globalBar
     div#header
       h1#title= title || fileName
       -if(description != null)
         span#description= description
-      div#info.childPad
-        div
-          | by 
-          bold
-            a(href='/user/#{user}')= user
-          |  on 
-          span.uploadTime= time
-          script(type='text/javascript').
-            renderTimes();
-        -if(title != null)
-          span#fileName File name:
-            | <u>#{fileName}</u>
-          span.divider
-        span#fileSize File size:
-          | <u>#{fileSize}</u>
-    div#contentTools.childPad
-      -if(encrypted)
-        span#genericTools.childPad(style='display:none;')
-          a#downloadLink(download='#{title || fileName}') Download
-          span.divider
-          a.red#persistLink(href='#' onclick='setPersist();') Persist
-      -else
-        span#gericTools.childPad
-          a#downloadLink(href='/x/#{fileName}' download='#{title || fileName}') Download
-      -if(fileType == 'text' || fileType == null)
-        span#textTools.childPad(style='display:none;')
-          span.divider
-          a#copyLink(href='#' onclick='copyToClipboard();') Copy
-          span.divider
-          a.red#lineNumbers(href='#' onclick='setLineNumbers(); saveSettings()') Line Numbers
-      -else if(fileType == 'image')
-        span#imageTools.childPad(style='display:none;')
-          span.divider
-          label
-            | Scale: 
-            input#imageScale(type='number' min='10' max='100' value='75' oninput='scaleImage();' onchange='saveSettings()')
-      -if(session.admin || session.validate(user))
-        span#ownerTools.childPad.floatRight
-          a(href='/edit/#{fileName}') Edit
-          span.divider
-          a.red(href='/delete/#{fileName}') Delete
+      div#info.hpad
+        div#uploadInfo
+          span.hidden.uploadTime= time
+          |  by 
+          a(href='/user/#{user}')= user
+          script.
+            renderAbsoluteTimes();
+        -if(session.admin || session.validate(user))
+          span#ownerTools.hpad.floatRight
+            a(href='/edit/#{fileName}') Edit
+            span.divider
+            a.red(href='/delete/#{fileName}') Delete
+        div#fileInfo.hpad
+          -if(title != null)
+            span#fileName <u>#{fileName}</u>
+            span.divider
+          span#fileSize Size: <u>#{fileSize}</u>
     -if(encrypted)
+      div#tools.hpad(style='display:none;')
+        a#downloadLink(download='#{fileName}') Download
+        mixin jsTools
       center#decryption
         div#decryptionStatus This file is encrypted.
-        span.childPad
-          input#passwordEntry(type='password' placeholder='Password' autofocus)
+        span.hpad
+          input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password' autofocus)
           button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
       if(fileType == 'image')
         center#imageContainer(style='display:none;')
@@ -105,6 +93,9 @@ html
         div#textContainer(style='display:none;')
           code#content
     -else
+      div#tools.hpad
+        a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
+        mixin jsTools
       -if(fileType == 'image')
         center#imageContainer
           a#imageLink(href='/x/#{fileName}')
@@ -117,7 +108,7 @@ html
         center#videoContainer
           video#content(controls)
             source(src='/x/#{fileName}' type='#{mimeType}')
-      -else if(fileType == 'binary')
+      -else if(fileType == 'application')
         div#binaryNotice This file cannot be displayed.
       -else
         div#textContainer

@@ -1,0 +1,59 @@
+mixin uploadMenu
+  div.menu
+    div.menu-wrapper
+      div.menu-content
+        a(href='/upload') Upload
+        a(href='/paste') Paste
+        a(href='/rehost') Rehost
+
+div#globalBar.hpad
+  -if(typeof listingType !== 'undefined')
+    -if(listingType == 'private')
+      -if(session.validate())
+        mixin uploadMenu
+        span.divider
+        a(href='/public') Public
+        span.floatRight
+          a(href='/logout') Log out
+      -else
+        a(href='/public') Public
+        span.floatRight
+          a(href='/login') Log In
+    -else if(listingType == 'public')
+      -if(session.validate())
+        mixin uploadMenu
+        span.divider
+        a(href='/private') Private
+        span.divider
+        a(href='/public') Public
+        span.floatRight
+          a(href='/logout') Log Out
+      -else
+        span.floatRight
+          a(href='/login') Log In
+    -else if(listingType == 'userPublic')
+      -if(session.validate())
+        mixin uploadMenu
+        span.divider
+        a(href='/private') Private
+        span.divider
+        a(href='/public') Public
+        span.floatRight
+          a(href='/logout') Log Out
+      -else
+        a(href='/public') Public
+        span.floatRight
+          a(href='/login') Log In
+  -else
+    -if(session.validate())
+      mixin uploadMenu
+      span.divider
+      a.listingLink(href='/private') Private
+      span.divider
+      a.listingLink(href='/public') Public
+      span.floatRight
+        a(href='/logout') Log Out
+    -else
+      a.listingLink(href='/public') Public
+      span.floatRight
+        a(href='/login') Log In

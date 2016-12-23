@@ -35,8 +35,23 @@ mimeMap = {
   },
   'text': {
     'plain': ['txt', 'log'],
+    'markdown': ['md'],
     'html': ['html', 'htm'],
-    'markdown': ['md']
+    'c': ['c', 'h'],
+    'cpp': ['cc', 'cpp', 'cxx', 'C', 'c++', 'hh', 'hpp', 'hxx', 'h++'],
+    'sh': ['sh'],
+    'javascript': ['js'],
+    'python': ['py'],
+    'ruby': ['rb'],
+    'rust': ['rs'],
+    'perl': ['pl'],
+    'go': ['go'],
+    'java': ['java', 'class'],
+    'groovy': ['groovy']
+  },
+  'application': {
+    'octet-stream': ['bin', 'exe', 'so', 'o', 'obj', 'a'],
+    'zip': ['.zip']
   }
 };
 
@@ -58,6 +73,8 @@ function getExtension(mimeType) {
   if(gt in mimeMap && ft in mimeMap[gt]) {
     return mimeMap[gt][ft][0];
   }
+
+  return null;
 }
 
 function getMimeType(ext) {

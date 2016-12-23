@@ -4,37 +4,16 @@ html
     title= title
     meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet' href='/stylesheets/style.css')
-    script(type='text/javascript' src='/js/lib/jquery.min.js')
-    script(type='text/javascript' src='/js/lib/js.cookie.js')
-    script(type='text/javascript' src='/js/listing.js')
-    script(type='text/javascript' src='/js/time.js')
-body(onload='renderTimes();')
-  div#globalBar.childPad
-    -if(listingType == 'private')
-      -if(session.validate())
-        a(href='/') Upload
-        span.divider
-      a(href='/public') Public
-    -else if(listingType == 'public')
-      -if(session.validate())
-        a(href='/') Upload
-        span.divider
-        a.green(href='/private') Private
-    -else if(listingType == 'userPublic')
-      -if(session.validate())
-        a(href='/') Upload
-        span.divider
-        a(href='/private') Private
-        span.divider
-      a.green(href='/public') Public
-    span.floatRight
-      -if(session.validate())
-        a(href='/logout') Log Out
-      -else
-        a(href='/login') Log In
+    script(src='/js/lib/jquery.min.js')
+    script(src='/js/lib/js.cookie.js')
+    script(src='/js/listing.js')
+    script(src='/js/time.js')
+body
+  include globalBar
   div#header
     h1#title= title
-    div#options
+  div#tools
+    span
       | Show 
       select#listingCount(onchange='updateListing();')
         option 15
@@ -46,9 +25,9 @@ body(onload='renderTimes();')
         option 45
         option 50
       |  files per page
-      script(type='text/javascript').
+      script.
         $('#listingCount').val('#{count}');
-      span#page.floatRight Page #{page}
+    span#page.floatRight Page #{page}
   -if(uploads.length == 0)
     span There's nothing here.
   -else
@@ -62,23 +41,21 @@ body(onload='renderTimes();')
             -else
               a(href='/#{u.fileName}')= u.title || u.fileName
           -if(session.admin || session.validate(u.user))
-            td.childPad
-              a(href='/edit/#{u.fileName}') Edit
-              span.divider
-              a.red(href='/delete/#{u.fileName}') Delete
-          -else
             td
-          td
-            span.uploadTime= u.time
+              a(href='/edit/#{u.fileName}')
+                img(src='/edit.png' height='16px')
+            td
+              a(href='/delete/#{u.fileName}')
+                img(src='/delete.png' height='16px')
+          td.alignRight
+            span.uploadTime.hidden= u.time
           -if(listingType == 'public')
-            td
+            td.alignRight
               a(href='/user/#{u.user}')= u.user
+      script.
+        renderRelativeTimes();
     div#pageBar
       -if(page > 1)
         a.floatLeft(href='?page=#{page - 1}&count=#{count}') Previous
-      -else
-        span.floatLeft.hidden Previous
       -if(lastPage == false)
         a.floatRight(href='?page=#{page + 1}&count=#{count}') Next
-      -else
-        span.floatRight.hidden Next

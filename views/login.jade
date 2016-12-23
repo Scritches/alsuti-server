@@ -9,11 +9,12 @@ head
       p#loginMessage.error= error
     -else
       p#loginMessage= message
-    form#loginForm(method='post' action='/login')
+    form#loginForm.vpad(method='post' action='/login')
       input(name='user' placeholder='User')#userEntry
       input(type='password' name='password' placeholder='Password')#passwordEntry
       input(type='hidden' name='returnPath' value='#{returnPath}')
-      label
-        input(type='checkbox' name='noExpiry')
-        | Stay logged in
-      button(type='submit') Log In
+      div.hpad
+        label
+          input(type='checkbox' name='noExpiry')
+          | Stay logged in
+        input(type='submit' value="Log In")
