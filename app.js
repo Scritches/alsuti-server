@@ -33,8 +33,9 @@ db.on("error", function(err) {
 
 // app globals
 app.set('database', db);
-app.set('cookieAge', 1000 * 60 * 60 * 24 * 7); // for a maximum of 7 days ..
-app.set('sessionAge', 1000 * 60 * 60 * 1);     // .. enforce a 1 hour activity timeout
+app.set('cookieAge', 1000 * 60 * 60 * 24 * 14); // for a maximum of 2 weeks
+app.set('sessionAge', 1000 * 60 * 60 * 4);      // .. enforce a 4 hour activity timeout
+app.set('maxCookieAge', 1000 * 60 * 60 * 720);  // but 2 years for non-expiring sessions
 
 // view engine setup
 app.set('json spaces', 2);

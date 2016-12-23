@@ -1,5 +1,6 @@
-mixin uploadMenu
+mixin menu
   div.menu
+    span#alsuti
     div.menu-wrapper
       div.menu-content
         a(href='/upload') Upload
@@ -10,28 +11,31 @@ div#globalBar.hpad
   -if(typeof listingType !== 'undefined')
     -if(listingType == 'private')
       -if(session.validate())
-        mixin uploadMenu
+        mixin menu
         span.divider
         a(href='/public') Public
         span.floatRight
           a(href='/logout') Log out
       -else
+        span#alsuti
+        span.divider
         a(href='/public') Public
         span.floatRight
           a(href='/login') Log In
     -else if(listingType == 'public')
       -if(session.validate())
-        mixin uploadMenu
+        mixin menu
         span.divider
         a(href='/private') Private
         span.floatRight
           a(href='/logout') Log Out
       -else
+        span#alsuti
         span.floatRight
           a(href='/login') Log In
     -else if(listingType == 'userPublic')
       -if(session.validate())
-        mixin uploadMenu
+        mixin menu
         span.divider
         a(href='/private') Private
         span.divider
@@ -39,12 +43,14 @@ div#globalBar.hpad
         span.floatRight
           a(href='/logout') Log Out
       -else
+        span#alsuti
+        span.divider
         a(href='/public') Public
         span.floatRight
           a(href='/login') Log In
   -else
     -if(session.validate())
-      mixin uploadMenu
+      mixin menu
       span.divider
       a.listingLink(href='/private') Private
       span.divider
@@ -52,6 +58,8 @@ div#globalBar.hpad
       span.floatRight
         a(href='/logout') Log Out
     -else
+      span#alsuti
+      span.divider
       a.listingLink(href='/public') Public
       span.floatRight
         a(href='/login') Log In

@@ -48,7 +48,7 @@ a#copyLink {
   float: right;
 }
 span.divider:after {
-  color: #A0A0A0;
+  color: #808080;
   content: '|';
 }
 .hidden {
@@ -86,7 +86,6 @@ form > textarea#description {
 form > textarea#content {
   min-width: 300px;
   min-height: 200px;
-  resize: vertical;
 }
 
 /* login/register/delete/edit pages */
@@ -142,46 +141,36 @@ a.switch.enabled {
   width: 50px;
 }
 
-/* upload menu */
+/* main title / menu */
+
+#alsuti:after {
+  content: "☰ Alsuti";
+  font-weight: bold;
+}
 
 .menu {
   display: inline-block;
   position: relative;
 }
-.menu:before {
-  background-color: #202020;
-  border-radius: 2.5px;
-  color: #F4F4F4;
-  content: "Alsuti";
-  padding: 5px;
-  text-decoration: none;
-}
-.menu:hover:before {
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-}
 .menu-wrapper {
   display: none;
   position: absolute;
-  transition: all 0.75s ease-in;
 }
 .menu-content {
-  background-color: #222;
-  border-bottom-left-radius: 2.5px;
-  border-bottom-right-radius: 2.5px;
-  border-top-right-radius: 2.5px;
+  background-color: #202020;
+  min-width: 80px;
 }
 .menu:hover .menu-wrapper {
   display: block;
-  padding: 5px 20px 20px 20px;
-  left: -20px;
+  left: -25px;
+  padding: 5px 25px 25px 25px;
 }
-
-.menu-content > * {
+.menu-content > a {
   color: #F4F4F4;
   display: block;
-  padding: 7.5px;
+  padding: 10px;
   text-decoration: none;
+  transition: all 0.08s ease-in;
 }
 .menu-content a:hover {
   background-color: #444;

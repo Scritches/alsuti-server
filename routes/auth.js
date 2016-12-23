@@ -24,11 +24,7 @@ function authRequired(req, res, next) {
         else {
           res.status(401);
           if(req.apiRequest) {
-            res.setHeader('Content-Type', 'application/json');
-            res.json({
-              'error': true,
-              'message': "Invalid user/password"
-            });
+            res.api(true, {'message': "Invalid user/password."});
           }
           else {
             res.render('login', {

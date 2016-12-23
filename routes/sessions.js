@@ -88,7 +88,9 @@ function startSession(req, res) {
       if(!err) {
         // set cookies
         var cookieOptions = { httpOnly: true };
-        if(sessionExpiry != 'never') {
+        if(sessionExpiry == 'never') {
+          cookieOptions.maxAge = req.app.get('maxCookieAge');
+        } else {
           cookieOptions.maxAge = req.app.get('cookieAge');
         }
 
