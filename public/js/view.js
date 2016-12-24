@@ -1,6 +1,6 @@
 binaryThreshold = 15;
 
-lineNumbers = false;
+lineNumbers = undefined;
 imageScale = undefined;
 
 decryptErrorColour = '#E65C5C';
@@ -244,9 +244,6 @@ function isBinary(data, threshold) {
 // text
 
 function initText(url) {
-  setLineNumbers(Cookies.get('lineNumbers') == 'on');
-  $('#textTools').show();
-
   if(url != null) {
     var dLink = $('#downloadLink');
 
@@ -263,6 +260,9 @@ function initText(url) {
       hljs.highlightBlock(block);
     }
   });
+
+  setLineNumbers(Cookies.get('lineNumbers') == 'on');
+  $('#textTools').show();
 }
 
 function copyToClipboard() {
@@ -281,16 +281,14 @@ function setLineNumbers(state) {
   }
 
   if(state) {
-    if(lineNumbers == false) {
-      // disable line wrapping
-      code.css('white-space', 'pre');
-      code.css('overflow-wrap', '');
+    // disable line wrapping
+    code.css('white-space', 'pre');
+    code.css('overflow-wrap', '');
 
-      // add line numbers
-      code.each(function(i, block) {
-        hljs.lineNumbersBlock(block);
-      });
-    }
+    // add line numbers
+    code.each(function(i, block) {
+      hljs.lineNumbersBlock(block);
+    });
 
     $('#lineNumbers').addClass('enabled');
     $('#lineNumbers').removeClass('green');
@@ -299,12 +297,10 @@ function setLineNumbers(state) {
     $('code#content').css('border-left-width', "1px");
   }
   else {
-    if(lineNumbers) {
-      // remove line numbers
-      $('code.hljs-line-numbers').each(function(i, block) {
-        $(block).remove();
-      });
-    }
+    // remove line numbers
+    $('code.hljs-line-numbers').each(function(i, block) {
+      $(block).remove();
+    });
 
     // re-enable line wrapping
     code.css('white-space', 'pre-wrap');

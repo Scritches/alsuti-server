@@ -11,6 +11,12 @@ mixin jsTools
       a#copyLink.plain(onclick='copyToClipboard();') Copy
       span.divider
       a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
+  -if(session.admin || session.validate(user))
+    span.hpad.floatRight
+      a(href='/edit/#{fileName}')
+        img(src='/edit.png' height='16px')
+      a(href='/delete/#{fileName}')
+        img(src='/delete.png' height='16px')
 
 doctype html
 html
@@ -57,11 +63,6 @@ html
           a(href='/user/#{user}')= user
           script.
             renderAbsoluteTimes();
-        -if(session.admin || session.validate(user))
-          span#ownerTools.hpad.floatRight
-            a(href='/edit/#{fileName}') Edit
-            span.divider
-            a.red(href='/delete/#{fileName}') Delete
         div#fileInfo.hpad
           -if(title != null)
             span#fileName <u>#{fileName}</u>

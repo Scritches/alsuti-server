@@ -145,6 +145,7 @@ a.switch.enabled {
 
 #alsuti:after {
   content: "☰ Alsuti";
+  cursor: default;
   font-weight: bold;
 }
 
