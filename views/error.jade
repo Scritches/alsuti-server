@@ -4,8 +4,14 @@ head
   meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='/stylesheets/style.css')
 body
-  -if(e.message != null)
-    h1#title #{e.status}: #{e.message}
+  div#header
+    -if(e.status && e.message)
+      h1#title #{e.status}: #{e.message}
+    -else if(e.status)
+      h1#title= e.status
+    -else
+      h1#title Error
+  -if(e.stack)
+    code#textContainer= e.stack
   -else
-    h1#title= e.status
-  pre#textContainer= e.stack
+    div.red That's an error.

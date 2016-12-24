@@ -558,22 +558,8 @@ router.get('/:file', function(req, res, rf) {
             subType = null;
           }
 
-          var env = {
-            'fileName': fileName,
-            'title': u.title,
-            'description': u.description,
-            'user': u.user,
-            'time': u.time,
-            'encrypted': u.encrypted,
-            'content': data.toString(),
-            'session': req.session,
-            'fileType': fileType,
-            'subType': subType,
-            'fileExt': fileExt
-          }
-
           fs.stat(filePath, function(err, stats) {
-            var fileSizeInBytes = stats["size"];
+            var fileSizeInBytes = stats['size'];
 
             // convert base64 size
             var size = data.length;
@@ -596,10 +582,21 @@ router.get('/:file', function(req, res, rf) {
               return parseFloat(size).toFixed(2) + " " + units[u];
             }
 
-            env.fileSize = readableSize(size);
-
             res.setHeader('Cache-Control', "public, immutable");
-            res.render('view', env);
+            res.render('view', {
+              'fileName': fileName,
+              'title': u.title,
+              'description': u.description,
+              'user': u.user,
+              'time': u.time,
+              'encrypted': u.encrypted,
+              'content': data.toString(),
+              'session': req.session,
+              'fileType': fileType,
+              'subType': subType,
+              'fileExt': fileExt,
+              'fileSize': readableSize(size)
+            });
           });
         }
         else {

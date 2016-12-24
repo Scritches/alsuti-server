@@ -111,6 +111,7 @@ h1#title {
   display: block;
   font-size: 150%;
   font-weight: bold;
+  margin: 0px;
 }
 #description {
   display: block;
@@ -168,7 +169,7 @@ a.switch.enabled {
 .menu:hover .menu-wrapper {
   display: block;
   left: -25px;
-  padding: 5px 25px 25px 25px;
+  padding: 10px 25px 25px 25px;
 }
 .menu-content > a {
   color: #F4F4F4;

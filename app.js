@@ -99,12 +99,33 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-// development error handler; prints stacktrace
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-    'e': err
+var mode = process.env.NODE_ENV || 'development';
+if(mode == 'development') {
+  // development error handler; prints stacktrace
+  app.use(function(err, req, res, next) {
+    if(res.headersSent) {
+      return next(err);
+    }
+
+    res.status(err.status || 500);
+    res.render('error', {
+      'e': err
+    });
   });
-});
+}
+else {
+  // production error handler; no stacktrace
+  app.use(function(err, req, res, next) {
+    if(res.headersSent) {
+      return next(err);
+    }
+
+    err.stack = null;
+    res.status(err.status || 500);
+    res.render('error', {
+      'e': err
+    });
+  });
+}
 
 module.exports = app;
