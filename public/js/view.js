@@ -28,7 +28,7 @@ $(function() {
   decryptNormalColour = $('#decryption').css('background-color');
 
   if(encrypted) {
-    if(window.location.hash && window.location.hash.length > 1) {
+    if(window.location.hash) {
       decrypt(window.location.hash.substr(1));
     }
   }
@@ -65,7 +65,7 @@ function decrypt(password) {
       dTools = $('#decryptionTools'),
       dStatus = $('#decryptionStatus');
 
-  if(typeof pw === 'undefined') {
+  if(typeof password === 'undefined') {
     password = $('#passwordEntry').val();
   }
 
