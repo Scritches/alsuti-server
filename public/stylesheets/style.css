@@ -149,6 +149,10 @@ a.switch.enabled {
   font-weight: bold;
 }
 
+#alsuti.noMenu:after {
+  content: "Alsuti";
+}
+
 .menu {
   display: inline-block;
   position: relative;
