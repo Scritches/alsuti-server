@@ -83,13 +83,12 @@ function decrypt(password) {
       cipherText = null;
 
       function readableSize(size) {
-        var units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
         var u;
         for(u=0; u < 5 && size >= 1024; ++u) {
           size /= 1024;
         }
 
+        var units = ['B', 'KB', 'MB', 'GB', 'TB'];
         return parseFloat(size).toFixed(2) + ' ' + units[u];
       }
 
