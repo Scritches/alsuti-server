@@ -548,7 +548,7 @@ router.get('/:file', function(req, res, rf) {
             var t = types.getMimeType(fileExt);
             if(t != null) {
               fileType = t[0];
-              sybType = t[1];
+              subType = t[1];
             } else {
               fileType = null;
               subType = null;

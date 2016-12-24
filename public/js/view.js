@@ -1,22 +1,31 @@
 binaryThreshold = 15;
 
+// settings
 lineNumbers = undefined;
 imageScale = undefined;
 
-decryptErrorColour = '#E65C5C';
-decryptErrorState = 0; // 0: no error
-                       // 1: locked; persists notification
-                       // 2: unlocked; allows notification to be cleared
-
-updateDecryptErrorTimeout = null;
-passwordChangedInErrorState = false;
-
+// state restoration globals
 decryptNormalStatus = null;
 decryptNormalColour = null;
+
+// decryption error stuff
+//
+// state values:
+//  0: no error
+//  1: locked; notification persists
+//  2: unlocked; notification can be cleared
+
+decryptErrorColour = '#E65C5C';
+decryptErrorState = 0;
+updateDecryptErrorTimeout = null;
+passwordChangedInErrorState = false;
 
 $(function() {
   var pEntry = $('#passwordEntry'),
       dButton = $('#decryptButton');
+
+  decryptNormalStatus = $('#decryptionStatus').text();
+  decryptNormalColour = $('#decryption').css('background-color');
 
   if(encrypted) {
     if(window.location.hash && window.location.hash.length > 1) {
@@ -51,65 +60,69 @@ $(function() {
   });
 });
 
-function decrypt(pw) {
+function decrypt(password) {
+  var pEntry = $('#passwordEntry'),
+      dTools = $('#decryptionTools'),
+      dButton = $('#decryptButton'),
+      dStatus = $('#decryptionStatus');
+
   if(typeof pw === 'undefined') {
-    pw = $('#passwordEntry').val();
+    password = $('#passwordEntry').val();
   }
 
-  function tryDecrypt() {
-    try {
-      return CryptoJS.AES.decrypt(cipherText, pw)
-               .toString(CryptoJS.enc.Utf8);
+  dTools.hide();
+  pEntry.prop('disabled', true);
+  dButton.prop('disabled', true);
+  dStatus.text('Decrypting...');
+
+  var w = new Worker('/js/decrypt.js');
+  w.postMessage(['decrypt', password, cipherText]);
+
+  w.addEventListener('message', function(msg) {
+    if(msg.data[0] == 'success') {
+      $('#decryption').remove();
+      $('#tools').show();
+
+      cipherText = null;
+
+      function readableSize(size) {
+        var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        var u;
+        for(u=0; u < 5 && size >= 1024; ++u) {
+          size /= 1024;
+        }
+
+        return parseFloat(size).toFixed(2) + ' ' + units[u];
+      }
+
+      var blob = bytesToBlob(msg.data[1]);
+      $('#fileSize').html("Size: <u>" + readableSize(blob.size) + "</u>");
+
+      var url = URL.createObjectURL(blob);
+      if(fileType == 'image') {
+        initImage(url);
+      } else if(fileType == 'audio') {
+        initAudio(url);
+      } else if(fileType == 'video') {
+        initVideo(url);
+      } else if(fileType == 'application') {
+        initBinary(url);
+      } else if(isBinary(data, binaryThreshold)) {
+        fileType = 'application';
+        subType = 'octet-stream'
+        initBinary(url);
+      } else {
+        initText(url);
+      }
+    } else {
+      dTools.show();
+      pEntry.prop('disabled', false);
+      dButton.prop('disabled', false);
+      setDecryptError();
+      pEntry.focus();
     }
-    catch(err) {
-      return null;
-    }
-  }
-
-  data = tryDecrypt();
-  if(!data) {
-    setDecryptError();
-    return false;
-  }
-
-  $('#decryption').remove();
-  $('#tools').show();
-
-  cipherText = null;
-  persistPassword = pw;
-
-  function readableSize(size) {
-    var units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-    var u;
-    for(u=0; u < 5 && size >= 1024; ++u) {
-      size /= 1024;
-    }
-
-    return parseFloat(size).toFixed(2) + ' ' + units[u];
-  }
-
-  var blob = bytesToBlob(data);
-  $('#fileSize').html("Size: <u>" + readableSize(blob.size) + "</u>");
-
-  var url = URL.createObjectURL(blob);
-  if(fileType == 'image') {
-    initImage(url);
-  } else if(fileType == 'audio') {
-    initAudio(url);
-  } else if(fileType == 'video') {
-    initVideo(url);
-  } else if(fileType == 'application') {
-    initBinary(url);
-  } else if(isBinary(data, binaryThreshold)) {
-    fileType = 'application';
-    subType = 'octet-stream'
-    initBinary(url);
-  } else {
-    initText(url);
-  }
-
-  return true;
+  });
 }
 
 function setDecryptError() {
@@ -119,9 +132,6 @@ function setDecryptError() {
 
   var d = $('#decryption'),
       ds = $('#decryptionStatus');
-
-  decryptNormalColour = d.css('background-color');
-  decryptNormalStatus = ds.text();
 
   d.css('background-color', decryptErrorColour);
   ds.text('Wrong Password');

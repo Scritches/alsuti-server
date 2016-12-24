@@ -34,7 +34,6 @@ body
     table#uploadListing(border='0' cellpadding='5px' cellspacing='0')
       each u,i in uploads
         tr
-          td= (count * (page-1)) + (i+1)
           td.expand
             -if(u.encrypted)
               a.pink(href='/#{u.fileName}')= u.title || u.fileName

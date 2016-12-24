@@ -30,7 +30,6 @@ html
     link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css')
     script(src='/js/lib/jquery.min.js')
     script(src='/js/lib/js.cookie.js')
-    script(src='/js/lib/aes.js')
     script(src='/js/view.js')
     script(src='/js/time.js')
     script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js')
@@ -74,7 +73,7 @@ html
         mixin jsTools
       center#decryption
         div#decryptionStatus This file is encrypted.
-        span.hpad
+        div#decryptionTools.hpad
           input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password' autofocus)
           button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
       if(fileType == 'image')

@@ -205,11 +205,6 @@ table#uploadListing tr:nth-child(odd) {
 table#uploadListing tr:nth-child(even) {
   background-color: #ECECEC;
 }
-table#uploadListing tr td:first-child {
-  background-color: #ECECEC;
-  border-right: 1px solid #CCC;
-  color: #808080;
-}
 table#uploadListing tr td.expand {
   width: 100%;
 }
@@ -228,7 +223,7 @@ table#uploadListing tr td.alignRight {
 
 /* decryption */
 #decryption {
-  background-color: #E6B8B8;
+  background-color: #E6C0B8;
   color: #000;
   margin: 0 auto;
   padding: 10px;
@@ -238,11 +233,8 @@ table#uploadListing tr td.alignRight {
   font-size: 125%;
   font-weight: bold;
 }
-#decryption > * {
-  margin-bottom: 10px;
-}
-#decryption > *:last-child {
-  margin-bottom: 0px;
+#decryptionTools {
+  margin-top: 10px;
 }
 
 /* content */
