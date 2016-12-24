@@ -63,7 +63,6 @@ $(function() {
 function decrypt(password) {
   var pEntry = $('#passwordEntry'),
       dTools = $('#decryptionTools'),
-      dButton = $('#decryptButton'),
       dStatus = $('#decryptionStatus');
 
   if(typeof pw === 'undefined') {
@@ -71,8 +70,6 @@ function decrypt(password) {
   }
 
   dTools.hide();
-  pEntry.prop('disabled', true);
-  dButton.prop('disabled', true);
   dStatus.text('Decrypting...');
 
   var w = new Worker('/js/decrypt.js');
@@ -117,8 +114,6 @@ function decrypt(password) {
       }
     } else {
       dTools.show();
-      pEntry.prop('disabled', false);
-      dButton.prop('disabled', false);
       setDecryptError();
       pEntry.focus();
     }
