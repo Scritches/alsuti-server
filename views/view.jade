@@ -4,7 +4,7 @@ mixin jsTools
       span.divider
       label
         | Scale: 
-        input#imageScale(type='number' min='10' max='100' value='100' oninput="scaleImage();" onchange="saveSettings();")
+        input#imageScale(type='number' min='10' max='100' value='75' oninput="scaleImage();" onchange="saveSettings();")
   -else if(fileType == 'text' || fileType == null)
     span#textTools.hpad(style='display:none;')
       span.divider
@@ -71,7 +71,7 @@ html
       div#tools.hpad(style='display:none;')
         a#downloadLink(download='#{fileName}') Download
         mixin jsTools
-      center#decryption
+      div#decryption
         div#decryptionStatus This file is encrypted.
         div#decryptionTools.hpad
           input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password' autofocus)

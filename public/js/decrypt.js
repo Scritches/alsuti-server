@@ -12,20 +12,9 @@ self.addEventListener('message', function(ev) {
 });
 
 function decrypt(cipherText, password) {
-  function tryDecrypt() {
-    try {
-      return CryptoJS.AES.decrypt(cipherText, password)
-               .toString(CryptoJS.enc.Utf8);
-    }
-    catch(err) {
-      return null;
-    }
-  }
-
-  data = tryDecrypt();
-  if(!data) {
+  try {
+    return CryptoJS.AES.decrypt(cipherText, password).toString(CryptoJS.enc.Utf8);
+  } catch(err) {
     return null;
   }
-
-  return data;
 }

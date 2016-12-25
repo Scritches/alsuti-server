@@ -227,11 +227,13 @@ table#uploadListing tr td.alignRight {
   color: #000;
   margin: 0 auto;
   padding: 10px;
+  text-align: center;
   transition: all 0.2s ease-in;
 }
 #decryptionStatus {
-  font-size: 125%;
+  font-family: monospace;
   font-weight: bold;
+  white-space: pre;
 }
 #decryptionTools {
   margin-top: 10px;
@@ -249,7 +251,7 @@ img#content {
 audio#content,
 video#content
 {
-  width: 80%;
+  width: 50%;
 }
 #binaryNotice {
   color: #A0A0A0;

@@ -4,9 +4,12 @@ binaryThreshold = 15;
 lineNumbers = undefined;
 imageScale = undefined;
 
-// state restoration globals
-decryptNormalStatus = null;
-decryptNormalColour = null;
+// decryption notification ticker
+
+decryptNotifyIter = 0;
+decryptNotifyIterMax = 3;
+decryptNotifyTail = ".";
+decryptNotifyTimeout = null;
 
 // decryption error stuff
 //
@@ -15,8 +18,13 @@ decryptNormalColour = null;
 //  1: locked; notification persists
 //  2: unlocked; notification can be cleared
 
+decryptNormalStatus = null;
+decryptNormalColour = null;
+
+decryptNotifyColour = '#B8CFE6';
 decryptErrorColour = '#E65C5C';
 decryptErrorState = 0;
+
 updateDecryptErrorTimeout = null;
 passwordChangedInErrorState = false;
 
@@ -43,6 +51,10 @@ $(function() {
 
   pEntry.keyup(function(event) {
     if(event.keyCode == 13 && pEntry.val().length > 0) {
+      if(decryptErrorState) {
+        resetDecryptError();
+      }
+
       decrypt();
     }
   });
@@ -51,11 +63,8 @@ $(function() {
     $('#decryptButton').attr('disabled', pEntry.val().length == 0);
     if(decryptErrorState == 1) {
       passwordChangedInErrorState = true;
-    }
-    else if(decryptErrorState == 2) {
-      $('#decryption').css('background-color', decryptNormalColour);
-      $('#decryptionStatus').text(decryptNormalStatus);
-      decryptErrorState = 0;
+    } else if(decryptErrorState == 2) {
+      resetDecryptError();
     }
   });
 });
@@ -66,16 +75,22 @@ function decrypt(password) {
       dStatus = $('#decryptionStatus');
 
   if(typeof password === 'undefined') {
-    password = $('#passwordEntry').val();
+    password = pEntry.val();
   }
 
   dTools.hide();
-  dStatus.text('Decrypting...');
+
+  // do initial notification tick and set timeout for subsequent ticks
+  $('#decryption').css('background-color', decryptNotifyColour);
+  decryptNotifyTick();
+  decryptNotifyInterval = window.setInterval(decryptNotifyTick, 750);
 
   var w = new Worker('/js/decrypt.js');
   w.postMessage(['decrypt', password, cipherText]);
 
   w.addEventListener('message', function(msg) {
+    decryptNotifyReset();
+
     if(msg.data[0] == 'success') {
       $('#decryption').remove();
       $('#tools').show();
@@ -119,6 +134,25 @@ function decrypt(password) {
   });
 }
 
+function decryptNotifyTick() {
+  if(decryptNotifyIter == decryptNotifyIterMax)
+    decryptNotifyIter = 1;
+  else
+    ++decryptNotifyIter;
+
+  $('#decryptionStatus').text("Decrypting" +
+      decryptNotifyTail.repeat(decryptNotifyIter) +
+      " ".repeat(decryptNotifyIterMax - decryptNotifyIter));
+
+  return true;
+}
+
+function decryptNotifyReset() {
+  window.clearInterval(decryptNotifyInterval);
+  decryptNotifyIter = 0;
+  decryptNotifyTimeout = null;
+}
+
 function setDecryptError() {
   if(decryptErrorState != 0) {
     return;
@@ -136,14 +170,17 @@ function setDecryptError() {
 
 function updateDecryptError() {
   if(passwordChangedInErrorState) {
-    $('#decryption').css('background-color', decryptNormalColour);
-    $('#decryptionStatus').text(decryptNormalStatus);
-    passwordChangedInErrorState = false;
-    decryptErrorState = 0;
-  }
-  else if(decryptErrorState == 1) {
+    resetDecryptError();
+  } else if(decryptErrorState == 1) {
     decryptErrorState = 2;
   }
+}
+
+function resetDecryptError() {
+  $('#decryption').css('background-color', decryptNormalColour);
+  $('#decryptionStatus').text(decryptNormalStatus);
+  passwordChangedInErrorState = false;
+  decryptErrorState = 0;
 }
 
 function saveSettings() {
@@ -323,12 +360,12 @@ function setLineNumbers(state) {
 // blob generation
 
 function bytesToBlob(inputBytes) {
-  var sliceSize = 2048,
+  var sliceSize = 1024,
       nSlices = Math.ceil(inputBytes.length / sliceSize),
       byteArrays = new Array(nSlices);
 
   for(var s=0; s < nSlices; ++s) {
-    var start = s * sliceSize,
+    var start = sliceSize * s,
         end = Math.min(start + sliceSize, inputBytes.length),
         sliceBytes = new Array(end - start);
 
