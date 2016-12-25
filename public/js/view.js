@@ -51,10 +51,6 @@ $(function() {
 
   pEntry.keyup(function(event) {
     if(event.keyCode == 13 && pEntry.val().length > 0) {
-      if(decryptErrorState) {
-        resetDecryptError();
-      }
-
       decrypt();
     }
   });
@@ -76,6 +72,10 @@ function decrypt(password) {
 
   if(typeof password === 'undefined') {
     password = pEntry.val();
+  }
+
+  if(decryptErrorState) {
+    resetDecryptError();
   }
 
   dTools.hide();

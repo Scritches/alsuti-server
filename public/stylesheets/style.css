@@ -228,7 +228,7 @@ table#uploadListing tr td.alignRight {
   margin: 0 auto;
   padding: 10px;
   text-align: center;
-  transition: all 0.2s ease-in;
+  transition: all 0.3s ease-in;
 }
 #decryptionStatus {
   font-family: monospace;
