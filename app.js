@@ -62,17 +62,12 @@ app.use(multer());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// api handler
 app.use(function(req, res, next) {
   // api request flag
   if(req.method == 'POST') {
     req.apiRequest = isTrue(req.body.api) || false;
   } else {
     req.apiRequest = isTrue(req.headers.api) || false;
-  }
-
-  // cache
-  if(res.getHeader('Cache-Control') == null) {
   }
 
   // api response helper
