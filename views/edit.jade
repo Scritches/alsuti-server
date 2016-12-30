@@ -7,7 +7,7 @@ head
 body
   center
     h1#title #{fileName}
-    form#editForm(method='post' action='/edit' enctype='multipart/form-data')
+    form#editForm.vpad(method='post' action='/edit' enctype='multipart/form-data')
       input(type='hidden' name='file' value='#{fileName}')
       input(type='hidden' name='returnPath' value='#{returnPath}')
       textarea#title(type='text' name='title' placeholder='Title' rows=1 autofocus) #{title}

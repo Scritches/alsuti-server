@@ -10,7 +10,7 @@ head
     -else
       p#loginMessage= message
     form#loginForm.vpad(method='post' action='/login')
-      input(name='user' placeholder='User')#userEntry
+      input(name='user' placeholder='User Name')#userEntry
       input(type='password' name='password' placeholder='Password')#passwordEntry
       input(type='hidden' name='returnPath' value='#{returnPath}')
       div.hpad

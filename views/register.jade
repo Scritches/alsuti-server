@@ -5,12 +5,10 @@ head
   link(rel='stylesheet' href='/stylesheets/style.css')
   center
     h1#title Register
-    -if(inviteUser != null)
-      p#description
-        | <b>#{user}</b> has invited you to Alsuti.
-    form#registerForm(method='post' action='/register')
-      input(name='user' placeholder='User')#userEntry
+    p#description
+      | <b>#{sender}</b> has invited you to Alsuti.
+    form#registerForm.vpad(method='post' action='/register')
+      input(name='user' placeholder='User Name')#userEntry
       input(type='password' name='password' placeholder='Password' autocomplete='new-password')#passwordEntry
-      -if(inviteCode != null)
-        input(type='hidden' name='code' value='#{inviteCode}')
+      input(type='hidden' name='code' value='#{code}')
       button(type='submit') Register

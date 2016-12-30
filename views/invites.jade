@@ -1,0 +1,24 @@
+doctype html
+html
+  head
+    title Invite Codes
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    link(rel='stylesheet' href='/stylesheets/style.css')
+  body
+    include globalBar
+    center#header
+      -if(session.admin || quota > 0)
+        -if(session.admin == false)
+          span You have #{quota} invites left.
+        form(method='post' action='/invites/create')
+          input(type='submit' value="Create Invite Code")
+      -else
+        span Your invite quota has been reached.
+    table#listing
+      each code,i in invites
+        tr
+          td.expand
+            a(href='/register/#{code}')= code
+          td
+            a(href='/invites/delete/#{code}') Delete
+      

@@ -14,7 +14,8 @@ div#globalBar.hpad
         mixin menu
         span.divider
         a(href='/public') Public
-        span.floatRight
+        span.floatRight.hpad
+          a(href='/invites') Invites
           a(href='/logout') Log out
       -else
         span#alsuti.noMenu
@@ -27,13 +28,30 @@ div#globalBar.hpad
         mixin menu
         span.divider
         a(href='/private') Private
-        span.floatRight
+        span.floatRight.hpad
+          a(href='/invites') Invites
           a(href='/logout') Log Out
       -else
         span#alsuti.noMenu
         span.floatRight
           a(href='/login') Log In
     -else if(listingType == 'userPublic')
+      -if(session.validate())
+        mixin menu
+        span.divider
+        a(href='/private') Private
+        span.divider
+        a(href='/public') Public
+        span.floatRight.hpad
+          a(href='/invites') Invites
+          a(href='/logout') Log Out
+      -else
+        span#alsuti.noMenu
+        span.divider
+        a(href='/public') Public
+        span.floatRight
+          a(href='/login') Log In
+    -else if(listingType='invites')
       -if(session.validate())
         mixin menu
         span.divider

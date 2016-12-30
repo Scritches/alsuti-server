@@ -55,9 +55,7 @@ router.post('/upload', function(req, res) {
     if(fileExt != null && isTrue(req.body.encrypted) == false &&
        types.mimeMap['image']['jpeg'].indexOf(fileExt) != -1)
     {
-      console.log("rotating jpeg image (" + req.files.fileupload.path + ")");
-
-      // autorotate jpeg images
+      // rotate jpeg images according to orientation
       fs.readFile(req.files.fileupload.path, function(err, data) {
         if(!err) {
           writeRotatedJPEG(data);

@@ -70,13 +70,6 @@ form > textarea {
   display: block;
 }
 
-form > input[type=text],
-form > input[type=file],
-form > select,
-form > textarea {
-  margin-bottom: 10px;
-}
-
 form > input#url,
 form > textarea#title,
 form > textarea#description {
@@ -197,22 +190,22 @@ a.switch.enabled {
 }
 
 /* listing table */
-table#uploadListing {
+table#listing {
   border: 1px solid #C8C8C8;
 }
-table#uploadListing tr:nth-child(odd) {
+table#listing tr:nth-child(odd) {
   background-color: #F8F8F8;
 }
-table#uploadListing tr:nth-child(even) {
+table#listing tr:nth-child(even) {
   background-color: #ECECEC;
 }
-table#uploadListing tr td.expand {
+table#listing tr td.expand {
   width: 100%;
 }
-table#uploadListing tr td:not(.expand) {
+table#listing tr td:not(.expand) {
   white-space: pre;
 }
-table#uploadListing tr td.alignRight {
+table#listing tr td.alignRight {
   text-align: right;
 }
 

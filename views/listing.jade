@@ -31,7 +31,7 @@ body
   -if(uploads.length == 0)
     span There's nothing here.
   -else
-    table#uploadListing(border='0' cellpadding='5px' cellspacing='0')
+    table#listing(border='0' cellpadding='5px' cellspacing='0')
       each u,i in uploads
         tr
           -if(u == null)
