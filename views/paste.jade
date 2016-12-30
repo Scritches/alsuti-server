@@ -6,7 +6,7 @@ head
 body
   include globalBar
   h1#title Paste
-  form#pasteForm(method='post' action='/upload' enctype='multipart/form-data')
+  form#pasteForm.vpad(method='post' action='/upload' enctype='multipart/form-data')
     textarea#title(type='text' name='title' placeholder='Title' rows=1 autofocus)
     textarea#description(form='pasteForm' name='description' placeholder='Description')
     select(form='pasteForm' name='extension')
@@ -23,9 +23,9 @@ body
       option(label='Perl') pl
       option(label='Java') java
       option(label='Groovy') groovy
+    textarea#content(form='pasteForm' name='content' placeholder="Content")
     span.hpad
       label
         input(type='checkbox' name='public' value='yes').vcenter
         | Public
-    textarea#content(form='pasteForm' name='content' placeholder="Content")
-    input(type='submit' value='Paste')
+      input(type='submit' value='Paste')
