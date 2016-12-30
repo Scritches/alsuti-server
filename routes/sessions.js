@@ -149,7 +149,7 @@ router.get('/logout', function(req, res) {
   res.cookie('sessionUser', '', cookieOptions);
   res.cookie('sessionKey', '', cookieOptions);
 
-  db.hdel(userHash, 'sessionKey', 'sessionExpiry', function(err, reply) {
+  db.hdel(userHash, ['sessionKey', 'sessionExpiry'], function(err, reply) {
     res.redirect(returnPath);
   });
 });
