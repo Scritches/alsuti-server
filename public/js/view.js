@@ -92,13 +92,13 @@ function decrypt(password) {
 
     if(msg.data[0] == 'success') {
       function readableSize(size) {
-        var u;
-        for(u=0; u < 5 && size >= 1024; ++u) {
+        var i;
+        for(i=0; i < 5 && size >= 1024; ++i) {
           size /= 1024;
         }
 
         var units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        return parseFloat(size).toFixed(2) + ' ' + units[u];
+        return parseFloat(size).toFixed(2) + ' ' + units[i];
       }
 
       var plainText = msg.data[1],
