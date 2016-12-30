@@ -1,22 +1,29 @@
-mixin jsTools
-  -if(fileType == 'image')
-    span#imageTools.hpad(style='display:none;')
-      span.divider
-      label
-        | Scale: 
-        input#imageScale(type='number' min='10' max='100' value='75' oninput="scaleImage();" onchange="saveSettings();")
-  -else if(fileType == 'text' || fileType == null)
-    span#textTools.hpad(style='display:none;')
-      span.divider
-      a#copyLink.plain(onclick='copyToClipboard();') Copy
-      span.divider
-      a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
-  -if(session.admin || session.validate(user))
-    span#ownerTools.hpad.floatRight
-      a(href='/edit/#{fileName}')
-        img(src='/edit.png' height='16px')
-      a(href='/delete/#{fileName}')
-        img(src='/delete.png' height='16px')
+mixin tools
+  div#tools.hpad
+    -if(encrypted)
+      span#genericTools(style='display:none;')
+        a#downloadLink(download='#{fileName}') Download
+    -else
+      span#genericTools
+        a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
+    -if(fileType == 'image')
+      span#imageTools.hpad(style='display:none;')
+        span.divider
+        label
+          | Scale: 
+          input#imageScale(type='number' min='10' max='100' value='75' oninput="scaleImage();" onchange="saveSettings();")
+    -else if(fileType == 'text' || fileType == null)
+      span#textTools.hpad(style='display:none;')
+        span.divider
+        a#copyLink.plain(onclick='copyToClipboard();') Copy
+        span.divider
+        a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
+    -if(session.admin || session.validate(user))
+      span#ownerTools.hpad.floatRight
+        a(href='/edit/#{fileName}')
+          img(src='/edit.png' height='16px')
+        a(href='/delete/#{fileName}')
+          img(src='/delete.png' height='16px')
 
 doctype html
 html
@@ -65,10 +72,7 @@ html
             span.divider
           span#fileSize Size: <u>#{fileSize}</u>
     -if(encrypted)
-      div#tools.hpad
-        span#genericTools(style='display:none;')
-          a#downloadLink(download='#{fileName}') Download
-        mixin jsTools
+      mixin tools
       div#decryption
         div#decryptionStatus This file is encrypted.
         div#decryptionTools.hpad
@@ -91,9 +95,7 @@ html
         div#textContainer(style='display:none;')
           code#content
     -else
-      div#tools.hpad
-        a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
-        mixin jsTools
+      mixin tools
       -if(fileType == 'image')
         center#imageContainer
           a#imageLink(href='/x/#{fileName}')

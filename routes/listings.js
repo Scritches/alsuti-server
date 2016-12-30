@@ -29,7 +29,6 @@ router.get('/user/:user', function(req, res) {
       });
     }
   });
-
 });
 
 function renderListing(req, res, zHash, title, listingType) {

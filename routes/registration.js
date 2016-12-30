@@ -8,21 +8,47 @@ var _ = require('underscore'),
 
 var router = express.Router();
 
+router.get('/invites', auth.required);
+router.get('/invites', function(req, res) {
+  var db = req.app.get('database'),
+      m = db.multi(),
+      invitesHash = 'user:' + req.session.user;
+
+  m.hget(userHash, 'inviteQuota');
+  m.lrange(userHash + ':invites', 0, -1);
+
+  m.exec(function(err, data) {
+    res.render('invites', {
+      'session': req.session,
+      'quota': data[0],
+      'invites': data[1]
+    });
+  });
+});
+
 router.post('/invite', auth.required);
 router.post('/invite', function(req, res) {
   var db = req.app.get('database'),
-      m = db.multi(),
-      userHash = 'user:' + req.session.user,
-      invitesHash = userHash + ':invites';
+      userHash = 'user:' + req.session.user;
 
-  m.hget(userHash, 'admin');
-  m.llen(invitesHash);
+  db.hmget(userHash, ['admin', 'inviteQuota'], function(err, data) {
+    var admin = isTrue(data[0]),
+        invites = parseInt(data[1]);
 
-  m.exec(function(err, data) {
-    if(isTrue(data[0]) || parseInt(data[1]) < 10) {
-      var newCode = shortid.generate();
-      m.hset('invite:' + newCode, ['user', req.session.user, 'persistent', false]);
-      m.lpush(invitesHash, newCode);
+    if(admin || invites > 0) {
+      var m = db.multi(),
+          code = shortid.generate();
+
+      m.lpush(userHash + ':invites', code);
+      m.hmset('invite:' + code, {'user': req.session.user, 'persistent': false});
+
+      if(admin == false) {
+        m.hset(userHash, 'inviteQuota', invites - 1);
+      }
+
+      m.exec(function(err, replies) {
+        res.redirect('/invite');
+      });
     }
   });
 });

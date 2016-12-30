@@ -124,6 +124,7 @@ h1#title {
 }
 #tools {
   margin-bottom: 10px;
+  overflow: auto;
   user-select: none;
 }
 #tools select {

@@ -107,6 +107,7 @@ function decrypt(password) {
 
       $('#fileSize').html("Size: <u>" + readableSize(blob.size) + "</u>");
       $('#decryption').remove();
+      $('#genericTools').show();
 
       if(fileType == 'image') {
         initImage(url);
@@ -120,7 +121,7 @@ function decrypt(password) {
         initText(url, plainText);
       }
     }
-    else if(ev.data[0] == 'wrongPassword') {
+    else if(msg.data[0] == 'wrongPassword') {
       dTools.show();
       setDecryptError("Wrong password.");
       pEntry.focus();
