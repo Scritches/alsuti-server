@@ -152,6 +152,7 @@ function isBinary(data, threshold) {
 }
 
 module.exports = {
+  'mimeMap': mimeMap,
   'fileExtension': fileExtension,
   'urlExtension': urlExtension,
   'getMimeType': getMimeType,

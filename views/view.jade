@@ -12,7 +12,7 @@ mixin jsTools
       span.divider
       a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
   -if(session.admin || session.validate(user))
-    span.hpad.floatRight
+    span#ownerTools.hpad.floatRight
       a(href='/edit/#{fileName}')
         img(src='/edit.png' height='16px')
       a(href='/delete/#{fileName}')
@@ -46,9 +46,6 @@ html
       script.
         var fileType = '#{fileType}',
             subType = '#{subType}';
-    -if(encrypted)
-      script.
-        cipherText = "#{content}";
   body
     include globalBar
     div#header
@@ -68,8 +65,9 @@ html
             span.divider
           span#fileSize Size: <u>#{fileSize}</u>
     -if(encrypted)
-      div#tools.hpad(style='display:none;')
-        a#downloadLink(download='#{fileName}') Download
+      div#tools.hpad
+        span#genericTools(style='display:none;')
+          a#downloadLink(download='#{fileName}') Download
         mixin jsTools
       div#decryption
         div#decryptionStatus This file is encrypted.
@@ -81,7 +79,7 @@ html
           a#imageLink
             img#content
       -else if(fileType == 'audio')
-        center#audioContainer(style='display:none;')
+        center#audioContainer()
           audio#content(controls)
             source(src='/x/#{fileName}' type='#{mimeType}')
       -else if(fileType == 'video')

@@ -46,7 +46,7 @@ $(function() {
   else if(fileType == 'text' ||
           fileType == null)
   {
-    initText(null);
+    initText(null, null);
   }
 
   pEntry.keyup(function(event) {
@@ -86,17 +86,11 @@ function decrypt(password) {
   decryptNotifyInterval = window.setInterval(decryptNotifyTick, 750);
 
   var w = new Worker('/js/decrypt.js');
-  w.postMessage(['decrypt', password, cipherText]);
 
   w.addEventListener('message', function(msg) {
     decryptNotifyReset();
 
     if(msg.data[0] == 'success') {
-      $('#decryption').remove();
-      $('#tools').show();
-
-      cipherText = null;
-
       function readableSize(size) {
         var u;
         for(u=0; u < 5 && size >= 1024; ++u) {
@@ -107,31 +101,36 @@ function decrypt(password) {
         return parseFloat(size).toFixed(2) + ' ' + units[u];
       }
 
-      var blob = bytesToBlob(msg.data[1]);
-      $('#fileSize').html("Size: <u>" + readableSize(blob.size) + "</u>");
+      var plainText = msg.data[1],
+          blob = bytesToBlob(plainText),
+          url = URL.createObjectURL(blob);
 
-      var url = URL.createObjectURL(blob);
+      $('#fileSize').html("Size: <u>" + readableSize(blob.size) + "</u>");
+      $('#decryption').remove();
+
       if(fileType == 'image') {
         initImage(url);
       } else if(fileType == 'audio') {
         initAudio(url);
       } else if(fileType == 'video') {
         initVideo(url);
-      } else if(fileType == 'application') {
-        initBinary(url);
-      } else if(isBinary(data, binaryThreshold)) {
-        fileType = 'application';
-        subType = 'octet-stream'
+      } else if(fileType == 'application' || isBinary(plainText, binaryThreshold)) {
         initBinary(url);
       } else {
-        initText(url);
+        initText(url, plainText);
       }
-    } else {
+    }
+    else if(ev.data[0] == 'wrongPassword') {
       dTools.show();
-      setDecryptError();
+      setDecryptError("Wrong password.");
       pEntry.focus();
     }
+    else {
+      setDecryptError("Error.");
+    }
   });
+
+  w.postMessage(['decrypt', fileName, password]);
 }
 
 function decryptNotifyTick() {
@@ -153,7 +152,7 @@ function decryptNotifyReset() {
   decryptNotifyTimeout = null;
 }
 
-function setDecryptError() {
+function setDecryptError(message) {
   if(decryptErrorState != 0) {
     return;
   }
@@ -162,7 +161,7 @@ function setDecryptError() {
       ds = $('#decryptionStatus');
 
   d.css('background-color', decryptErrorColour);
-  ds.text('Wrong Password');
+  ds.text(message);
   
   decryptErrorState = 1;
   clearDecryptErrorTimeout = window.setTimeout(updateDecryptError, 5000);
@@ -284,15 +283,17 @@ function isBinary(data, threshold) {
 
 // text
 
-function initText(url) {
+function initText(url, text) {
   if(url != null) {
     var dLink = $('#downloadLink');
 
     dLink.attr('href', url);
     dLink.show();
 
-    $('code#content').text(data);
-    $('#textContainer').show();
+    if(text != null) {
+      $('code#content').text(text);
+      $('#textContainer').show();
+    }
   }
 
   $('code').each(function(i, block) {

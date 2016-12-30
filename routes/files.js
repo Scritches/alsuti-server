@@ -52,7 +52,11 @@ router.post('/upload', function(req, res) {
     }
 
     filePath = localPath + fileName;
-    if(fileExt != null && mimeMap['image']['jpeg'].indexOf(fileExt) != -1) {
+    if(fileExt != null && isTrue(req.body.encrypted) == false &&
+       types.mimeMap['image']['jpeg'].indexOf(fileExt) != -1)
+    {
+      console.log("rotating jpeg image (" + req.files.fileupload.path + ")");
+
       // autorotate jpeg images
       fs.readFile(req.files.fileupload.path, function(err, data) {
         if(!err) {
@@ -63,7 +67,6 @@ router.post('/upload', function(req, res) {
       });
     }
     else {
-      // write everything else using pipes
       fs.createReadStream(req.files.fileupload.path)
         .pipe(fs.createWriteStream(filePath))
         .on('close', function() { finalizeUpload(null); });
@@ -143,34 +146,32 @@ router.post('/upload', function(req, res) {
         db = req.app.get('database'),
         m = db.multi(),
         fHash = 'file:' + fileName,
-        userHash = 'user:' + req.session.user,
-        encrypted = isTrue(req.body.encrypted) || false,
-        _public = isTrue(req.body.public) || false;
+        userHash = 'user:' + req.session.user;
 
-    var metadata = [
-      'user', req.session.user,
-      'time', time,
-      'encrypted', encrypted,
-      'public', _public
-    ];
+    var metadata = {
+      user: req.session.user,
+      time: time,
+      encrypted: _.has(req.body, 'encrypted') && isTrue(req.body.encrypted),
+      public: _.has(req.body, 'public') && isTrue(req.body.public),
+    };
 
-    if(_.has(req.body, 'title') && req.body.title != null) {
+    if(_.has(req.body, 'title')) {
       var title = req.body.title.trim();
       if(title.length > 0) {
-        metadata.push('title', title);
+        metadata.title = title;
       }
     }
 
-    if(_.has(req.body, 'description') && req.body.description != null) {
+    if(_.has(req.body, 'description')) {
       var desc = req.body.description.trim();
       if(desc.length > 0) {
-        metadata.push('description', desc);
+        metadata.description = desc;
       }
     }
 
     m.hmset(fHash, metadata);
 
-    if(_public) {
+    if(metadata.public) {
       m.zadd('public', time, fileName);
       m.zadd(userHash + ':public', time, fileName);
     }
@@ -505,21 +506,13 @@ router.post('/delete', function(req, res) {
   });
 });
 
-function sendFile(req, res) {
-  var filePath = path.resolve(__dirname + '/../files/' + req.params.file);
-  fs.access(filePath, function(err) {
-    if(!err) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404);
-    }
-  });
-}
-
 router.get('/:file', function(req, res, rf) {
   var db = req.app.get('database'),
       fileName = req.params.file,
       fHash = 'file:' + fileName;
+
+  var filePath,
+      fileExt;
 
   db.hgetall(fHash, function(err, u) {
     if(!err && u != null) {
@@ -528,90 +521,33 @@ router.get('/:file', function(req, res, rf) {
           u[k] = null;
       }
 
+      filePath = path.resolve(__dirname + '/../files/' + fileName);
+      fileExt = types.fileExtension(fileName);
+
       u.encrypted = isTrue(u.encrypted) || false;
       u.public = isTrue(u.public) || false;
 
-      var filePath = path.resolve(__dirname + '/../files/' + fileName);
-      fs.readFile(filePath, function(err, data) {
-        if(!err) {
-          var fileExt = types.fileExtension(fileName);
-
-          var fileType,
-              subType;
-
-          if(fileExt != null) {
-            var t = types.getMimeType(fileExt);
-            if(t != null) {
-              fileType = t[0];
-              subType = t[1];
-            } else {
-              fileType = null;
-              subType = null;
-            }
-          }
-          else if(u.encrypted == false && types.isBinary(data, binaryThreshold)) {
-            fileType = 'application';
-            subType = 'octet-stream';
+      if(u.encrypted) {
+        renderView(u, null); // render encrypted views without inline content
+      } else {
+        fs.readFile(filePath, function(err, data) {
+          if(!err) {
+            renderView(u, data);
           }
           else {
-            fileType = null;
-            subType = null;
-          }
-
-          fs.stat(filePath, function(err, stats) {
-            var fileSizeInBytes = stats['size'];
-
-            // convert base64 size
-            var size = data.length;
-            if(u.encrypted) {
-              size *= 3;
-              size /= 4;
-              var i = size - 1;
-              while(data[i] == '=') {
-                --size;
-              }
+            if(req.apiRequest) {
+              res.api(true, "Cannot read file.");
+            } else {
+              res.render('info', {
+                'error': true,
+                'title': "Error",
+                'message': "Cannot read file.",
+                'returnPath': req.headers.referer || null
+              });
             }
-
-            function readableSize(size) {
-              var u;
-              for(u=0; u < 5 && size > 1024; ++u) {
-                size /= 1024;
-              }
-
-              var units = ['B', 'KB', 'MB', 'GB', 'TB'];
-              return parseFloat(size).toFixed(2) + " " + units[u];
-            }
-
-            res.setHeader('Cache-Control', "public, immutable");
-            res.render('view', {
-              'fileName': fileName,
-              'title': u.title,
-              'description': u.description,
-              'user': u.user,
-              'time': u.time,
-              'encrypted': u.encrypted,
-              'content': data.toString(),
-              'session': req.session,
-              'fileType': fileType,
-              'subType': subType,
-              'fileExt': fileExt,
-              'fileSize': readableSize(size)
-            });
-          });
-        }
-        else {
-          if(req.apiRequest) {
-            res.api(true, "Cannot read file.");
-          } else {
-            res.render('info', {
-              'error': true,
-              'title': "Error",
-              'message': "Cannot read file.",
-              'returnPath': req.headers.referer || null
-            });
           }
-        }
-      });
+        });
+      }
     }
     else {
       if(req.apiRequest) {
@@ -626,14 +562,74 @@ router.get('/:file', function(req, res, rf) {
       }
     }
   });
+
+  function renderView(u, content) {
+    var fileType,
+        subType;
+
+    if(fileExt != null) {
+      var t = types.getMimeType(fileExt);
+      if(t != null) {
+        fileType = t[0];
+        subType = t[1];
+      } else {
+        fileType = null;
+        subType = null;
+      }
+    }
+    else if(u.encrypted == false && types.isBinary(content, binaryThreshold)) {
+      fileType = 'application';
+      subType = 'octet-stream';
+    }
+    else {
+      fileType = null;
+      subType = null;
+    }
+
+    fs.stat(filePath, function(err, stats) {
+      function readableSize(size) {
+        var i;
+        for(i=0; i < 5 && size > 1024; ++i) {
+          size /= 1024;
+        }
+
+        var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        return parseFloat(size).toFixed(2) + " " + units[i];
+      }
+
+      var env = {
+        'fileName': fileName,
+        'title': u.title,
+        'description': u.description,
+        'user': u.user,
+        'time': u.time,
+        'encrypted': u.encrypted,
+        'session': req.session,
+        'fileType': fileType,
+        'subType': subType,
+        'fileExt': fileExt,
+        'fileSize': readableSize(stats['size'])
+      };
+
+      if(u.encrypted == false) {
+        env.content = content.toString('utf-8');
+      }
+
+      res.setHeader('Cache-Control', "public, immutable");
+      res.render('view', env);
+    });
+  }
 });
 
-// used for displaying unencrypted text/images in web view
-router.get('/x/:file', sendFile);
-
-// handle deprecated encrypted views
-router.get('/e/:file', function(req, res) {
-  res.redirect(301, '/' + req.params.file);
+router.get('/x/:file', function(req, res) {
+  var filePath = path.resolve(__dirname + '/../files/' + req.params.file);
+  fs.access(filePath, function(err) {
+    if(!err) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404);
+    }
+  });
 });
 
 module.exports = router;

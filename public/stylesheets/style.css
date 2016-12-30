@@ -232,11 +232,24 @@ table#uploadListing tr td.alignRight {
 }
 #decryptionStatus {
   font-family: monospace;
+  font-size: 125%;
   font-weight: bold;
   white-space: pre;
 }
 #decryptionTools {
   margin-top: 10px;
+}
+
+#decryptionStatus,
+#code#textContent {
+  font-family: Consolas,
+               Monaco,
+               Lucida Console,
+               Liberation Mono,
+               Droid Sans Mono,
+               DejaVu Sans Mono,
+               Bitstream Vera Sans Mono,
+               Courier New;
 }
 
 /* content */
@@ -272,14 +285,6 @@ code {
   border-left: 0px solid #CCC;
   background-color: #F8F8F8;
   display: block;
-  font-family: Consolas,
-               Monaco,
-               Lucida Console,
-               Liberation Mono,
-               Droid Sans Mono,
-               DejaVu Sans Mono,
-               Bitstream Vera Sans Mono,
-               Courier New;
   white-space: pre-wrap;
   overflow-wrap: break-word;
   padding: 5px;

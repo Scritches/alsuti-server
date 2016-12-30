@@ -63,8 +63,8 @@ function renderListing(req, res, zHash, title, listingType) {
         function(fileName, done) {
           db.hgetall('file:' + fileName, function(err, s) {
             if(err || s == null) {
-              console.log(fileName);
-              done(err, null);
+              console.log("nonexistent metadata: " + fileName);
+              done(err, {'fileName': fileName});
               return;
             }
 

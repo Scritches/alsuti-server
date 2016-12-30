@@ -34,23 +34,29 @@ body
     table#uploadListing(border='0' cellpadding='5px' cellspacing='0')
       each u,i in uploads
         tr
-          td.expand
-            -if(u.encrypted)
-              a.pink(href='/#{u.fileName}')= u.title || u.fileName
-            -else
-              a(href='/#{u.fileName}')= u.title || u.fileName
-          -if(session.admin || session.validate(u.user))
-            td
-              a(href='/edit/#{u.fileName}')
-                img(src='/edit.png' height='16px')
-            td
-              a(href='/delete/#{u.fileName}')
-                img(src='/delete.png' height='16px')
-          td.alignRight
-            span.uploadTime.hidden= u.time
-          -if(listingType == 'public')
+          -if(u == null)
+            td.expand
+              a.red(href='/#{u.fileName}')= u.fileName
             td.alignRight
-              a(href='/user/#{u.user}')= u.user
+              | Database Error
+          -else
+            td.expand
+              -if(u.encrypted)
+                a.pink(href='/#{u.fileName}')= u.title || u.fileName
+              -else
+                a(href='/#{u.fileName}')= u.title || u.fileName
+            -if(session.admin || session.validate(u.user))
+              td
+                a(href='/edit/#{u.fileName}')
+                  img(src='/edit.png' height='16px')
+              td
+                a(href='/delete/#{u.fileName}')
+                  img(src='/delete.png' height='16px')
+            td.alignRight
+              span.uploadTime.hidden= u.time
+            -if(listingType == 'public')
+              td.alignRight
+                a(href='/user/#{u.user}')= u.user
       script.
         renderRelativeTimes();
     div#pageBar
