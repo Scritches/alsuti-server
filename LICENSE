@@ -2,9 +2,11 @@ Alsuti-server -- an open source file upload, pastebin and rehosting tool.
 
 Copyright (C) 2016-2017 Andrew Felske (origin206@protonmail.ch)
                         Luke Slater (tinmachin3@gmail.com)
-                        
-Heavily rewritten in October-December 2016 by Andrew Felske with Redis
-support (and various new features) to ease further development.
+
+Project started by Luke Slater. Code heavily rewritten October-December
+2016 by Andrew Felske, utilizing Redis for content metadata, listings,
+and most backend functionality (user system, sessions, invites,
+registration, etc).
 
 ----
 
