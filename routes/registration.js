@@ -42,7 +42,7 @@ router.post('/invites/create', function(req, res) {
           iHash = 'invite:' + code;
 
       m.lpush(userHash + ':invites', code);
-      m.hmset(iHash, {'sender': req.session.user});
+      m.hmset(iHash, ['sender', req.session.user]);
 
       if(admin == false) {
         m.hset(userHash, 'inviteQuota', invites - 1);
@@ -163,19 +163,42 @@ router.post('/register', function(req, res) {
   db.hgetall(iHash, function(err, invite) {
     if(!err) {
       if(invite != null) {
-        // create password hash for account
-        bcrypt.hash(req.body.password, null, null, function(err, pHash) {
-          var m = db.multi(),
-              senderHash = 'user:' + sender;
+        db.exists('user:' + req.body.user, function(err, userExists) {
+          if(userExists == false) {
+            // create password hash for account
+            bcrypt.hash(req.body.password, null, null, function(err, pHash) {
+              var m = db.multi(),
+                  senderHash = 'user:' + invite.sender,
+                  userHash = 'user:' + req.body.user;
 
-          m.lrem(senderHash + ':invites', 1, req.params.code);
-          m.del(iHash);
+              m.lrem(senderHash + ':invites', 1, req.body.code);
+              m.del(iHash);
 
-          // setup user account and start session
-          m.hmset('user:' + req.body.user, ['password', pHash]);
-          m.exec(function(err, replies) {
-            sessions.start(req, res);
-          });
+              // create user hashmap
+              m.hmset(userHash, [
+                'admin', false,
+                'inviteQuota', 20,
+                'password', pHash
+              ]);
+
+              m.exec(function(err, replies) {
+                sessions.start(req, res);
+              });
+            });
+          }
+          else {
+            if(req.apiRequest) {
+              res.json(true, {'message': "User name already exists."});
+            }
+            else {
+              res.render('info', {
+                'error': true,
+                'title': "Error",
+                'message': "User name already exists.",
+                'returnPath': '/register/' + req.body.code
+              });
+            }
+          }
         });
       }
       else {

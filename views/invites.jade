@@ -7,9 +7,9 @@ html
   body
     include globalBar
     center#header
-      -if(session.admin || quota > 0)
+      -if(quota > 0)
         -if(session.admin == false)
-          span You have #{quota} invites left.
+          span You have #{quota != 1 ? (quota + " invites") : (quota + " invite")} left.
         form(method='post' action='/invites/create')
           input(type='submit' value="Create Invite Code")
       -else

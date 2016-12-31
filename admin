@@ -52,9 +52,6 @@ function setAdmin(name, state) {
   });
 }
 
-function genInviteCode() {
-}
-
 function main() {
   if(_.has(process.env, 'ALSUTI_DATABASE')) {
     db.select(process.env.ALSUTI_DATABASE);

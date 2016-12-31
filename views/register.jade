@@ -8,7 +8,7 @@ head
     p#description
       | <b>#{sender}</b> has invited you to Alsuti.
     form#registerForm.vpad(method='post' action='/register')
-      input(name='user' placeholder='User Name')#userEntry
-      input(type='password' name='password' placeholder='Password' autocomplete='new-password')#passwordEntry
+      input#userEntry(type='text' name='user' placeholder='User Name')
+      input#passwordEntry(type='password' name='password' placeholder='Password' autocomplete='new-password')
       input(type='hidden' name='code' value='#{code}')
       button(type='submit') Register

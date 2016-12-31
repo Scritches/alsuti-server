@@ -70,15 +70,27 @@ form > textarea {
   display: block;
 }
 
+
 form > input#url,
-form > textarea#title,
+form > input#title,
 form > textarea#description {
-  width: 300px;
+  min-width: 300px;
+  width: 25%;
+  resize: none;
+}
+
+form > textarea#content,
+form > span {
+  width: 100%;
   resize: none;
 }
 form > textarea#content {
   min-width: 300px;
   min-height: 200px;
+}
+
+label {
+  user-select: none;
 }
 
 /* login/register/delete/edit pages */

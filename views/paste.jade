@@ -3,28 +3,37 @@ head
   title Paste
   meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='/stylesheets/style.css')
+  script(src='/js/lib/jquery.min.js')
+  script(src='/js/lib/aes.js')
+  script(src='/js/paste.js')
 body
   include globalBar
   h1#title Paste
-  form#pasteForm.vpad(method='post' action='/upload' enctype='multipart/form-data')
-    textarea#title(type='text' name='title' placeholder='Title' rows=1 autofocus)
+  form#pasteForm.vpad(onsubmit="return onPaste(event);" method='post' action='/upload' enctype='multipart/form-data')
+    input#title(type='text' name='title' placeholder='Title' autofocus)
     textarea#description(form='pasteForm' name='description' placeholder='Description')
-    select(form='pasteForm' name='extension')
-      option(label='Text') txt
-      option(label='Markdown') md
-      option(label='HTML') html
-      option(label='Shell Script') sh
-      option(label='C') c
-      option(label='C++') cpp
-      option(label='Javascript') js
-      option(label='Python') py
-      option(label='Ruby') rb
-      option(label='Rust') rs
-      option(label='Perl') pl
-      option(label='Java') java
-      option(label='Groovy') groovy
+    div.hpad
+      select(form='pasteForm' name='extension')
+        option(label='Text') txt
+        option(label='Markdown') md
+        option(label='HTML') html
+        option(label='Shell Script') sh
+        option(label='C') c
+        option(label='C++') cpp
+        option(label='Javascript') js
+        option(label='Python') py
+        option(label='Ruby') rb
+        option(label='Rust') rs
+        option(label='Perl') pl
+        option(label='Java') java
+        option(label='Groovy') groovy\
     textarea#content(form='pasteForm' name='content' placeholder="Content")
-    span.hpad
+    div.hpad
+      label
+        input#encryptCheckbox(onchange="togglePasswordEntry();" type='checkbox' name='encrypted' value='yes').vcenter
+        | Encrypt
+      input#passwordEntry(type='password' placeholder="Password" disabled)
+    div.hpad
       label
         input(type='checkbox' name='public' value='yes').vcenter
         | Public

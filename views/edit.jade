@@ -10,7 +10,7 @@ body
     form#editForm.vpad(method='post' action='/edit' enctype='multipart/form-data')
       input(type='hidden' name='file' value='#{fileName}')
       input(type='hidden' name='returnPath' value='#{returnPath}')
-      textarea#title(type='text' name='title' placeholder='Title' rows=1 autofocus) #{title}
+      input#title(type='text' name='title' placeholder='Title' value='#{title || ""}' autofocus)
       textarea#description(form='editForm' name='description' placeholder='Description') #{description}
       div.hpad
         label

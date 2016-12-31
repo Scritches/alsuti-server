@@ -74,13 +74,13 @@ function startSession(req, res) {
       sessionData = [
         'sessionKey', sessionKey,
         'sessionExpiry', sessionExpiry
-      ]
+      ];
     }
     else {
       // renew current session
       sessionData = [
         'sessionExpiry', sessionExpiry
-      ]
+      ];
     }
 
     // store updated session data
@@ -97,7 +97,7 @@ function startSession(req, res) {
         res.cookie('sessionUser', req.body.user, cookieOptions);
         res.cookie('sessionKey', sessionKey, cookieOptions);
 
-        res.redirect(req.body.returnPath || '/private');
+        res.redirect(req.body.returnPath || '/public');
       }
       else {
         if(req.apiRequest) {

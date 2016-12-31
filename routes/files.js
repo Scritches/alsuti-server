@@ -125,7 +125,7 @@ router.post('/upload', function(req, res) {
     if(req.apiRequest) {
       res.api(true, {'message': "Nothing was uploaded."});
     } else {
-      res.redirect('/');
+      res.redirect(req.headers.referer || '/private');
     }
 
     return;
@@ -143,33 +143,39 @@ router.post('/upload', function(req, res) {
     var time = Date.now(),
         db = req.app.get('database'),
         m = db.multi(),
-        fHash = 'file:' + fileName,
+        fileHash = 'file:' + fileName,
         userHash = 'user:' + req.session.user;
 
-    var metadata = {
-      user: req.session.user,
-      time: time,
-      encrypted: _.has(req.body, 'encrypted') && isTrue(req.body.encrypted),
-      public: _.has(req.body, 'public') && isTrue(req.body.public),
-    };
+    var _public = _.has(req.body, 'public') && isTrue(req.body.public);
+
+    var metadata = [
+      'user', req.session.user,
+      'time', time,
+      'encrypted', _.has(req.body, 'encrypted') && isTrue(req.body.encrypted),
+      'public', _public,
+    ];
 
     if(_.has(req.body, 'title')) {
       var title = req.body.title.trim();
       if(title.length > 0) {
-        metadata.title = title;
+        metadata.push('title', title);
+      } else {
+        m.hdel(fileHash, 'title');
       }
     }
 
     if(_.has(req.body, 'description')) {
       var desc = req.body.description.trim();
       if(desc.length > 0) {
-        metadata.description = desc;
+        metadata.push('description', desc);
+      } else {
+        m.hdel(fileHash, 'description');
       }
     }
 
-    m.hmset(fHash, metadata);
+    m.hmset(fileHash, metadata);
 
-    if(metadata.public) {
+    if(_public) {
       m.zadd('public', time, fileName);
       m.zadd(userHash + ':public', time, fileName);
     }
@@ -232,9 +238,9 @@ router.post('/upload', function(req, res) {
 router.get('/edit/:file', auth.required);
 router.get('/edit/:file', function(req, res) {
   var db = req.app.get('database'),
-           fHash = 'file:' + req.params.file;
+           fileHash = 'file:' + req.params.file;
 
-  db.hmget(fHash, ['user', 'title', 'description', 'public'], function(err, data) {
+  db.hmget(fileHash, ['user', 'title', 'description', 'public'], function(err, data) {
     if(!err) {
       if(req.session.admin || req.session.validate(data[0])) {
         res.render('edit', {
@@ -278,10 +284,10 @@ router.post('/edit', function(req, res) {
 
   var db = req.app.get('database'),
       fileName = req.body.file,
-      fHash = 'file:' + fileName,
+      fileHash = 'file:' + fileName,
       returnPath = req.body.returnPath || ('/' + fileName);
 
-  db.hmget(fHash, ['user', 'time', 'title', 'description', 'public'], function(err, data) {
+  db.hmget(fileHash, ['user', 'time', 'title', 'description', 'public'], function(err, data) {
     if(!err) {
       var user = data[0];
       if(req.session.admin || req.session.validate(user)) {
@@ -311,23 +317,23 @@ router.post('/edit', function(req, res) {
 
         if(newTitle != title) {
           if(newTitle != null && newTitle.length > 0) {
-            m.hset(fHash, 'title', newTitle);
+            m.hset(fileHash, 'title', newTitle);
           } else {
-            m.hdel(fHash, 'title');
+            m.hdel(fileHash, 'title');
           }
         }
 
         if(newDesc != desc) {
           if(newDesc != null && newDesc.length > 0) {
-            m.hset(fHash, 'description', newDesc);
+            m.hset(fileHash, 'description', newDesc);
           } else {
-            m.hdel(fHash, 'description');
+            m.hdel(fileHash, 'description');
           }
         }
 
         if(nowPublic != _public) {
           // update public flag
-          m.hset(fHash, 'public', nowPublic);
+          m.hset(fileHash, 'public', nowPublic);
           // transfer slug to appropriate list(s)
           if(nowPublic) {
             m.zrem('user:' + user + ':private', fileName);
@@ -393,9 +399,9 @@ router.get('/delete/:file', auth.required);
 router.get('/delete/:file', function(req, res) {
   var db = req.app.get('database'),
       fileName = req.params.file,
-      fHash = 'file:' + fileName;
+      fileHash = 'file:' + fileName;
 
-  db.hmget(fHash, ['title', 'user', 'public'], function(err, data) {
+  db.hmget(fileHash, ['title', 'user', 'public'], function(err, data) {
     if(!err) {
       if(req.session.admin || req.session.validate(data[1])) {
         res.render('delete', {
@@ -443,9 +449,9 @@ router.post('/delete', function(req, res) {
   var db = req.app.get('database'),
       fileName = req.body.file || null,
       filePath = __dirname + '/../files/' + fileName;
-      fHash = 'file:' + fileName;
+      fileHash = 'file:' + fileName;
 
-  db.hmget(fHash, ['user', 'public'], function(err, data) {
+  db.hmget(fileHash, ['user', 'public'], function(err, data) {
     if(!err) {
       if(req.session.admin || req.session.validate(data[0])) {
         // delete file
@@ -455,7 +461,7 @@ router.post('/delete', function(req, res) {
 
           // delete metadata
 
-          m.del(fHash);
+          m.del(fileHash);
           if(isTrue(data[1])) {
             m.zrem('public', fileName);
             m.zrem(userHash + ':public', fileName);
@@ -507,12 +513,12 @@ router.post('/delete', function(req, res) {
 router.get('/:file', function(req, res, rf) {
   var db = req.app.get('database'),
       fileName = req.params.file,
-      fHash = 'file:' + fileName;
+      fileHash = 'file:' + fileName;
 
   var filePath,
       fileExt;
 
-  db.hgetall(fHash, function(err, u) {
+  db.hgetall(fileHash, function(err, u) {
     if(!err && u != null) {
       for(k in ['title', 'description', 'user', 'time']) {
         if(_.has(u,k) == false)
@@ -526,7 +532,8 @@ router.get('/:file', function(req, res, rf) {
       u.public = isTrue(u.public) || false;
 
       if(u.encrypted) {
-        renderView(u, null); // render encrypted views without inline content
+        // render encrypted views without initial content
+        renderView(u, null);
       } else {
         fs.readFile(filePath, function(err, data) {
           if(!err) {

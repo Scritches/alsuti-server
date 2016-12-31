@@ -29,7 +29,10 @@ body
         $('#listingCount').val('#{count}');
     span#page.floatRight Page #{page}
   -if(uploads.length == 0)
-    span There's nothing here.
+    -if(listingType == 'private')
+      span You haven't uploaded anything yet.
+    -else
+      span There's nothing here.
   -else
     table#listing(border='0' cellpadding='5px' cellspacing='0')
       each u,i in uploads

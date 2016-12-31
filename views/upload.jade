@@ -9,7 +9,7 @@ body
     h1#title Upload
     form#fileForm.vpad(method='post' action='/upload' enctype='multipart/form-data')
       input(type='file' name='fileupload')
-      textarea#title(type='text' name='title' placeholder='Title' rows=1)
+      input#title(type='text' name='title' placeholder='Title')
       textarea#description(form='pasteForm' name='description' placeholder='Description')
       span.hpad
         label
