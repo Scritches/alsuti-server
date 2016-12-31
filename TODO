@@ -1,5 +1,6 @@
+[-] browser-side encryption [partially done; only supported for pastes]
 [*] rehost mimetype handling
-[ ] web frontend for invite codes
+[*] web frontend for invite codes
 [*] audio/video content view (with encryption support)
 [ ] file groups
 [ ] file tags
