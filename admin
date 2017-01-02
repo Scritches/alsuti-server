@@ -126,7 +126,7 @@ function main() {
             settings = [];
 
         db.exists(fileHash, function(err, exists) {
-          if(err || exists == false) {
+          if(!err && exists == false) {
             db.hmset(fileHash,
               'user', admin,
               'time', u.time,
