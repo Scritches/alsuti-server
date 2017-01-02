@@ -103,7 +103,6 @@ function main() {
       console.log("Example: ./admin mkdb user=someone password=something");
     }
     else {
-      setInviteOnly(true);
       setUser(admin, password, 'yes'); // add default admin user
 
       var slugs = fs.readdirSync('files').filter(function(slug) {
@@ -123,12 +122,12 @@ function main() {
 
       for(var i=0; i < uploads.length; ++i) {
         var u = uploads[i],
-            fHash = 'file:' + u.fileName,
+            fileHash = 'file:' + u.fileName,
             settings = [];
 
-        db.exists(fHash, function(err, exists) {
+        db.exists(fileHash, function(err, exists) {
           if(err || exists == false) {
-            db.hmset(fHash,
+            db.hmset(fileHash,
               'user', admin,
               'time', u.time,
               'encrypted', u.encrypted ? 'true' : 'false',

@@ -3,6 +3,7 @@ var _ = require('underscore')._,
     bcrypt = require('bcrypt-nodejs'),
     express = require('express'),
     fs = require('fs'),
+    multer = require('multer'),
     path = require('path'),
     jo = require('jpeg-autorotate'),
     request = require('request'),
@@ -34,42 +35,58 @@ router.get('/rehost', function(req, res) {
   });
 });
 
-router.post('/upload', auth.required);
-router.post('/upload', function(req, res) {
-  var localPath,
-      fileExt,
+var storage = multer.diskStorage({
+  destination: function(req, file, callback) {
+    callback(null, './files/');
+  },
+  filename: function(request, file, callback) {
+    var fileExt = types.fileExtension(file.originalname);
+    if(fileExt != null) {
+      callback(null, shortid.generate() + '.' + fileExt);
+    } else {
+      callback(null, shortid.generate());
+    };
+  }
+});
+
+var upload = multer({ storage: storage });
+
+router.post('/upload', auth.required, upload.single('fileupload'), function(req, res) {
+  var uploadDir = path.join(__dirname, '/../files/');
+
+  var fileExt,
       fileName,
       filePath;
 
-  if(_.has(req.files, 'fileupload')) {
-    localPath = __dirname + '/../files/';
+  // upload
+  if(_.has(req, 'file')) {
+    console.log(req.file.filename);
 
-    fileExt = types.fileExtension(req.files.fileupload.path);
-    if(fileExt != null) {
-      fileName = shortid.generate() + '.' + fileExt;
-    } else {
-      fileName = shortid.generate();
-    }
+    fileExt = types.fileExtension(req.file.filename);
+    fileName = req.file.filename;
+    filePath = path.join(uploadDir, fileName);
+    
+    // multer handles the upload itself.
+    // here we just autorotate jpeg images.
 
-    filePath = localPath + fileName;
     if(fileExt != null && isTrue(req.body.encrypted) == false &&
        types.mimeMap['image']['jpeg'].indexOf(fileExt) != -1)
     {
-      // rotate jpeg images according to orientation
-      fs.readFile(req.files.fileupload.path, function(err, data) {
-        if(!err) {
+      // autorotate jpeg images into correct orientation
+      fs.readFile(req.file.path, function(readErr, data) {
+        if(!readErr) {
           writeRotatedJPEG(data);
-        } else {
+        }
+        else {
           readError();
         }
       });
     }
     else {
-      fs.createReadStream(req.files.fileupload.path)
-        .pipe(fs.createWriteStream(filePath))
-        .on('close', function() { finalizeUpload(null); });
+      finalizeUpload(null);
     }
   }
+  // paste
   else if(_.has(req.body, 'content')) {
     localPath = __dirname + '/../files/';
 
@@ -84,12 +101,13 @@ router.post('/upload', function(req, res) {
       finalizeUpload(err);
     });
   }
+  // rehost
   else if(_.has(req.body, 'url')) {
     localPath = __dirname + '/../files/';
     try {
       request.head(req.body.url).on('response', function(response) {
         var mimeType = _.has(response.headers, 'content-type') ?
-                        response.headers['content-type'] : null;
+                       response.headers['content-type'] : null;
 
         if(mimeType != null) {
           fileExt = types.getExtension(mimeType);
@@ -287,16 +305,9 @@ router.post('/edit', function(req, res) {
       fileHash = 'file:' + fileName,
       returnPath = req.body.returnPath || ('/' + fileName);
 
-  db.hmget(fileHash, ['user', 'time', 'title', 'description', 'public'], function(err, data) {
-    if(!err) {
-      var user = data[0];
-      if(req.session.admin || req.session.validate(user)) {
-        var m = db.multi(),
-            time = data[1],
-            title = data[2],
-            desc = data[3],
-            _public = isTrue(data[4]);
-
+  db.hgetall(fileHash, function(err, u) {
+    if(!err && u != null) {
+      if(req.session.admin || req.session.validate(u.user)) {
         if(_.has(req.body, 'title')) {
           newTitle = req.body.title.trim();
         } else {
@@ -315,7 +326,9 @@ router.post('/edit', function(req, res) {
           nowPublic = false;
         }
 
-        if(newTitle != title) {
+        var m = db.multi();
+
+        if(newTitle != u.title) {
           if(newTitle != null && newTitle.length > 0) {
             m.hset(fileHash, 'title', newTitle);
           } else {
@@ -323,7 +336,7 @@ router.post('/edit', function(req, res) {
           }
         }
 
-        if(newDesc != desc) {
+        if(newDesc != u.description) {
           if(newDesc != null && newDesc.length > 0) {
             m.hset(fileHash, 'description', newDesc);
           } else {
@@ -331,18 +344,18 @@ router.post('/edit', function(req, res) {
           }
         }
 
-        if(nowPublic != _public) {
+        if(nowPublic != u.public) {
           // update public flag
           m.hset(fileHash, 'public', nowPublic);
           // transfer slug to appropriate list(s)
           if(nowPublic) {
-            m.zrem('user:' + user + ':private', fileName);
-            m.zadd('public', time, fileName);
-            m.zadd('user:' + user + ':public', time, fileName);
+            m.zrem('user:' + u.user + ':private', fileName);
+            m.zadd('public', u.time, fileName);
+            m.zadd('user:' + u.user + ':public', u.time, fileName);
           } else {
             m.zrem('public', fileName);
-            m.zrem('user:' + user + ':public', fileName);
-            m.zadd('user:' + user + ':private', time, fileName);
+            m.zrem('user:' + u.user + ':public', fileName);
+            m.zadd('user:' + u.user + ':private', u.time, fileName);
           }
         }
 
@@ -361,7 +374,7 @@ router.post('/edit', function(req, res) {
               res.render('info', {
                 'error': true,
                 'title': "Database Error",
-                'message': "Failed to edit file details.",
+                'message': "Could not edit file details.",
                 'returnPath': returnPath
               });
             }
@@ -401,16 +414,16 @@ router.get('/delete/:file', function(req, res) {
       fileName = req.params.file,
       fileHash = 'file:' + fileName;
 
-  db.hmget(fileHash, ['title', 'user', 'public'], function(err, data) {
-    if(!err) {
-      if(req.session.admin || req.session.validate(data[1])) {
+  db.hgetall(fileHash, function(err, u) {
+    if(!err && u != null) {
+      if(req.session.admin || req.session.validate(u.user)) {
         res.render('delete', {
           'fileName': fileName,
-          'title': data[0],
-          'user': data[1],
-          'public': isTrue(data[2]),
+          'title': u.title,
+          'user': u.user,
+          'public': u.public,
           'cancelReturnPath': req.headers.referer || ('/' + fileName),
-          'deleteReturnPath': isTrue(data[2]) ? '/user/' + data[1] : '/private'
+          'deleteReturnPath': isTrue(u.public) ? '/user/' + u.user : '/private'
         });
       }
       else {
@@ -423,9 +436,9 @@ router.get('/delete/:file', function(req, res) {
     }
     else {
       res.render('info', {
+        'error': true,
         'title': "Error",
         'message': "No such file.",
-        'returnPath': req.headers.referer || '/'
       });
     }
   });
@@ -439,6 +452,7 @@ router.post('/delete', function(req, res) {
     } else {
       res.status(400);
       res.render('info', {
+        'error': true,
         'title': "Client Error",
         'message': "No file specified."
       });
@@ -447,22 +461,23 @@ router.post('/delete', function(req, res) {
   }
 
   var db = req.app.get('database'),
+      m = db.multi(),
       fileName = req.body.file || null,
       filePath = __dirname + '/../files/' + fileName;
       fileHash = 'file:' + fileName;
 
-  db.hmget(fileHash, ['user', 'public'], function(err, data) {
-    if(!err) {
-      if(req.session.admin || req.session.validate(data[0])) {
+  db.hgetall(fileHash, function(err, u) {
+    if(!err && u != null) {
+      if(req.session.admin || req.session.validate(u.user)) {
         // delete file
         fs.unlink(filePath, function(err) {
           var m = db.multi(),
-              userHash = 'user:' + data[0];
+              userHash = 'user:' + u.user;
 
           // delete metadata
 
           m.del(fileHash);
-          if(isTrue(data[1])) {
+          if(isTrue(u.public)) {
             m.zrem('public', fileName);
             m.zrem(userHash + ':public', fileName);
           }

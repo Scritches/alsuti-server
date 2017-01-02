@@ -11,6 +11,7 @@ var _ = require('underscore')._,
     redis = require('redis'),
     sys = require('sys'),
     sessions = require('./routes/sessions.js'),
+    types = require('./types.js'),
     isTrue = require('./truthiness.js');
 
 if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
@@ -56,18 +57,18 @@ catch(e) {
 }
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true, limit: '500mb' }));
-app.use(device.capture({'parseUserAgent': true}));
-app.use(multer());
+app.use(bodyParser.urlencoded({ extended: true, limit: '1kb' }));
+
 app.use(cookieParser());
+app.use(device.capture({'parseUserAgent': true}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
   // api request flag
   if(req.method == 'POST') {
-    req.apiRequest = isTrue(req.body.api) || false;
+    req.apiRequest = _.has(req.body, 'api') && isTrue(req.body.api);
   } else {
-    req.apiRequest = isTrue(req.headers.api) || false;
+    req.apiRequest = _.has(req.body, 'api') && isTrue(req.headers.api);
   }
 
   // api response helper
