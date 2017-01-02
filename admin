@@ -82,7 +82,7 @@ function main() {
     }
   }
   else if(argv[0] == 'mkdb') {
-    var user = null,
+    var admin = null,
         password = null,
         _public = false;
 
@@ -98,7 +98,7 @@ function main() {
       }
     }
 
-    if(user == null || password == null) {
+    if(admin == null || password == null) {
       console.log("Error: you must specify an administrator user and password.");
       console.log("Example: ./admin mkdb user=someone password=something");
     }
@@ -135,7 +135,7 @@ function main() {
             );
 
             // push to user upload lists
-            var userHash = 'user:' + user;
+            var userHash = 'user:' + admin;
             if(_public) {
               db.zadd('public', u.time, u.fileName);
               db.zadd(userHash + ':public', u.time, u.fileName);
