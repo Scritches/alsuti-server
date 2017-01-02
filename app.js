@@ -5,7 +5,6 @@ var _ = require('underscore')._,
     express = require('express'),
     favicon = require('serve-favicon'),
     fs = require('fs'),
-    multer = require('multer'),
     path = require('path'),
     process = require('process'),
     redis = require('redis'),
@@ -13,11 +12,6 @@ var _ = require('underscore')._,
     sessions = require('./routes/sessions.js'),
     types = require('./types.js'),
     isTrue = require('./truthiness.js');
-
-if(!_.has(process.env, 'ALSUTI_INSTANCE')) {
-  console.log('You must set the ALSUTI_INSTANCE environment variable');
-  process.exit(1);
-}
 
 var app = express();
 
