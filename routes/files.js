@@ -35,36 +35,33 @@ router.get('/rehost', function(req, res) {
   });
 });
 
-var storage = multer.diskStorage({
-  destination: function(req, file, callback) {
-    callback(null, './files/');
-  },
-  filename: function(request, file, callback) {
-    var fileExt = types.fileExtension(file.originalname);
-    if(fileExt != null) {
-      callback(null, shortid.generate() + '.' + fileExt);
-    } else {
-      callback(null, shortid.generate());
-    };
-  }
+var fileUpload = multer({
+  storage: multer.diskStorage({
+    destination: function(req, file, callback) {
+      callback(null, path.join(__dirname, '/../files/'));
+    },
+    filename: function(request, file, callback) {
+      var fileExt = types.fileExtension(file.originalname);
+      if(fileExt != null) {
+        callback(null, shortid.generate() + '.' + fileExt);
+      } else {
+        callback(null, shortid.generate());
+      };
+    }
+  })
 });
 
-var upload = multer({ storage: storage });
-
-router.post('/upload', auth.required, upload.single('fileupload'), function(req, res) {
-  var uploadDir = path.join(__dirname, '/../files/');
-
+router.post('/upload', fileUpload.single('fileupload'));
+router.post('/upload', function(req, res) {
   var fileExt,
       fileName,
       filePath;
 
   // upload
   if(_.has(req, 'file')) {
-    console.log(req.file.filename);
-
     fileExt = types.fileExtension(req.file.filename);
     fileName = req.file.filename;
-    filePath = path.join(uploadDir, fileName);
+    filePath = req.file.path;
     
     // multer handles the upload itself.
     // here we just autorotate jpeg images.
@@ -73,11 +70,10 @@ router.post('/upload', auth.required, upload.single('fileupload'), function(req,
        types.mimeMap['image']['jpeg'].indexOf(fileExt) != -1)
     {
       // autorotate jpeg images into correct orientation
-      fs.readFile(req.file.path, function(readErr, data) {
+      fs.readFile(filePath, function(readErr, data) {
         if(!readErr) {
           writeRotatedJPEG(data);
-        }
-        else {
+        } else {
           readError();
         }
       });
@@ -203,7 +199,7 @@ router.post('/upload', auth.required, upload.single('fileupload'), function(req,
 
     m.exec(function(err, replies) {
       if(!err) {
-        // upload successful, return url
+        // upload successful, return fileName
         if(req.apiRequest) {
           res.api(false, {'fileName': fileName});
         } else {
@@ -258,14 +254,14 @@ router.get('/edit/:file', function(req, res) {
   var db = req.app.get('database'),
            fileHash = 'file:' + req.params.file;
 
-  db.hmget(fileHash, ['user', 'title', 'description', 'public'], function(err, data) {
-    if(!err) {
-      if(req.session.admin || req.session.validate(data[0])) {
+  db.hgetall(fileHash, function(err, u) {
+    if(!err && u != null) {
+      if(req.session.admin || req.session.validate(u.user)) {
         res.render('edit', {
           'fileName': req.params.file,
-          'title': data[1],
-          'description': data[2],
-          'public': isTrue(data[3]),
+          'title': u.title,
+          'description': u.description,
+          'public': isTrue(u.public),
           'returnPath': req.headers.referer || ('/' + req.params.file)
         });
       }

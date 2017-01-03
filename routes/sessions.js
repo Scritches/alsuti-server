@@ -22,19 +22,17 @@ function handleSession(req, res, next) {
 
   if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
     var db = req.app.get('database'),
-        sessionUser = req.cookies.sessionUser,
-        sessionKey = req.cookies.sessionKey,
-        userHash = 'user:' + sessionUser;
+        userHash = 'user:' + req.cookies.sessionUser;
 
-    db.hmget(userHash, ['sessionKey', 'sessionExpiry', 'admin'], function(err, data) {
-      if(!err && sessionKey == data[0]) {
-        req.session.user = sessionUser;
-        req.session.admin = isTrue(data[2]);
+    db.hgetall(userHash, function(err, user) {
+      if(!err && user != null && req.cookies.sessionKey == user.sessionKey) {
+        req.session.user = req.cookies.sessionUser;
+        req.session.admin = isTrue(user.admin);
 
-        if(data[1] == 'never') {
+        if(user.sessionExpiry == 'never') {
           req.session.status = 0;
         }
-        else if(Date.now() < parseInt(data[1])) {
+        else if(Date.now() < parseInt(user.sessionExpiry)) {
           db.hset(userHash, 'sessionExpiry', Date.now() + req.app.get('sessionAge'));
           req.session.status = 0;
         }
@@ -142,7 +140,7 @@ router.get('/logout', function(req, res) {
       userHash = 'user:' + req.session.user;
 
   var cookieOptions = {
-    'expires': new Date(0),
+    'expires': new Date(0), // makes the cookies expire immediately
     'httpOnly': true
   }
 

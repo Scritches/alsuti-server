@@ -50,30 +50,25 @@ catch(e) {
   console.log("Note: no favicon found");
 }
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true, limit: '1kb' }));
-
-app.use(cookieParser());
-app.use(device.capture({'parseUserAgent': true}));
-app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(function(req, res, next) {
-  // api request flag
-  if(req.method == 'POST') {
-    req.apiRequest = _.has(req.body, 'api') && isTrue(req.body.api);
-  } else {
-    req.apiRequest = _.has(req.body, 'api') && isTrue(req.headers.api);
-  }
+  req.apiRequest = _.has(req.headers, 'api') && isTrue(req.headers.api);
 
   // api response helper
   res.api = function(err, data) {
     data.error = err;
-    this.setHeader('Content-Type', "application/json");
+    this.setHeader('Content-Type', 'application/json');
     this.json(data);
   }.bind(res);
 
   next();
 });
+
+// middleware
+app.use(bodyParser.urlencoded({ extended: true, limit: '256mb' }));
+app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(device.capture({'parseUserAgent': true}));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // primary route handlers
 app.use(sessions.handler);

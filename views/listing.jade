@@ -27,7 +27,7 @@ body
       |  files per page
       script.
         $('#listingCount').val('#{count}');
-    span#page.floatRight Page #{page}
+    span#page.floatRight #{start}-#{end} of #{nTotal} / Page #{page}
   -if(uploads.length == 0)
     -if(listingType == 'private')
       span You haven't uploaded anything yet.

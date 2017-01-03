@@ -22,11 +22,17 @@ router.get('/user/:user', function(req, res) {
     if(exists) {
       renderListing(req, res, 'user:' + req.params.user + ':public',
                     req.params.user, 'userPublic');
-    } else {
-      res.render('info', {
-        'title': "Error",
-        'message': "No such user.",
-      });
+    }
+    else {
+      if(req.apiRequest) {
+        res.api(true, {'message': "No such user."});
+      }
+      else {
+        res.render('info', {
+          'title': "Error",
+          'message': "No such user.",
+        });
+      }
     }
   });
 });
@@ -43,7 +49,7 @@ function renderListing(req, res, zHash, title, listingType) {
   }
 
   var db = req.app.get('database'),
-      count = Math.min(parseInt(req.query.count), 50) || 15;
+      count = _.has(req.query, 'count') ? Math.min(parseInt(req.query.count), 50) : 15;
 
   var m = db.multi(),
       start = count * (page - 1),
@@ -54,7 +60,7 @@ function renderListing(req, res, zHash, title, listingType) {
 
   m.exec(function(err, replies) {
     if(!err) {
-      var len = parseInt(replies[0]),
+      var nTotal = parseInt(replies[0]),
           fileNames = replies[1];
 
       async.map(fileNames,
@@ -62,7 +68,7 @@ function renderListing(req, res, zHash, title, listingType) {
         function(fileName, done) {
           db.hgetall('file:' + fileName, function(err, s) {
             if(err || s == null) {
-              console.log("nonexistent metadata: " + fileName);
+              console.log("no metadata found for " + fileName);
               done(err, {'fileName': fileName});
               return;
             }
@@ -88,9 +94,12 @@ function renderListing(req, res, zHash, title, listingType) {
               'session': req.session,
               'title': title,
               'uploads': uploads,
+              'start': start + 1,
+              'end': end + 1,
+              'nTotal': nTotal,
               'count': count,
               'page': page,
-              'lastPage': end >= (len - 1),
+              'lastPage': end >= (nTotal - 1),
               'listingType': listingType
             });
           }
