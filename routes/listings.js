@@ -79,7 +79,7 @@ function renderListing(req, res, zHash, title, listingType) {
               'description': s.description || null,
               'time': s.time || null,
               'user': s.user || null,
-              'encrypted': isTrue(s.encrypted) || false,
+              'encrypted': _.has(s, 'encrypted') && isTrue(s.encrypted)
             };
 
             done(err, u);
