@@ -88,7 +88,14 @@ function renderListing(req, res, zHash, title, listingType) {
         // render when all slugs are transformed
         function(err, uploads) {
           if(req.apiRequest) {
-            res.api(false, {'uploads': uploads});
+            res.api(false, {
+              'uploads': uploads,
+              'start': start,
+              'end': end
+              'nTotal': nTotal,
+              'page': page,
+              'lastPage': end >= (nTotal - 1)
+            });
           } else {
             res.render('listing', {
               'session': req.session,
