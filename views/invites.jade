@@ -6,19 +6,23 @@ html
     link(rel='stylesheet' href='/stylesheets/style.css')
   body
     include globalBar
-    center#header
-      -if(quota > 0)
-        -if(session.admin == false)
-          span You have #{quota != 1 ? (quota + " invites") : (quota + " invite")} left.
-        form(method='post' action='/invites/create')
-          input(type='submit' value="Create Invite Code")
+    center
+      div#header
+        -if(quota > 0)
+          -if(session.admin == false)
+            span You have #{quota != 1 ? (quota + " invites") : (quota + " invite")} left.
+          form(method='post' action='/invites/create')
+            input(type='submit' value="Create Invite Code")
+        -else
+          span Your invite quota has been reached.
+      -if(invites.length == 0)
+        span You don't have any invite codes.
       -else
-        span Your invite quota has been reached.
-    table#listing
-      each code,i in invites
-        tr
-          td.expand
-            a(href='/register/#{code}')= code
-          td
-            a(href='/invites/delete/#{code}') Delete
-      
+        table#listing(style="width:300px;")
+          each code,i in invites
+            tr
+              td.expand
+                a(href='/register/#{code}')= code
+              td
+                a(href='/invites/delete/#{code}')
+                  img(src='/delete.png' height='16px')
