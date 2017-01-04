@@ -91,7 +91,7 @@ function renderListing(req, res, zHash, title, listingType) {
             res.api(false, {
               'uploads': uploads,
               'start': start,
-              'end': end
+              'end': end,
               'nTotal': nTotal,
               'page': page,
               'lastPage': end >= (nTotal - 1)
