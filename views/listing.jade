@@ -31,7 +31,7 @@ body
       -if(nTotal < count)
         p.floatRight #{nTotal} #{nTotal != 1 ? "files" : "file"}
       -else
-        p.floatRight Showing #{start}-#{end} of #{nTotal} files / Page #{page}
+        p.floatRight #{start}-#{end} of #{nTotal} files / Page #{page}
   -if(nTotal == 0 && listingType == 'private')
     p.pink You haven't uploaded anything yet.
   -else if(uploads.length == 0)
@@ -44,7 +44,7 @@ body
             td.expand
               a.red(href='/#{u.fileName}')= u.fileName
             td.alignRight
-              | Database Error
+              span (null)
           -else
             td.expand
               -if(u.encrypted)

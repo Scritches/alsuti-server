@@ -139,7 +139,7 @@ h2#section {
   overflow: auto;
   user-select: none;
 }
-#tools select {
+#tools > * {
   margin: 0px;
   vertical-align: middle;
 }
