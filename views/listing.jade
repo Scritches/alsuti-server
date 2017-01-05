@@ -54,10 +54,10 @@ body
             -if(session.admin || session.validate(u.user))
               td
                 a(href='/edit/#{u.fileName}')
-                  img(src='/edit.png' height='16px')
+                  img(src='/edit.png' height='18px')
               td
                 a(href='/delete/#{u.fileName}')
-                  img(src='/delete.png' height='16px')
+                  img(src='/delete.png' height='18px')
             td.alignRight
               span.uploadTime.hidden= u.time
             -if(listingType == 'public')

@@ -38,7 +38,7 @@ html
                 a(href='/register/#{code}')= code
               td
                 a(href='/invites/delete/#{code}')
-                  img(src='/delete.png' height='16px')
+                  img(src='/delete.png' height='18px')
       -if(quota > 0)
         form(method='post' action='/invites/new')
           button(type='submit') New
