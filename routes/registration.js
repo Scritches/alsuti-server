@@ -23,6 +23,7 @@ router.get('/register/:code', function(req, res) {
       var env = {
         'sender': invite.sender,
         'code': req.params.code,
+        'user': "",
       };
 
       if(_.has(req.query, 'user')) {
@@ -35,7 +36,7 @@ router.get('/register/:code', function(req, res) {
       res.render('info', {
         'title': "Error",
         'error': true,
-        'message': "Invalid invite code."
+        'message': "Invalid invite code.",
       });
     }
   });
@@ -44,7 +45,7 @@ router.get('/register/:code', function(req, res) {
 router.post('/register', function(req, res) {
   if(_.has(req.body, 'user') == false ||
      _.has(req.body, 'password') == false ||
-     _.has(req.body, 'password_confirm') == false ||
+     _.has(req.body, 'confirmPassword') == false ||
      _.has(req.body, 'code') == false)
   {
     res.render('info', {
@@ -63,7 +64,7 @@ router.post('/register', function(req, res) {
         var userHash = 'user:' + req.body.user;
         db.exists(userHash, function(err, userExists) {
           if(userExists == false) {
-            if(req.body.password == req.body.password_confirm) {
+            if(req.body.password == req.body.confirmPassword) {
               // create password hash for account
               bcrypt.hash(req.body.password, null, null, function(err, pHash) {
                 var m = db.multi(),
@@ -93,8 +94,8 @@ router.post('/register', function(req, res) {
               else {
                 res.render('register', {
                   'error': "Passwords do not match.",
-                  'user': req.body.user,
                   'code': req.body.code
+                  'user': req.body.user,
                 });
               }
             }
@@ -106,7 +107,8 @@ router.post('/register', function(req, res) {
             else {
               res.render('register', {
                 'error': "Sorry. That user name is already taken.",
-                'code': req.body.code
+                'code': req.body.code,
+                'user': req.body.user
               });
             }
           }

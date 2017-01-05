@@ -12,7 +12,7 @@ head
       -else
         p#description <b>#{sender}</b> has invited you to Alsuti.
       form#register.vpad(method='post' action='/register')
-        input#user(type='text' name='user' placeholder="User Name" value="#{user || ""}")
+        input#user(type='text' name='user' placeholder="User Name" value="#{user}")
         input#password(type='password' name='password' placeholder="Password" autocomplete='new-password')
         input#passwordConfirm(type='password' name='password_confirm' placeholder='Confirm Password' autocomplete='new-password')
         input(type='hidden' name='code' value='#{code}')
