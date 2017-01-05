@@ -133,7 +133,7 @@ router.post('/login', startSession);
 router.get('/logout', function(req, res) {
   var returnPath = req.headers.referer || '/public';
 
-  if(req.session.validate(req.cookies.sessionUser) == false) {
+  if(req.session.validate() == false) {
     res.redirect(returnPath);
     return;
   }

@@ -1,7 +1,7 @@
 doctype html
 head
   title Paste
-  meta(name='viewport' content='width=device-width, initial-scale=1')
+  meta(name='viewport' content="width=device-width, initial-scale=1")
   link(rel='stylesheet' href='/stylesheets/style.css')
   script(src='/js/lib/jquery.min.js')
   script(src='/js/lib/aes.js')
@@ -9,9 +9,9 @@ head
 body
   include globalBar
   h1#title Paste
-  form#paste.vpad(onsubmit="return onPaste(event);" method='post' action='/upload')
-    input#title(type='text' name='title' placeholder='Title' autofocus)
-    textarea#description(form='paste' name='description' placeholder='Description')
+  form#paste.vpad(method='post' action='/upload' onsubmit="return onPaste(event);")
+    input#title(type='text' name='title' placeholder="Title" autofocus)
+    textarea#description(form='paste' name='description' placeholder="Description")
     div.hpad
       select(form='paste' name='extension')
         option(label='Text') txt
@@ -35,6 +35,6 @@ body
       input#password(type='password' placeholder="Password" disabled)
     div.hpad
       label
-        input(type='checkbox' name='public' value='yes').vcenter
+        input(type='checkbox' name='public' value="yes").vcenter
         | Public
       button#paste(type='submit') Paste

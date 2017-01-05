@@ -29,7 +29,7 @@ function authRequired(req, res, next) {
           else {
             res.render('login', {
               'error': "Invalid user/password.",
-              'returnPath': req.path
+              'returnPath': req.body.returnPath
             });
           }
         }
@@ -43,7 +43,7 @@ function authRequired(req, res, next) {
     } else {
       res.render('login', {
         'error': "Session expired.",
-        'returnPath': req.path != '/logout' ? req.path : '/'
+        'returnPath': req.path
       });
     }
   }
@@ -53,10 +53,18 @@ function authRequired(req, res, next) {
       res.api(true, "Authentication required.");
       res.api(true, {'message': "Authentication required."});
     } else {
-      res.render('login', {
+      var env = {
         'error': "Authentication required.",
         'returnPath': req.path
-      });
+      };
+
+      if(env.returnPath == '/login') {
+        env.returnPath = '/private';
+      } else {
+        env.returnPath = req.headers.referer || '/private';
+      }
+
+      res.render('login', env);
     }
   }
 }

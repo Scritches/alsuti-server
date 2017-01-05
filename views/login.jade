@@ -1,20 +1,20 @@
 doctype html
 head
   title Login
-  meta(name='viewport' content='width=device-width, initial-scale=1')
+  meta(name='viewport' content="width=device-width, initial-scale=1")
   link(rel='stylesheet' href='/stylesheets/style.css')
 body
   include globalBar
   center
     h1#title Log In
     -if(error)
-      p#loginMessage.error= error
+      p#loginMessage.red= error
     -else
       p#loginMessage= message
     form#login.vpad(method='post' action='/login')
-      input(name='user' placeholder='User Name')#user
-      input(type='password' name='password' placeholder='Password')#password
-      input(type='hidden' name='returnPath' value='#{returnPath}')
+      input(name='user' placeholder="User Name")#user
+      input(type='password' name='password' placeholder="Password")#password
+      input(type='hidden' name='returnPath' value="#{returnPath || '/private'}")
       div.hpad
         label
           input(type='checkbox' name='noExpiry')
