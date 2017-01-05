@@ -45,6 +45,7 @@ var fileUpload = multer({
   })
 });
 
+router.post('/upload', auth.required);
 router.post('/upload', fileUpload.single('file'));
 router.post('/upload', function(req, res) {
   var fileExt,
