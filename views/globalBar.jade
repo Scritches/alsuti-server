@@ -1,4 +1,4 @@
-mixin menu
+mixin mainMenu
   div.menu
     span#alsuti
     div.menu-wrapper
@@ -7,82 +7,29 @@ mixin menu
         a(href='/paste') Paste
         a(href='/rehost') Rehost
 
-div#globalBar.hpad
-  -if(typeof listingType !== 'undefined')
-    -if(listingType == 'private')
-      -if(session.validate())
-        mixin menu
-        span.divider
-        a(href='/public') Public
-        span.floatRight.hpad
-          a(href='/invites') Invites
-          span.divider
-          a(href='/logout') Log out
-      -else
-        span#alsuti.noMenu
-        span.divider
-        a(href='/public') Public
-        span.floatRight
-          a(href='/login') Log In
-    -else if(listingType == 'public')
-      -if(session.validate())
-        mixin menu
-        span.divider
-        a(href='/private') Private
-        span.floatRight.hpad
-          a(href='/invites') Invites
-          span.divider
-          a(href='/logout') Log Out
-      -else
-        span#alsuti.noMenu
-        span.floatRight
-          a(href='/login') Log In
-    -else if(listingType == 'userPublic')
-      -if(session.validate())
-        mixin menu
-        span.divider
-        a(href='/private') Private
-        span.divider
-        a(href='/public') Public
-        span.floatRight.hpad
-          a(href='/invites') Invites
-          span.divider
-          a(href='/logout') Log Out
-      -else
-        span#alsuti.noMenu
-        span.divider
-        a(href='/public') Public
-        span.floatRight
-          a(href='/login') Log In
-    -else if(listingType='invites')
-      -if(session.validate())
-        mixin menu
-        span.divider
-        a(href='/private') Private
-        span.divider
-        a(href='/public') Public
-        span.floatRight
-          a(href='/logout') Log Out
-      -else
-        span#alsuti.noMenu
-        span.divider
-        a(href='/public') Public
-        span.floatRight
-          a(href='/login') Log In
-  -else
-    -if(session.validate())
-      mixin menu
-      span.divider
-      a.listingLink(href='/private') Private
-      span.divider
-      a.listingLink(href='/public') Public
-      span.floatRight.hpad
+mixin userMenu
+  div.menu
+    div.menu-wrapper
+      div.menu-content
+        -if(session.admin)
+          a(href='/admin') Admin
         a(href='/invites') Invites
-        span.divider
-        a(href='/logout') Log Out
-    -else
-      span#alsuti.noMenu
+        a(href='/password') Password
+
+div#globalBar.hpad
+  -if(session.validate())
+    mixin mainMenu
+    span.divider
+    a(href='/private') Private
+    span.divider
+    a(href='/public') Public
+    span.floatRight.hpad
+      a(href='/settings') Settings
       span.divider
-      a.listingLink(href='/public') Public
-      span.floatRight
-        a(href='/login') Log In
+      a(href='/logout') Log out
+  -else
+    span#alsuti.noMenu
+    span.divider
+    a(href='/public') Public
+    span.floatRight
+      a(href='/login') Log In

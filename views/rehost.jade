@@ -6,12 +6,12 @@ head
 body
   include globalBar
   h1#title Rehost
-  form#rehostForm.vpad(method='post' action='/upload')
+  form#rehost.vpad(method='post' action='/upload')
     input#url(type='text' name='url' placeholder="URL" autofocus)
     input#title(type='text' name='title' placeholder='Title')
-    textarea#description(form='pasteForm' name='description' placeholder='Description')
+    textarea#description(form='rehost' name='description' placeholder='Description')
     span.hpad
       label
         input(type='checkbox' name='public' value='yes')
         | Public
-      input(type='submit' value='Rehost')
+      button#rehost(type='submit') Rehost

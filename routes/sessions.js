@@ -15,10 +15,12 @@ function Session(req, res) {
       return this.status == 0;
     }
   };
+
+  res.locals.session = this;
 }
 
 function handleSession(req, res, next) {
-  req.session = new Session();
+  req.session = new Session(req, res);
 
   if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
     var db = req.app.get('database'),

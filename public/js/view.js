@@ -29,8 +29,8 @@ updateDecryptErrorTimeout = null;
 passwordChangedInErrorState = false;
 
 $(function() {
-  var pEntry = $('#passwordEntry'),
-      dButton = $('#decryptButton');
+  var pEntry = $('#password'),
+      dButton = $('button#decrypt');
 
   decryptNormalStatus = $('#decryptionStatus').text();
   decryptNormalColour = $('#decryption').css('background-color');
@@ -56,7 +56,7 @@ $(function() {
   });
 
   pEntry.on('input', function() {
-    $('#decryptButton').attr('disabled', pEntry.val().length == 0);
+    $('button#decrypt').attr('disabled', pEntry.val().length == 0);
     if(decryptErrorState == 1) {
       passwordChangedInErrorState = true;
     } else if(decryptErrorState == 2) {
@@ -66,7 +66,7 @@ $(function() {
 });
 
 function decrypt(password) {
-  var pEntry = $('#passwordEntry'),
+  var pEntry = $('input#password'),
       dTools = $('#decryptionTools'),
       dStatus = $('#decryptionStatus');
 
@@ -310,9 +310,9 @@ function initText(url, text) {
 
 function copyToClipboard() {
   var $temp = $("<input>");
-  $("body").append($temp);
+  $('body').append($temp);
   $temp.val($('#content').text()).select();
-  document.execCommand("copy");
+  document.execCommand('copy');
   $temp.remove();
 }
 

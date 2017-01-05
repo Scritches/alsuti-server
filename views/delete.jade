@@ -5,10 +5,11 @@ head
   link(rel='stylesheet' href='/stylesheets/style.css')
   script(src='/js/lib/jquery.min.js')
 body
+  include globalBar
   center
     h1#title #{title || fileName}
     p#actionMessage.error Are you sure you want to delete this file?
-    form#deleteForm(method='post' action='/delete')
+    form#delete(method='post' action='/delete')
       input(type='hidden' name='file' value='#{fileName}')
       input(type='hidden' name='returnPath' value='#{deleteReturnPath}')
       button(type='submit') Confirm

@@ -1,22 +1,24 @@
 doctype html
 html
   head
-    -if(title != null)
+    -if(title)
       title= title
     -else
       title Info
     meta(name='viewport' content='width=device-width, initial-scale=1')
+    -if(redirectTimeout)
+      meta(http-equiv='refresh' content="#{redirectTimeout};url=#{returnPath}")
     link(rel='stylesheet' href='/stylesheets/style.css')
 body
   center
-    -if(title != null)
+    -if(title)
       h1#title= title
     -else
       h1#title= Info
-    -if(message != null)
+    -if(message)
       -if(error)
-        p.red= message
+        p#description.red= message
       -else
-        p= message
-    -if(returnPath != null)
+        p#description= message
+    -if(typeof redirectTimeout === 'undefined' && returnPath)
       a(href='#{returnPath}') Go Back

@@ -4,13 +4,13 @@ function onPaste(ev) {
     return true;
   }
 
-  var password = $('#passwordEntry').val();
+  var password = $('input#password').val();
   if(password.length == 0) {
     ev.preventDefault();
     return false;
   }
 
-  var content = $('#content'),
+  var content = $('textarea#content'),
       plainText = content.val(),
       cipherText = CryptoJS.AES.encrypt(plainText, password);
 
@@ -19,7 +19,7 @@ function onPaste(ev) {
 }
 
 function togglePasswordEntry() {
-  var pEntry = $('#passwordEntry');
+  var pEntry = $('input#password');
   if($('#encryptCheckbox').prop('checked')) {
     pEntry.attr('disabled', false);
     pEntry.focus();

@@ -3,12 +3,17 @@ head
   title Register
   meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='/stylesheets/style.css')
-  center
-    h1#title Register
-    p#description
-      | <b>#{sender}</b> has invited you to Alsuti.
-    form#registerForm.vpad(method='post' action='/register')
-      input#userEntry(type='text' name='user' placeholder='User Name')
-      input#passwordEntry(type='password' name='password' placeholder='Password' autocomplete='new-password')
-      input(type='hidden' name='code' value='#{code}')
-      button(type='submit') Register
+  body
+    include globalBar
+    center
+      h1#title Register
+      -if(error)
+        p#description.red #{error}
+      -else
+        p#description <b>#{sender}</b> has invited you to Alsuti.
+      form#register.vpad(method='post' action='/register')
+        input#user(type='text' name='user' placeholder='User Name' value="#{user || ''}")
+        input#password(type='password' name='password' placeholder='Password')
+        input#passwordConfirm(type='password' name='password_confirm' placeholder='Confirm Password')
+        input(type='hidden' name='code' value='#{code}')
+        button(type='submit') Register

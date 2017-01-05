@@ -98,7 +98,6 @@ function renderListing(req, res, zHash, title, listingType) {
             });
           } else {
             res.render('listing', {
-              'session': req.session,
               'title': title,
               'uploads': uploads,
               'start': start + 1,

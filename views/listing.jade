@@ -27,11 +27,15 @@ body
       |  files per page
       script.
         $('#listingCount').val('#{count}');
-    span#page.floatRight #{start}-#{end} of #{nTotal} / Page #{page}
+    -if(nTotal > 0)
+      -if(nTotal < count)
+        p.floatRight #{nTotal} #{nTotal != 1 ? "files" : "file"}
+      -else
+        p.floatRight Showing #{start}-#{end} of #{nTotal} files / Page #{page}
   -if(nTotal == 0 && listingType == 'private')
-    span You haven't uploaded anything yet.
+    p.pink You haven't uploaded anything yet.
   -else if(uploads.length == 0)
-    span There's nothing here.
+    p.pink There's nothing here.
   -else
     table#listing(border='0' cellpadding='5px' cellspacing='0')
       each u,i in uploads

@@ -53,7 +53,7 @@ catch(e) {
 app.use(function(req, res, next) {
   req.apiRequest = _.has(req.headers, 'api') && isTrue(req.headers.api);
 
-  // api response helper
+  // for api responses
   res.api = function(err, data) {
     data.error = err;
     this.setHeader('Content-Type', 'application/json');
@@ -73,6 +73,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // primary route handlers
 app.use(sessions.handler);
 app.use('/', sessions.router);
+app.use('/', require('./routes/settings.js'));
 app.use('/', require('./routes/registration.js'));
 app.use('/', require('./routes/listings.js'));
 app.use('/', require('./routes/files.js'));

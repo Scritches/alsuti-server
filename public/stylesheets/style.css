@@ -17,6 +17,21 @@ a#downloadLink,
 a#copyLink {
   text-decoration: none;
 }
+a.switch {
+  text-decoration: none;
+  border-bottom: 1px dashed;
+}
+a.switch.enabled {
+  border-bottom: 1px double;
+}
+p {
+  margin: 0px;
+  padding: 0px;
+}
+span.divider:after {
+  color: #808080;
+  content: '|';
+}
 .bold {
   font-weight: bold;
 }
@@ -47,10 +62,6 @@ a#copyLink {
 .floatRight {
   float: right;
 }
-span.divider:after {
-  color: #808080;
-  content: '|';
-}
 .hidden {
   display: none;
 }
@@ -59,18 +70,16 @@ span.divider:after {
 form {
   margin: 10px 0px 0px;
 }
-
-form > textarea,
-form > input[type=text] {
-  box-sizing: border-box;
+form#edit,
+form#delete {
+  margin: 10px;
 }
-
 form > input[type=text],
+form > input[type=password],
 form > textarea {
+  box-sizing: border-box;
   display: block;
 }
-
-
 form > input#url,
 form > input#title,
 form > textarea#description {
@@ -78,34 +87,24 @@ form > textarea#description {
   width: 25%;
   resize: none;
 }
-
-
 form > textarea#content {
   width: 100%;
+  min-width: 300px;
+  min-height: 200px;
   resize: vertical;
 }
-
 form > span {
   width: 100%;
   resize: none;
 }
-form > textarea#content {
-  min-width: 300px;
-  min-height: 200px;
-}
-
 label {
   user-select: none;
 }
 
 /* login/register/delete/edit pages */
-form#editForm,
-form#deleteForm {
-  margin: 10px;
-}
-#loginForm > *,
-#registerForm > *,
-form#editForm > * {
+form#login > *,
+form#register > *,
+form#edit > * {
   display: block;
 }
 
@@ -121,6 +120,9 @@ h1#title {
   display: block;
   font-size: 150%;
   margin: 0px;
+}
+h2#section {
+  font-size: 100%;
 }
 #description {
   display: block;
@@ -141,22 +143,14 @@ h1#title {
   margin: 0px;
   vertical-align: middle;
 }
-a.switch {
-  text-decoration: none;
-  border-bottom: 1px dashed;
-}
-a.switch.enabled {
-  border-bottom: 1px double;
-}
 #imageScale {
   width: 50px;
 }
 
 /* main title / menu */
-
 #alsuti:after {
   content: "☰ Alsuti";
-  cursor: default;
+  cursor: pointer;
   font-weight: bold;
 }
 
@@ -169,6 +163,7 @@ a.switch.enabled {
   position: relative;
 }
 .menu-wrapper {
+  cursor: pointer;
   display: none;
   position: absolute;
 }

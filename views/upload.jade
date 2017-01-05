@@ -7,12 +7,12 @@ body
   include globalBar
   div#fileUpload
     h1#title Upload
-    form#fileForm.vpad(method='post' action='/upload' enctype='multipart/form-data')
-      input(type='file' name='fileupload')
+    form#upload.vpad(method='post' action='/upload' enctype='multipart/form-data')
+      input#file(type='file' name='fileupload')
       input#title(type='text' name='title' placeholder='Title')
-      textarea#description(form='pasteForm' name='description' placeholder='Description')
+      textarea#description(form='upload' name='description' placeholder='Description')
       span.hpad
         label
           input(type='checkbox' name='public' value='yes')
           | Public
-        input(type='submit' value='Upload')
+        button#upload(type='submit') Upload

@@ -9,11 +9,11 @@ head
 body
   include globalBar
   h1#title Paste
-  form#pasteForm.vpad(onsubmit="return onPaste(event);" method='post' action='/upload')
+  form#paste.vpad(onsubmit="return onPaste(event);" method='post' action='/upload')
     input#title(type='text' name='title' placeholder='Title' autofocus)
-    textarea#description(form='pasteForm' name='description' placeholder='Description')
+    textarea#description(form='paste' name='description' placeholder='Description')
     div.hpad
-      select(form='pasteForm' name='extension')
+      select(form='paste' name='extension')
         option(label='Text') txt
         option(label='Markdown') md
         option(label='HTML') html
@@ -27,14 +27,14 @@ body
         option(label='Perl') pl
         option(label='Java') java
         option(label='Groovy') groovy\
-    textarea#content(form='pasteForm' name='content' placeholder="Content")
+    textarea#content(form='paste' name='content' placeholder="Content")
     div.hpad
       label
         input#encryptCheckbox(onchange="togglePasswordEntry();" type='checkbox' name='encrypted' value='yes').vcenter
         | Encrypt
-      input#passwordEntry(type='password' placeholder="Password" disabled)
+      input#password(type='password' placeholder="Password" disabled)
     div.hpad
       label
         input(type='checkbox' name='public' value='yes').vcenter
         | Public
-      input(type='submit' value='Paste')
+      button#paste(type='submit') Paste

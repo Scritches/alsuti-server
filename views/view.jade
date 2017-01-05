@@ -21,9 +21,9 @@ mixin tools
     -if(session.admin || session.validate(user))
       span#ownerTools.hpad.floatRight
         a(href='/edit/#{fileName}')
-          img(src='/edit.png' height='16px')
+          img(src='/edit.png' height='18px')
         a(href='/delete/#{fileName}')
-          img(src='/delete.png' height='16px')
+          img(src='/delete.png' height='18px')
 
 doctype html
 html
@@ -76,8 +76,8 @@ html
       div#decryption
         div#decryptionStatus This file is encrypted.
         div#decryptionTools.hpad
-          input#passwordEntry(type='password' placeholder='Password' autocomplete='new-password' autofocus)
-          button#decryptButton(disabled='true' onclick='decrypt();') Decrypt
+          input#password(type='password' placeholder='Password' autocomplete='new-password' autofocus)
+          button#decrypt(disabled='true' onclick='decrypt();') Decrypt
       if(fileType == 'image')
         center#imageContainer(style='display:none;')
           a#imageLink

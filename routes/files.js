@@ -16,23 +16,17 @@ var router = express.Router();
 
 router.get('/upload', auth.required);
 router.get('/upload', function(req, res) {
-  res.render('upload', {
-    'session': req.session
-  });
+  res.render('upload');
 });
 
 router.get('/paste', auth.required);
 router.get('/paste', function(req, res) {
-  res.render('paste', {
-    'session': req.session
-  });
+  res.render('paste');
 });
 
 router.get('/rehost', auth.required);
 router.get('/rehost', function(req, res) {
-  res.render('rehost', {
-    'session': req.session
-  });
+  res.render('rehost');
 });
 
 var fileUpload = multer({
@@ -620,7 +614,6 @@ router.get('/:file', function(req, res, rf) {
         'user': u.user,
         'time': u.time,
         'encrypted': u.encrypted,
-        'session': req.session,
         'fileType': fileType,
         'subType': subType,
         'fileExt': fileExt,
