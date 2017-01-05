@@ -68,7 +68,7 @@ span.divider:after {
 
 /* common input */
 form {
-  margin: 10px 0px 0px;
+  margin: 10px 0px 10px;
 }
 form#edit,
 form#delete {

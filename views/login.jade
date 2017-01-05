@@ -12,11 +12,11 @@ body
     -else
       p#loginMessage= message
     form#login.vpad(method='post' action='/login')
-      input(name='user' placeholder="User Name")#user
-      input(type='password' name='password' placeholder="Password")#password
+      input#user(type='text' name='user' placeholder="User Name" autocomplete='username')
+      input#password(type='password' name='password' placeholder="Password" autocomplete='current-password')
       input(type='hidden' name='returnPath' value="#{returnPath || '/private'}")
       div.hpad
         label
           input(type='checkbox' name='noExpiry')
           | Stay logged in
-        input(type='submit' value="Log In")
+        button(type='submit') Log In

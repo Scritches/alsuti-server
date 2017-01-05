@@ -253,8 +253,8 @@ router.get('/edit/:file', function(req, res) {
       if(req.session.admin || req.session.validate(u.user)) {
         res.render('edit', {
           'fileName': req.params.file,
-          'title': u.title,
-          'description': u.description,
+          'title': u.title || "",
+          'description': u.description || "",
           'public': isTrue(u.public),
           'returnPath': req.headers.referer || ('/' + req.params.file)
         });
