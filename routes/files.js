@@ -58,7 +58,7 @@ router.post('/upload', function(req, res) {
     fileName = req.file.filename;
     filePath = req.file.path;
 
-    // multer handles the upload itself.
+    // multer handles the uploading stuff automatically.
     // here we just autorotate jpeg images.
 
     if(fileExt != null && isTrue(req.body.encrypted) == false &&

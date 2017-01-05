@@ -47,7 +47,7 @@ function sessionHandler(req, res, next) {
           userHash = 'user:' + auth.user;
 
       db.hgetall(userHash, function(err, user) {
-        if(!err) {
+        if(!err && user != null) {
           bcrypt.compare(auth.password, user.password, function(err, result) {
             if(!err && result) {
               req.session.user = auth.user;
