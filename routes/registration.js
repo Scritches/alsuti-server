@@ -94,8 +94,8 @@ router.post('/register', function(req, res) {
               else {
                 res.render('register', {
                   'error': "Passwords do not match.",
-                  'code': req.body.code
-                  'user': req.body.user,
+                  'code': req.body.code,
+                  'user': req.body.user
                 });
               }
             }
