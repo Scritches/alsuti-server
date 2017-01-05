@@ -1,4 +1,5 @@
 var _ = require('underscore'),
+    bcrypt = require('bcrypt-nodejs'),
     express = require('express'),
     shortid = require('shortid'),
     auth = require('./auth'),
@@ -19,34 +20,115 @@ function Session(req, res) {
   res.locals.session = this;
 }
 
-function handleSession(req, res, next) {
+function parseAuth(str) {
+  var auth = { 'user': null, 'password': null },
+      parts = str.split(" ");
+
+  auth.scheme = parts[0];
+  if(auth.scheme != 'Basic')
+    return auth;
+
+  str = new Buffer(parts[1], 'base64').toString('utf8');
+
+  var index = str.indexOf(':');
+  auth.user = str.substr(0, index);
+  auth.password = str.substr(index + 1);
+
+  return auth;
+}
+
+function sessionHandler(req, res, next) {
   req.session = new Session(req, res);
 
-  if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
+  if(_.has(req.headers, 'authorization')) {
+    var auth = parseAuth(req.headers.authorization);
+    if(auth.scheme == 'Basic' && auth.user != null && auth.password != null) {
+      var db = req.app.get('database'),
+          userHash = 'user:' + auth.user;
+
+      db.hgetall(userHash, function(err, user) {
+        if(!err) {
+          bcrypt.compare(auth.password, user.password, function(err, result) {
+            if(!err && result) {
+              req.session.user = auth.user;
+              req.session.admin = isTrue(user.admin);
+              req.session.status = 0;
+            }
+            else {
+              req.session.status = 2;
+            }
+
+            next();
+          });
+        }
+        else {
+          res.status(401);
+          if(req.apiRequest) {
+            res.api(true, {'message': "Database error."});
+          }
+          else {
+            res.render('info', {
+              'error': true,
+              'title': "Database Error",
+              'error': "Something went wrong."
+            });
+          }
+        }
+      });
+    }
+    else {
+      if(req.apiRequest) {
+        res.api(true, {'message': "Invalid authorization header."});
+      }
+      else {
+        res.render('info', {
+          'error': true,
+          'title': "Client Error",
+          'message': "Invalid authorization header."
+        });
+      }
+    }
+  }
+  else if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
     var db = req.app.get('database'),
         userHash = 'user:' + req.cookies.sessionUser;
 
     db.hgetall(userHash, function(err, user) {
-      if(!err && user != null && req.cookies.sessionKey == user.sessionKey) {
-        req.session.user = req.cookies.sessionUser;
-        req.session.admin = isTrue(user.admin);
+      if(!err) {
+        if(user != null && req.cookies.sessionKey == user.sessionKey) {
+          req.session.user = req.cookies.sessionUser;
+          req.session.admin = isTrue(user.admin);
 
-        if(user.sessionExpiry == 'never') {
-          req.session.status = 0;
-        }
-        else if(Date.now() < parseInt(user.sessionExpiry)) {
-          db.hset(userHash, 'sessionExpiry', Date.now() + req.app.get('sessionAge'));
-          req.session.status = 0;
+          if(user.sessionExpiry == 'never') {
+            req.session.status = 0;
+          }
+          else if(Date.now() < parseInt(user.sessionExpiry)) {
+            db.hset(userHash, 'sessionExpiry', Date.now() + req.app.get('sessionAge'));
+            req.session.status = 0;
+          }
+          else {
+            req.session.status = 1; // session expired
+          }
         }
         else {
-          req.session.status = 1; // session expired
+          req.session.status = 2; // invalid auth info
         }
+
+        next();
       }
       else {
-        req.session.session = 2; // invalid session key
+        res.status(401);
+        if(req.apiRequest) {
+          res.api(true, {'message': "Database error."});
+        }
+        else {
+          res.render('info', {
+            'error': true,
+            'title': "Database Error",
+            'error': "Something went wrong."
+          });
+        }
       }
-
-      next();
     });
   }
   else {
@@ -155,7 +237,7 @@ router.get('/logout', function(req, res) {
 });
 
 module.exports = {
+  'handler': sessionHandler,
   'router': router,
-  'handler': handleSession,
   'start': startSession,
 };

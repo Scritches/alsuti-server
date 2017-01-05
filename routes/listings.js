@@ -29,6 +29,7 @@ router.get('/user/:user', function(req, res) {
       }
       else {
         res.render('info', {
+          'error': true,
           'title': "Error",
           'message': "No such user.",
         });

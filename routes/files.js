@@ -57,7 +57,7 @@ router.post('/upload', function(req, res) {
     fileExt = types.fileExtension(req.file.filename);
     fileName = req.file.filename;
     filePath = req.file.path;
-    
+
     // multer handles the upload itself.
     // here we just autorotate jpeg images.
 

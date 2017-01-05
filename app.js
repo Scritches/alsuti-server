@@ -9,7 +9,6 @@ var _ = require('underscore')._,
     process = require('process'),
     redis = require('redis'),
     sys = require('sys'),
-    sessions = require('./routes/sessions.js'),
     types = require('./types.js'),
     isTrue = require('./truthiness.js');
 
@@ -50,6 +49,13 @@ catch(e) {
   console.log("Note: no favicon found");
 }
 
+// middleware
+app.use(bodyParser.urlencoded({ extended: true, limit: '256mb' }));
+app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(device.capture({'parseUserAgent': true}));
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(function(req, res, next) {
   req.apiRequest = _.has(req.headers, 'api') && isTrue(req.headers.api);
 
@@ -63,14 +69,8 @@ app.use(function(req, res, next) {
   next();
 });
 
-// middleware
-app.use(bodyParser.urlencoded({ extended: true, limit: '256mb' }));
-app.use(bodyParser.json());
-app.use(cookieParser());
-app.use(device.capture({'parseUserAgent': true}));
-app.use(express.static(path.join(__dirname, 'public')));
-
 // primary route handlers
+var sessions = require('./routes/sessions.js');
 app.use(sessions.handler);
 app.use('/', sessions.router);
 app.use('/', require('./routes/settings.js'));
