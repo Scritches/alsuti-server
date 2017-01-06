@@ -150,7 +150,7 @@ function handleSession(req, res, next) {
   }
 }
 
-// helper function used by auth routes and /register route
+// used by auth routes and /register route to start sessions
 function startSession(req, res) {
   var db = req.app.get('database');
       userHash = 'user:' + req.body.user;
@@ -194,7 +194,7 @@ function startSession(req, res) {
         res.cookie('sessionUser', req.body.user, cookieOptions);
         res.cookie('sessionKey', sessionKey, cookieOptions);
 
-        res.redirect(req.body.returnPath || '/public');
+        res.redirect(req.body.returnPath || '/private');
       }
       else {
         if(req.apiRequest) {
