@@ -40,9 +40,6 @@ $(function() {
       decrypt(window.location.hash.substr(1));
     }
   }
-  else if(fileType == 'image') {
-    initImage(null);
-  }
   else if(fileType == 'text' ||
           fileType == null)
   {
@@ -184,9 +181,7 @@ function resetDecryptError() {
 }
 
 function saveSettings() {
-  if(fileType == 'image') {
-    Cookies.set('imageScale', imageScale, {'expires': 90, 'path': '/' + fileName});
-  } else if(fileType == 'text' || fileType == null) {
+  if(fileType == 'text' || (fileType == null && $('#textTools').css('display') != 'none')) {
     Cookies.set('lineNumbers', lineNumbers ? 'on' : 'off', {'expires': 90, 'path': '/' + fileName});
   }
 }
@@ -194,35 +189,14 @@ function saveSettings() {
 // images
 
 function initImage(url) {
-  var savedScale = Cookies.get('imageScale');
-  if(savedScale) {
-    $('#imageScale').val(parseInt(savedScale));
-  }
+  var dLink = $('#downloadLink');
 
-  scaleImage(); // propagate initial scale
+  dLink.attr('href', url);
+  dLink.show();
 
-  if(url != null) {
-    var dLink = $('#downloadLink');
-
-    dLink.attr('href', url);
-    dLink.show();
-
-    $('#imageLink').attr('href', url);
-    $('img#content').attr('src', url);
-    $('#imageContainer').show();
-  }
-
-  $('#imageTools').show();
-}
-
-function scaleImage(perc) {
-  if(typeof perc === 'undefined') {
-    imageScale = $('#imageScale').val();
-  } else {
-    imageScale = perc;
-  }
-
-  $('img#content').css('max-width', imageScale + '%');
+  $('#imageLink').attr('href', url);
+  $('img#content').attr('src', url);
+  $('#imageContainer').show();
 }
 
 // audio

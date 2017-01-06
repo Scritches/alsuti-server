@@ -13,10 +13,6 @@ a {
 a:hover {
   cursor: pointer;
 }
-a#downloadLink,
-a#copyLink {
-  text-decoration: none;
-}
 a.switch {
   text-decoration: none;
   border-bottom: 1px dashed;
@@ -140,11 +136,7 @@ h2#section {
   user-select: none;
 }
 #tools > * {
-  margin: 0px;
   vertical-align: middle;
-}
-#imageScale {
-  width: 50px;
 }
 
 /* main title / menu */
@@ -265,7 +257,7 @@ table#listing tr td.alignRight {
   clear: both;
 }
 img#content {
-  max-width: 100%;
+  max-width: 80%;
 }
 audio#content,
 video#content

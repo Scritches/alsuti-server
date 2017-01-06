@@ -6,16 +6,10 @@ mixin tools
     -else
       span#genericTools
         a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
-    -if(fileType == 'image')
-      span#imageTools.hpad(style='display:none;')
-        span.divider
-        label
-          | Scale: 
-          input#imageScale(type='number' min='10' max='100' value='75' oninput="scaleImage();" onchange="saveSettings();")
-    -else if(fileType == 'text' || fileType == null)
+    -if(fileType == 'text' || fileType == null)
       span#textTools.hpad(style='display:none;')
         span.divider
-        a#copyLink.plain(onclick='copyToClipboard();') Copy
+        a#copyLink(onclick='copyToClipboard();') Copy
         span.divider
         a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
     -if(session.admin || session.validate(user))
@@ -35,11 +29,11 @@ html
     meta(name='viewport' content="width=device-width, initial-scale=1")
     link(rel='stylesheet' href='/stylesheets/style.css')
     link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css')
-    script(src='/js/lib/jquery.min.js')
-    script(src='/js/lib/js.cookie.js')
+    script(src='//code.jquery.com/jquery-3.1.1.min.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js')
     script(src='/js/view.js')
     script(src='/js/time.js')
-    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js')
+    script(src='/js/lib/js.cookie.js')
     script(src='/js/lib/highlightjs-line-numbers.js')
     script.
       var fileName = '#{fileName}',
@@ -99,7 +93,7 @@ html
       -if(fileType == 'image')
         center#imageContainer
           a#imageLink(href='/x/#{fileName}')
-            img#content(src='/x/#{fileName}')
+            img#content(src='/x/#{fileName}' data-zoom-image='/x/#{fileName}')
       -else if(fileType == 'audio')
         center#audioContainer
           audio#content(controls)
