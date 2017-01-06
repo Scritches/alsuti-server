@@ -103,7 +103,8 @@ router.post('/upload', function(req, res) {
 
         if(mimeType != null) {
           fileExt = types.getExtension(mimeType);
-        } else {
+        }
+        if(!fileExt) {
           fileExt = types.urlExtension(req.body.url);
         }
 
@@ -589,13 +590,16 @@ router.get('/:file', function(req, res) {
         subType = null;
       }
     }
-    else if(u.encrypted == false && types.isBinary(content, binaryThreshold)) {
-      fileType = 'application';
-      subType = 'octet-stream';
-    }
     else {
       fileType = null;
       subType = null;
+    }
+
+    if(fileType == null && u.encrypted == false &&
+       types.isBinary(content, binaryThreshold))
+    {
+      fileType = 'application';
+      subType = 'octet-stream';
     }
 
     fs.stat(filePath, function(err, stats) {
