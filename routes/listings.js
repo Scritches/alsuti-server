@@ -94,9 +94,9 @@ function renderListing(req, res, zHash, title, listingType) {
               'uploads': uploads,
               'start': start,
               'end': Math.min(end, nTotal - 1),
-              'page': Math.floor(start / count) + 1,
               'count': count,
               'nTotal': nTotal,
+              'page': Math.floor(start / count) + 1,
               'lastPage': end >= (nTotal - 1)
             });
           } else {
@@ -105,9 +105,9 @@ function renderListing(req, res, zHash, title, listingType) {
               'uploads': uploads,
               'start': start,
               'end': Math.min(end, nTotal - 1),
-              'page': Math.floor(start / count) + 1,
               'count': count,
               'nTotal': nTotal,
+              'page': Math.floor(start / count) + 1,
               'lastPage': end >= (nTotal - 1),
             });
           }
