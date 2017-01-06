@@ -40,22 +40,22 @@ router.get('/user/:user', function(req, res) {
 });
 
 function renderListing(req, res, zHash, title, listingType) {
-  var page;
-  if(_.has(req.query, 'page')) {
-    page = parseInt(req.query['page']);
-    if(page < 1)
-      page = 1;
+  var offset;
+  if(_.has(req.query, 'offset')) {
+    offset = parseInt(req.query['offset']);
+    if(offset < 0)
+      offset = 0;
   }
   else {
-    page = 1;
+    offset = 0;
   }
 
   var db = req.app.get('database'),
-      count = _.has(req.query, 'count') ? Math.min(parseInt(req.query.count), 50) : 15;
+      count = _.has(req.cookies, 'listingCount') ? Math.min(parseInt(req.cookies.listingCount), 50) : 15;
 
   var m = db.multi(),
-      start = count * (page - 1),
-      end = (start + count) - 1;
+      start = offset,
+      end = offset + count - 1;
 
   m.zcount(zHash, '-inf', '+inf');
   m.zrevrange(zHash, start, end);
@@ -93,22 +93,22 @@ function renderListing(req, res, zHash, title, listingType) {
             res.api(false, {
               'uploads': uploads,
               'start': start,
-              'end': Math.min(end, nTotal),
+              'end': Math.min(end, nTotal - 1),
+              'page': Math.floor(start / count) + 1,
+              'count': count,
               'nTotal': nTotal,
-              'page': page,
               'lastPage': end >= (nTotal - 1)
             });
           } else {
             res.render('listing', {
               'title': title,
               'uploads': uploads,
-              'start': start + 1,
-              'end': Math.min(end + 1, nTotal),
-              'nTotal': nTotal,
+              'start': start,
+              'end': Math.min(end, nTotal - 1),
+              'page': Math.floor(start / count) + 1,
               'count': count,
-              'page': page,
+              'nTotal': nTotal,
               'lastPage': end >= (nTotal - 1),
-              'listingType': listingType
             });
           }
         }
