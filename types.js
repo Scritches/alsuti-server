@@ -13,7 +13,6 @@ mimeMap = {
   },
   'audio': {
     'wav': ['wav'],
-    'wave': ['wav'],
     'mpeg': ['mpga', 'mp2a', 'mp3', 'm2a', 'm3a'],
     'mp4': ['m4a', 'mp4a'],
     'mp3': ['mp3'],
@@ -50,8 +49,10 @@ mimeMap = {
     'groovy': ['groovy']
   },
   'application': {
-    'octet-stream': ['bin', 'exe', 'so', 'o', 'obj', 'a'],
-    'zip': ['.zip']
+    'zip': ['zip'],
+    'pdf': ['pdf'],
+    'photoshop': ['psd'],
+    'octet-stream': ['bin', 'exe', 'so', 'o', 'obj', 'a']
   }
 };
 
