@@ -7,6 +7,41 @@ var isTrue = require('./truthiness.js');
 
 // helper functions for handleSession() below
 
+function authorize(req, res, next, userName, password) {
+  var db = req.app.get('database'),
+      userHash = 'user:' + userName;
+
+  db.hgetall(userHash, function(err, user) {
+    if(!err && user != null) {
+      bcrypt.compare(password, user.password, function(err, result) {
+        if(!err && result) {
+          req.session.user = userName;
+          req.session.admin = isTrue(user.admin);
+          req.session.status = 0;
+        }
+        else {
+          req.session.status = 2;
+        }
+
+        next();
+      });
+    }
+    else {
+      res.status(401);
+      if(req.apiRequest) {
+        res.api(true, {'message': "Database error."});
+      }
+      else {
+        res.render('info', {
+          'error': true,
+          'title': "Database Error",
+          'error': "Something went wrong."
+        });
+      }
+    }
+  });
+}
+
 function cookieAuth(req, res, next) {
   var db = req.app.get('database'),
       userHash = 'user:' + req.cookies.sessionUser;
@@ -67,41 +102,6 @@ function parseAuth(str) {
   return auth;
 }
 
-function directAuth(req, res, next, userName, password) {
-  var db = req.app.get('database'),
-      userHash = 'user:' + userName;
-
-  db.hgetall(userHash, function(err, user) {
-    if(!err && user != null) {
-      bcrypt.compare(password, user.password, function(err, result) {
-        if(!err && result) {
-          req.session.user = userName;
-          req.session.admin = isTrue(user.admin);
-          req.session.status = 0;
-        }
-        else {
-          req.session.status = 2;
-        }
-
-        next();
-      });
-    }
-    else {
-      res.status(401);
-      if(req.apiRequest) {
-        res.api(true, {'message': "Database error."});
-      }
-      else {
-        res.render('info', {
-          'error': true,
-          'title': "Database Error",
-          'error': "Something went wrong."
-        });
-      }
-    }
-  });
-}
-
 function Session(req, res) {
   this.user = null;
   this.admin = false;
@@ -121,13 +121,16 @@ function Session(req, res) {
 function handleSession(req, res, next) {
   req.session = new Session(req, res);
 
-  if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
+  if (_.has(req.body, 'user') && _.has(req.body, 'password')) {
+    authorize(req, res, next, req.body.user, req.body.password);
+  }
+  else if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
     cookieAuth(req, res, next);
   }
   else if(_.has(req.headers, 'authorization')) {
     var auth = parseAuth(req.headers.authorization);
     if(auth.scheme == 'Basic' && auth.user != null && auth.password != null) {
-      directAuth(req, res, next, auth.user, auth.password);
+      authorize(req, res, next, auth.user, auth.password);
     }
     else {
       if(req.apiRequest) {
@@ -141,9 +144,6 @@ function handleSession(req, res, next) {
         });
       }
     }
-  }
-  else if (_.has(req.body, 'user') && _.has(req.body, 'password')) {
-    directAuth(req, res, next, req.body.user, req.body.password);
   }
   else {
     next();
