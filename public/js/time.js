@@ -1,7 +1,7 @@
 function timeDiff(d) {
   var div = [60, 60, 24, 7],
       unit = ['s', 'm', 'h', 'd', 'w'],
-      diff = Math.floor((Date.now() - d) / 1000);
+      diff = (Date.now() - d) / 1000;
 
   var i,j,
       leftover;

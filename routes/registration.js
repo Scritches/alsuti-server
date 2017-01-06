@@ -1,9 +1,9 @@
 var _ = require('underscore'),
     bcrypt = require('bcrypt-nodejs'),
     express = require('express'),
-    shortid = require('shortid'),
-    auth = require('./auth'),
-    sessions = require('./sessions'),
+    shortid = require('shortid');
+
+var auth = require('../auth.js'),
     isTrue = require('../truthiness');
 
 var router = express.Router();
@@ -81,7 +81,7 @@ router.post('/register', function(req, res) {
                 ]);
 
                 m.exec(function(err, replies) {
-                  sessions.start(req, res);
+                  auth.startSession(req, res);
                 });
               });
             }

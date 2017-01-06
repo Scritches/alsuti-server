@@ -1,13 +1,14 @@
 var _ = require('underscore'),
     bcrypt = require('bcrypt-nodejs'),
     express = require('express'),
-    shortid = require('shortid'),
-    auth = require('./auth.js'),
+    shortid = require('shortid');
+
+var auth = require('../auth.js'),
     isTrue = require('../truthiness.js');
 
 var router = express.Router();
 
-router.get('/settings', auth.required);
+router.get('/settings', auth.require);
 router.get('/settings', function(req, res) {
   var db = req.app.get('database'),
       m = db.multi(),
@@ -30,7 +31,7 @@ router.get('/settings', function(req, res) {
   });
 });
 
-router.post('/password/set', auth.required);
+router.post('/password/set', auth.require);
 router.post('/password/set', function(req, res) {
   if(_.has(req.body, 'password') == false) {
     if(req.apiRequest) {
@@ -77,7 +78,7 @@ router.post('/password/set', function(req, res) {
   });
 });
 
-router.post('/invites/new', auth.required);
+router.post('/invites/new', auth.require);
 router.post('/invites/new', function(req, res) {
   var db = req.app.get('database'),
       userHash = 'user:' + req.session.user;
@@ -109,7 +110,7 @@ router.post('/invites/new', function(req, res) {
   });
 });
 
-router.get('/invites/delete/:code', auth.required);
+router.get('/invites/delete/:code', auth.require);
 router.get('/invites/delete/:code', function(req, res) {
   var db = req.app.get('database'),
       iHash = 'invite:' + req.params.code;

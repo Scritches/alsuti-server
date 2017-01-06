@@ -1,24 +1,11 @@
-var _ = require('underscore'),
-    bcrypt = require('bcrypt-nodejs'),
+var _ = require('underscore')._,
+    bcrypt = require('bcrypt-nodejs');
     express = require('express'),
-    shortid = require('shortid'),
-    auth = require('./auth'),
-    isTrue = require('../truthiness');
+    shortid = require('shortid');
 
-function Session(req, res) {
-  this.user = null;
-  this.admin = false;
-  this.status = -1;
-  this.validate = function(user) {
-    if(typeof user !== 'undefined') {
-      return this.user == user && this.status == 0;
-    } else {
-      return this.status == 0;
-    }
-  };
+var isTrue = require('./truthiness.js');
 
-  res.locals.session = this;
-}
+// helper functions for handleSession() below
 
 function cookieAuth(req, res, next) {
   var db = req.app.get('database'),
@@ -115,7 +102,23 @@ function directAuth(req, res, next, userName, password) {
   });
 }
 
-function sessionHandler(req, res, next) {
+function Session(req, res) {
+  this.user = null;
+  this.admin = false;
+  this.status = -1;
+  this.validate = function(user) {
+    if(typeof user !== 'undefined') {
+      return this.user == user && this.status == 0;
+    } else {
+      return this.status == 0;
+    }
+  };
+
+  res.locals.session = this;
+}
+
+// used in app.js for handling sessions globally
+function handleSession(req, res, next) {
   req.session = new Session(req, res);
 
   if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
@@ -147,6 +150,7 @@ function sessionHandler(req, res, next) {
   }
 }
 
+// helper function used by auth routes and /register route
 function startSession(req, res) {
   var db = req.app.get('database');
       userHash = 'user:' + req.body.user;
@@ -206,49 +210,58 @@ function startSession(req, res) {
   });
 }
 
-var router = express.Router();
-
-router.get('/login', function(req, res) {
-  var returnPath = req.headers.referer || '/private';
-  if(req.session.validate()) {
-    res.redirect(returnPath);
-  } else {
-    res.render('login', {
-      'title': "Log In",
-      'returnPath': returnPath
-    });
+// convenient middleware for routes requiring authentication
+function requireAuth(req, res, next) {
+  if(req.session.status == 0) {
+    next();
   }
-});
-
-router.post('/login', auth.required);
-router.post('/login', startSession);
-
-router.get('/logout', function(req, res) {
-  var returnPath = req.headers.referer || '/public';
-
-  if(req.session.validate() == false) {
-    res.redirect(returnPath);
-    return;
+  else if(req.session.status == 1) {
+    res.status(401);
+    if(req.apiRequest) {
+      res.api(true, {'message': "Session expired."});
+    } else {
+      res.render('login', {
+        'error': "Session expired.",
+        'returnPath': req.path
+      });
+    }
   }
-
-  var db = req.app.get('database'),
-      userHash = 'user:' + req.session.user;
-
-  var cookieOptions = {
-    'expires': new Date(0), // makes the cookies expire immediately
-    'httpOnly': true
+  else if(req.session.status == 2) {
+    res.status(401);
+    if(req.apiRequest) {
+      res.api(true, {'message': "Invalid user/password."});
+    }
+    else {
+      res.render('login', {
+        'error': "Invalid user/password.",
+        'returnPath': req.body.returnPath
+      });
+    }
   }
+  else {
+    res.status(401);
+    if(req.apiRequest) {
+      res.api(true, {'message': "Authentication required."});
+    }
+    else {
+      var env = {
+        'error': "Authentication required.",
+        'returnPath': req.path
+      };
 
-  res.cookie('sessionUser', '', cookieOptions);
-  res.cookie('sessionKey', '', cookieOptions);
+      if(env.returnPath == '/login') {
+        env.returnPath = '/private';
+      } else {
+        env.returnPath = req.headers.referer || '/private';
+      }
 
-  db.hdel(userHash, ['sessionKey', 'sessionExpiry'], function(err, reply) {
-    res.redirect(returnPath);
-  });
-});
+      res.render('login', env);
+    }
+  }
+}
 
 module.exports = {
-  'handler': sessionHandler,
-  'router': router,
-  'start': startSession,
+  'handleSession': handleSession,
+  'startSession': startSession,
+  'require': requireAuth
 };

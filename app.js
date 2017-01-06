@@ -8,9 +8,10 @@ var _ = require('underscore')._,
     path = require('path'),
     process = require('process'),
     redis = require('redis'),
-    sys = require('sys'),
-    types = require('./types.js'),
-    isTrue = require('./truthiness.js');
+    sys = require('sys');
+
+var isTrue = require('./truthiness.js'),
+    types = require('./types.js');
 
 var app = express();
 
@@ -50,16 +51,17 @@ catch(e) {
 }
 
 // middleware
+
 app.use(bodyParser.urlencoded({ extended: true, limit: '256mb' }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(device.capture({'parseUserAgent': true}));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// api request management
 app.use(function(req, res, next) {
   req.apiRequest = _.has(req.headers, 'api') && isTrue(req.headers.api);
 
-  // for api responses
   res.api = function(err, data) {
     data.error = err;
     this.setHeader('Content-Type', 'application/json');
@@ -69,12 +71,14 @@ app.use(function(req, res, next) {
   next();
 });
 
-// primary route handlers
-var sessions = require('./routes/sessions.js');
-app.use(sessions.handler);
-app.use('/', sessions.router);
-app.use('/', require('./routes/settings.js'));
+// session handling and authentication
+var auth = require('./auth.js');
+app.use(auth.handleSession);
+
+// all other routes
 app.use('/', require('./routes/registration.js'));
+app.use('/', require('./routes/login.js'));
+app.use('/', require('./routes/settings.js'));
 app.use('/', require('./routes/listings.js'));
 app.use('/', require('./routes/files.js'));
 

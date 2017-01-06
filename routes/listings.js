@@ -1,12 +1,13 @@
 var _ = require('underscore'),
     async = require('async'),
-    express = require('express'),
-    auth = require('./auth'),
+    express = require('express');
+
+var auth = require('../auth'),
     isTrue = require('../truthiness');
 
 var router = express.Router();
 
-router.get('/private', auth.required);
+router.get('/private', auth.require);
 router.get('/private', function(req, res) {
   renderListing(req, res, 'user:' + req.session.user + ':private',
                 'Private', 'private');

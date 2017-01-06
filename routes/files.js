@@ -7,24 +7,25 @@ var _ = require('underscore')._,
     path = require('path'),
     jo = require('jpeg-autorotate'),
     request = require('request'),
-    shortid = require('shortid'),
-    auth = require('./auth'),
+    shortid = require('shortid');
+
+var auth = require('../auth'),
     isTrue = require('../truthiness'),
     types = require('../types');
 
 var router = express.Router();
 
-router.get('/upload', auth.required);
+router.get('/upload', auth.require);
 router.get('/upload', function(req, res) {
   res.render('upload');
 });
 
-router.get('/paste', auth.required);
+router.get('/paste', auth.require);
 router.get('/paste', function(req, res) {
   res.render('paste');
 });
 
-router.get('/rehost', auth.required);
+router.get('/rehost', auth.require);
 router.get('/rehost', function(req, res) {
   res.render('rehost');
 });
@@ -45,7 +46,7 @@ var fileUpload = multer({
   })
 });
 
-router.post('/upload', auth.required);
+router.post('/upload', auth.require);
 router.post('/upload', fileUpload.single('file'));
 router.post('/upload', function(req, res) {
   var fileExt,
@@ -244,7 +245,7 @@ router.post('/upload', function(req, res) {
   }
 });
 
-router.get('/edit/:file', auth.required);
+router.get('/edit/:file', auth.require);
 router.get('/edit/:file', function(req, res) {
   var db = req.app.get('database'),
            fileHash = 'file:' + req.params.file;
@@ -276,7 +277,7 @@ router.get('/edit/:file', function(req, res) {
   });
 });
 
-router.post('/edit', auth.required);
+router.post('/edit', auth.require);
 router.post('/edit', function(req, res) {
   if(_.has(req.body, 'file') == false) {
     if(req.apiRequest) {
@@ -399,7 +400,7 @@ router.post('/edit', function(req, res) {
   });
 });
 
-router.get('/delete/:file', auth.required);
+router.get('/delete/:file', auth.require);
 router.get('/delete/:file', function(req, res) {
   var db = req.app.get('database'),
       fileName = req.params.file,
@@ -435,7 +436,7 @@ router.get('/delete/:file', function(req, res) {
   });
 });
 
-router.post('/delete', auth.required);
+router.post('/delete', auth.require);
 router.post('/delete', function(req, res) {
   if(_.has(req.body, 'file') == false) {
     if(req.apiRequest) {
@@ -516,7 +517,7 @@ router.post('/delete', function(req, res) {
   });
 });
 
-router.get('/:file', function(req, res, rf) {
+router.get('/:file', function(req, res) {
   var db = req.app.get('database'),
       fileName = req.params.file,
       fileHash = 'file:' + fileName;
