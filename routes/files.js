@@ -53,21 +53,19 @@ router.post('/upload', function(req, res) {
       fileName,
       filePath;
 
+  var encrypted = _.has(req.body, 'encrypted') && isTrue(req.body.encrypted);
+
   // upload
   if(_.has(req, 'file')) {
     fileExt = types.fileExtension(req.file.filename);
     fileName = req.file.filename;
-    filePath = req.file.path;
+    filePath = path.resolve(__dirname + '/../files/' + fileName);
 
-    // multer handles the uploading stuff automatically.
-    // here we just autorotate jpeg images.
+    var t = types.getMimeType(fileExt);
 
-    if(fileExt != null && isTrue(req.body.encrypted) == false &&
-       types.mimeMap['image']['jpeg'].indexOf(fileExt) != -1)
-    {
-      // autorotate jpeg images into correct orientation
-      fs.readFile(filePath, function(readErr, data) {
-        if(!readErr) {
+    if(encrypted == false && t != null && t[0] == 'image' && t[1] == 'jpeg') {
+      fs.readFile(filePath, function(err, data) {
+        if(!err) {
           writeRotatedJPEG(data);
         } else {
           readError();
@@ -75,35 +73,36 @@ router.post('/upload', function(req, res) {
       });
     }
     else {
-      finalizeUpload(null);
+      finalizeUpload();
     }
   }
   // paste
   else if(_.has(req.body, 'content')) {
-    localPath = __dirname + '/../files/';
-
     if(_.has(req.body, 'extension')) {
       fileName = shortid.generate() + '.' + req.body.extension;
     } else {
       fileName = shortid.generate();
     }
 
-    filePath = localPath + fileName;
+    filePath = path.resolve(__dirname + '/../files/' + fileName);
     fs.writeFile(filePath, req.body.content, function(err) {
-      finalizeUpload(err);
+      if(!err) {
+        finalizeUpload();
+      } else {
+        writeError()
+      }
     });
   }
   // rehost
   else if(_.has(req.body, 'url')) {
-    localPath = __dirname + '/../files/';
     try {
-      request.head(req.body.url).on('response', function(response) {
-        var mimeType = _.has(response.headers, 'content-type') ?
-                       response.headers['content-type'] : null;
+      request.get(req.body.url, verify=false).on('response', function(r) {
+        var mimeType = _.has(r.headers, 'content-type') ? r.headers['content-type'] : null;
 
         if(mimeType != null) {
           fileExt = types.getExtension(mimeType);
         }
+
         if(!fileExt) {
           fileExt = types.urlExtension(req.body.url);
         }
@@ -114,16 +113,18 @@ router.post('/upload', function(req, res) {
           fileName = shortid.generate();
         }
 
-        filePath = localPath + fileName;
-        request.get(req.body.url) // ...
-          .pipe(fs.createWriteStream(filePath))
-          .on('close', function() { finalizeUpload(null); })
+        filePath = path.resolve(__dirname + '/../files/' + fileName);
+        r.pipe(fs.createWriteStream(filePath))
+         .on('close', function() { finalizeUpload(); })
       });
     }
     catch(e) {
       if(req.apiRequest) {
-        res.api(true, {'message': "Invalid URL."});
-      } else {
+        res.api(true, {
+          'message': e.name + ": " + e.message
+        });
+      }
+      else {
         res.render('info', {
           'title': 'Error',
           'message': "Invalid URL."
@@ -142,15 +143,7 @@ router.post('/upload', function(req, res) {
     return;
   }
 
-  function writeRotatedJPEG(data) {
-    jo.rotate(data, {quality: 95}, function(err, buffer, orientation) {
-      fs.writeFile(filePath, err == null ? buffer : data, function(err) {
-        finalizeUpload(null);
-      });
-    });
-  }
-
-  function finalizeUpload(err) {
+  function finalizeUpload() {
     var time = Date.now(),
         db = req.app.get('database'),
         m = db.multi(),
@@ -162,7 +155,7 @@ router.post('/upload', function(req, res) {
     var metadata = [
       'user', req.session.user,
       'time', time,
-      'encrypted', _.has(req.body, 'encrypted') && isTrue(req.body.encrypted),
+      'encrypted', encrypted,
       'public', _public,
     ];
 
@@ -218,6 +211,14 @@ router.post('/upload', function(req, res) {
           }
         });
       }
+    });
+  }
+
+  function writeRotatedJPEG(data) {
+    jo.rotate(data, {quality: 90}, function(err, buffer, orientation) {
+      fs.writeFile(filePath, err == null ? buffer : data, function(err) {
+        finalizeUpload(null);
+      });
     });
   }
 

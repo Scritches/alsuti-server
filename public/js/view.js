@@ -19,10 +19,6 @@ decryptNotifyTimeout = null;
 //  2: unlocked; notification can be cleared
 
 decryptNormalStatus = null;
-decryptNormalColour = null;
-
-decryptNotifyColour = '#B8CFE6';
-decryptErrorColour = '#E65C5C';
 decryptErrorState = 0;
 
 updateDecryptErrorTimeout = null;
@@ -33,7 +29,6 @@ $(function() {
       dButton = $('button#decrypt');
 
   decryptNormalStatus = $('#decryptionStatus').text();
-  decryptNormalColour = $('#decryption').css('background-color');
 
   if(encrypted) {
     if(window.location.hash) {
@@ -78,7 +73,7 @@ function decrypt(password) {
   dTools.hide();
 
   // do initial notification tick and set timeout for subsequent ticks
-  $('#decryption').css('background-color', decryptNotifyColour);
+  $('#decryption').addClass('notify');
   decryptNotifyTick();
   decryptNotifyInterval = window.setInterval(decryptNotifyTick, 750);
 
@@ -94,7 +89,7 @@ function decrypt(password) {
           size /= 1024;
         }
 
-        var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        var units = ['B', 'KB', 'MB', 'GB', 'TB']
         return parseFloat(size).toFixed(2) + ' ' + units[i];
       }
 
@@ -132,10 +127,11 @@ function decrypt(password) {
 }
 
 function decryptNotifyTick() {
-  if(decryptNotifyIter == decryptNotifyIterMax)
+  if(decryptNotifyIter == decryptNotifyIterMax) {
     decryptNotifyIter = 1;
-  else
+  } else {
     ++decryptNotifyIter;
+  }
 
   $('#decryptionStatus').text("Decrypting" +
       decryptNotifyTail.repeat(decryptNotifyIter) +
@@ -145,6 +141,7 @@ function decryptNotifyTick() {
 }
 
 function decryptNotifyReset() {
+  $('#decryption').removeClass('notify');
   window.clearInterval(decryptNotifyInterval);
   decryptNotifyIter = 0;
   decryptNotifyTimeout = null;
@@ -158,9 +155,9 @@ function setDecryptError(message) {
   var d = $('#decryption'),
       ds = $('#decryptionStatus');
 
-  d.css('background-color', decryptErrorColour);
+  d.addClass('error');
   ds.text(message);
-  
+
   decryptErrorState = 1;
   clearDecryptErrorTimeout = window.setTimeout(updateDecryptError, 5000);
 }
@@ -174,7 +171,7 @@ function updateDecryptError() {
 }
 
 function resetDecryptError() {
-  $('#decryption').css('background-color', decryptNormalColour);
+  $('#decryption').removeClass('error');
   $('#decryptionStatus').text(decryptNormalStatus);
   passwordChangedInErrorState = false;
   decryptErrorState = 0;

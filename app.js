@@ -52,7 +52,7 @@ catch(e) {
 
 // middleware
 
-app.use(bodyParser.urlencoded({ extended: true, limit: '256mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '512mb' }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(device.capture({'parseUserAgent': true}));
