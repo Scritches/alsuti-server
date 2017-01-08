@@ -49,12 +49,11 @@ try {
 catch(e) {
   console.log("Note: no favicon found.");
   // make browsers stfu about it
-  app.use('/favicon.ico', function(req, res) { res.end(); });
+  app.use('/favicon.ico', function(req, res) { res.status(404); res.end(); });
 }
 
 // middleware
 app.use(bodyParser.urlencoded({ extended: true, limit: '512mb' }));
-app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(device.capture({'parseUserAgent': true}));
 app.use(express.static(__dirname + '/public'));

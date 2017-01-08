@@ -104,8 +104,9 @@ router.get('/paste', function(req, res) {
 });
 
 router.post('/paste', auth.require);
+router.post('/paste', multer().array());
 router.post('/paste', function(req, res) {
-  if(_.has(req.body, 'content') && req.body.content.length) {
+  if(_.has(req.body, 'content') && req.body.content.length > 0) {
     var fileExt;
     if(_.has(req.body, 'extension')) {
       fileExt = req.body.extension.trim();
@@ -151,6 +152,7 @@ router.get('/rehost', function(req, res) {
 });
 
 router.post('/rehost', auth.require);
+router.post('/rehost', multer().array());
 router.post('/rehost', function(req, res) {
   var url = _.has(req.body, 'url') ? req.body.url.trim() : null;
   if(url != null && url.length > 0) {
@@ -175,7 +177,7 @@ router.post('/rehost', function(req, res) {
         filePath = path.resolve(__dirname + '/../files/' + fileName);
         r.pipe(fs.createWriteStream(filePath))
          .on('error', function(err) { writeError(req, res, '/rehost'); })
-         .on('close', function() { finalizeUpload(); })
+         .on('close', function() { finalizeUpload(req, res, fileName); })
       });
     }
     catch(e) {
