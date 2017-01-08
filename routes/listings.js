@@ -55,7 +55,7 @@ function renderListing(req, res, zHash, title, listingType) {
       count = _.has(req.cookies, 'listingCount') ?
                 Math.min(parseInt(req.cookies.listingCount), 50) : 15,
       start = offset,
-      end = offset + (count - 1);
+      end = (offset + count) - 1;
 
   console.log("count: " + count + " end: " + end);
 
