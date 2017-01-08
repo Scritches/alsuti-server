@@ -51,19 +51,21 @@ function renderListing(req, res, zHash, title, listingType) {
   }
 
   var db = req.app.get('database'),
-      count = _.has(req.cookies, 'listingCount') ? Math.min(parseInt(req.cookies.listingCount), 50) : 15;
-
-  var m = db.multi(),
+      m = db.multi(),
+      count = _.has(req.cookies, 'listingCount') ?
+                Math.min(parseInt(req.cookies.listingCount), 50) : 15,
       start = offset,
-      end = offset + count - 1;
+      end = offset + (count - 1);
+
+  console.log("count: " + count + " end: " + end);
 
   m.zcount(zHash, '-inf', '+inf');
   m.zrevrange(zHash, start, end);
 
-  m.exec(function(err, replies) {
+  m.exec(function(err, data) {
     if(!err) {
-      var nTotal = parseInt(replies[0]),
-          fileNames = replies[1];
+      var nTotal = parseInt(data[0]),
+          fileNames = data[1];
 
       async.map(fileNames,
         // transform each slug into an object
@@ -94,10 +96,8 @@ function renderListing(req, res, zHash, title, listingType) {
               'uploads': uploads,
               'start': start,
               'end': Math.min(end, nTotal - 1),
-              'count': count,
               'nTotal': nTotal,
               'page': Math.floor(start / count) + 1,
-              'lastPage': end >= (nTotal - 1)
             });
           } else {
             res.render('listing', {
@@ -108,7 +108,6 @@ function renderListing(req, res, zHash, title, listingType) {
               'count': count,
               'nTotal': nTotal,
               'page': Math.floor(start / count) + 1,
-              'lastPage': end >= (nTotal - 1),
               'listingType': listingType
             });
           }

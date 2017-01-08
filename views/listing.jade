@@ -67,5 +67,5 @@ body(onload="renderRelativeTimes();")
     div#pageBar
       -if(start > 0)
         a.floatLeft(href='?offset=#{Math.max(start - count, 0)}') Previous
-      -if(start < nTotal)
+      -if(end < nTotal - 1)
         a.floatRight(href='?offset=#{Math.min(start + count, nTotal - 1)}') Next
