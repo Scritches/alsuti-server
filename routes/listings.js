@@ -57,8 +57,6 @@ function renderListing(req, res, zHash, title, listingType) {
       start = offset,
       end = (offset + count) - 1;
 
-  console.log("count: " + count + " end: " + end);
-
   m.zcount(zHash, '-inf', '+inf');
   m.zrevrange(zHash, start, end);
 
