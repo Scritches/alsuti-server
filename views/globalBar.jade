@@ -1,20 +1,11 @@
 mixin mainMenu
   div.menu
     span#alsuti
-    div.menu-wrapper
-      div.menu-content
-        a(href='/upload') Upload
+    div.menuWrapper
+      div.menuContent
         a(href='/paste') Paste
         a(href='/rehost') Rehost
-
-mixin userMenu
-  div.menu
-    div.menu-wrapper
-      div.menu-content
-        -if(session.admin)
-          a(href='/admin') Admin
-        a(href='/invites') Invites
-        a(href='/password') Password
+        a(href='/upload') Upload
 
 div#globalBar.hpad
   -if(session.validate())

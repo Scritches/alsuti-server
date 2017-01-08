@@ -9,7 +9,7 @@ head
 body
   include globalBar
   h1#title Paste
-  form#paste.vpad(method='post' action='/upload' onsubmit="return onPaste(event);")
+  form#paste.vpad(method='post' action='/paste' onsubmit="return onPaste(event);")
     input#title(type='text' name='title' placeholder="Title" autofocus)
     textarea#description(form='paste' name='description' placeholder="Description")
     div.hpad

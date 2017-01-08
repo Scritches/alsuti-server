@@ -35,7 +35,7 @@ app.set('maxCookieAge', 1000 * 60 * 60 * 720);  // but 2 years for non-expiring 
 // view engine setup
 app.set('json spaces', 2);
 app.set('view engine', 'jade');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', __dirname + '/views');
 
 // pretty html output
 app.locals.pretty = true;
@@ -47,18 +47,19 @@ try {
   app.use(favicon(faviconPath));
 }
 catch(e) {
-  console.log("Note: no favicon found");
+  console.log("Note: no favicon found.");
+  // make browsers stfu about it
+  app.use('/favicon.ico', function(req, res) { res.end(); });
 }
 
 // middleware
-
 app.use(bodyParser.urlencoded({ extended: true, limit: '512mb' }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(device.capture({'parseUserAgent': true}));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname + '/public'));
 
-// api request management
+// request and response management
 app.use(function(req, res, next) {
   req.apiRequest = _.has(req.headers, 'api') && isTrue(req.headers.api);
 
@@ -68,19 +69,33 @@ app.use(function(req, res, next) {
     this.json(data);
   }.bind(res);
 
+  res.dbError = function() {
+    if(req.apiRequest) {
+      this.api(true, {'message': "Database error."});
+    } else {
+      this.render('info', {
+        'error': true,
+        'title': "Database Error",
+        'message': "Something went wrong."
+      });
+    }
+  }.bind(res);
+
   next();
 });
 
-// session handling and authentication
-var auth = require('./auth.js');
-app.use(auth.handleSession);
+// session management
+app.use(require('./auth.js').handleSession);
 
-// all other routes
-app.use('/', require('./routes/registration.js'));
+// primary routes -- in order of most likely used (except for the file view)
 app.use('/', require('./routes/login.js'));
-app.use('/', require('./routes/settings.js'));
 app.use('/', require('./routes/listings.js'));
-app.use('/', require('./routes/files.js'));
+app.use('/', require('./routes/uploads.js'));
+app.use('/', require('./routes/fileActions.js'));
+app.use('/', require('./routes/settings.js'));
+app.use('/', require('./routes/registration.js'));
+// this has to be last since it can match any single parameter under /
+app.use('/', require('./routes/fileView.js'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -11,15 +11,13 @@ html
     h2#section Password
     form(method='post' action='/password/set').vpad
       input#password(type='password' name='password' placeholder="Current Password")
-      input#newPassword(type='password' name='newPassword' placeholder="New Password")
-      input#confirmNewPassword(type='password' name='confirmNewPassword' placeholder="Confirm New Password" autocomplete='new-password')
+      input#newPassword(type='password' name='newPassword' placeholder="New Password" autocomplete='new-password')
+      input#confirmNewPassword(type='password' name='confirmNewPassword' placeholder="Confirm New Password")
       button(type='submit') Save
     -if(state == 1)
       p#description.red Incorrect password.
     -else if(state == 2)
       p#description.red Confirmation password does not match.
-    -else if(state == 3)
-      p#description.green Password changed successfully.
     h2#section Invite Codes
     div.vpad
       -if(quota > 0)
@@ -37,8 +35,8 @@ html
               td.expand
                 a(href='/register/#{code}')= code
               td
-                a(href='/invites/delete/#{code}')
+                a(href='/invite/delete/#{code}')
                   img(src='/delete.png' height='18px')
       -if(quota > 0)
-        form(method='post' action='/invites/new')
+        form(method='post' action='/invite/new')
           button(type='submit') New

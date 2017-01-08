@@ -17,7 +17,7 @@ router.get('/public', function(req, res) {
   renderListing(req, res, 'public', 'Public', 'public');
 });
 
-router.get('/user/:user', function(req, res) {
+router.get('/user/:user/public', function(req, res) {
   var db = req.app.get('database');
   db.exists('user:' + req.params.user, function(err, exists) {
     if(exists) {
@@ -109,6 +109,7 @@ function renderListing(req, res, zHash, title, listingType) {
               'nTotal': nTotal,
               'page': Math.floor(start / count) + 1,
               'lastPage': end >= (nTotal - 1),
+              'listingType': listingType
             });
           }
         }

@@ -10,7 +10,7 @@ html
     script(src='/js/time.js')
     script.
       var offset = #{start};
-body
+body(onload="renderRelativeTimes();")
   include globalBar
   div#header
     h1#title= title
@@ -42,31 +42,28 @@ body
     table#listing(border='0' cellpadding='5px' cellspacing='0')
       each u,i in uploads
         tr
-          -if(u == null)
-            td.expand
-              a.red(href='/#{u.fileName}')= u.fileName
-            td.alignRight
-              span (null)
-          -else
-            td.expand
-              -if(u.encrypted)
-                a.pink(href='/#{u.fileName}')= u.title || u.fileName
-              -else
-                a(href='/#{u.fileName}')= u.title || u.fileName
-            -if(session.admin || session.validate(u.user))
-              td
-                a(href='/edit/#{u.fileName}')
-                  img(src='/edit.png' height='18px')
-              td
-                a(href='/delete/#{u.fileName}')
-                  img(src='/delete.png' height='18px')
+          td.expand
+            -if(u.encrypted)
+              a.red(href='/#{u.fileName}')= u.title || u.fileName
+            -else
+              a(href='/#{u.fileName}')= u.title || u.fileName
+          -if(session.admin || session.validate(u.user))
+            td
+              a(href='/edit/#{u.fileName}')
+                img(src='/edit.png' height='18px')
+            td
+              a(href='/delete/#{u.fileName}')
+                img(src='/delete.png' height='18px')
+          -if(u.time != null)
             td.alignRight
               span.uploadTime.hidden= u.time
-            -if(listingType == 'public')
-              td.alignRight
-                a(href='/user/#{u.user}')= u.user
-      script.
-        renderRelativeTimes();
+          -else
+            td.alignRight
+          -if(listingType == 'public' && u.user != null)
+            td.alignRight
+              a(href='/user/#{u.user}/public')= u.user
+          -else
+            td.alignRight
     div#pageBar
       -if(start > 0)
         a.floatLeft(href='?offset=#{Math.max(start - count, 0)}') Previous

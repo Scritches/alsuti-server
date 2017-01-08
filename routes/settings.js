@@ -57,9 +57,13 @@ router.post('/password/set', function(req, res) {
             db.hset(userHash, 'password', pHash, function(err) {
               if(req.apiRequest) {
                 res.api(false, {'message': "Password changed."});
-              }
-              else {
-                res.redirect('/settings?state=3');
+              } else {
+                res.render('info', {
+                  'title': "Password changed.",
+                  'message': "You will be redirected shortly.",
+                  'redirect': 5,
+                  'returnPath': '/settings'
+                });
               }
             });
           });
@@ -67,19 +71,24 @@ router.post('/password/set', function(req, res) {
         else {
           if(req.apiRequest) {
             res.api(true, {'message': "Confirmation password does not match."});
+          } else {
+            res.redirect('/settings?state=2');
           }
-          res.redirect('/settings?state=2');
         }
       }
       else {
-        res.redirect('/settings?state=1');
+        if(req.apiRequest) {
+          res.api(true, {'message': "Incorrect password."});
+        } else {
+          res.redirect('/settings?state=1');
+        }
       }
     });
   });
 });
 
-router.post('/invites/new', auth.require);
-router.post('/invites/new', function(req, res) {
+router.post('/invite/new', auth.require);
+router.post('/invite/new', function(req, res) {
   var db = req.app.get('database'),
       userHash = 'user:' + req.session.user;
 
@@ -110,8 +119,8 @@ router.post('/invites/new', function(req, res) {
   });
 });
 
-router.get('/invites/delete/:code', auth.require);
-router.get('/invites/delete/:code', function(req, res) {
+router.get('/invite/delete/:code', auth.require);
+router.get('/invite/delete/:code', function(req, res) {
   var db = req.app.get('database'),
       iHash = 'invite:' + req.params.code;
 

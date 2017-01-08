@@ -6,8 +6,8 @@ html
     -else
       title Info
     meta(name='viewport' content="width=device-width, initial-scale=1")
-    -if(redirectTimeout)
-      meta(http-equiv='refresh' content="#{redirectTimeout};url=#{returnPath}")
+    -if(redirect)
+      meta(http-equiv='refresh' content="#{redirect};url=#{returnPath}")
     link(rel='stylesheet' href='/stylesheets/style.css')
 body
   center
@@ -17,8 +17,8 @@ body
       h1#title= Info
     -if(message)
       -if(error)
-        p#description.red= message
+        p#info.red= message
       -else
-        p#description= message
-    -if(typeof redirectTimeout === 'undefined' && returnPath)
+        p#info= message
+    -if(typeof redirect === 'undefined' && returnPath)
       a(href='#{returnPath}') Go Back

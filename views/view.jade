@@ -37,42 +37,46 @@ html
     script(src='/js/lib/highlightjs-line-numbers.js')
     script.
       var fileName = '#{fileName}',
-          fileExt = '#{fileExt}',
           encrypted = #{encrypted};
-    -if(fileType == null)
-      script.
-        var fileType = null,
-            subType = null;
-    -else
+    -if(fileType != null)
       script.
         var fileType = '#{fileType}',
             subType = '#{subType}';
+    -else
+      script.
+        var fileType = null,
+            subType = null;
   body
     include globalBar
     div#header
       h1#title= title || fileName
       -if(description != null)
-        span#description= description
-      div#info.hpad
-        div#uploadInfo
+        p#description= description
+      div#uploadInfo.hpad
+        span
           span.hidden.uploadTime= time
           |  by 
-          a(href='/user/#{user}')= user
+          -if(user != null)
+            a(href='/user/#{user}/public')= user
+          -else
+            span.underlined nobody
           script.
             renderAbsoluteTimes();
-        div#fileInfo.hpad
+        div.hpad
           -if(title != null)
             span#fileName <u>#{fileName}</u>
             span.divider
           span#fileSize Size: <u>#{fileSize}</u>
-    -if(encrypted)
-      mixin tools
+    mixin tools
+    -if(tooLarge)
+      div#sizeNotice This file is too large to be handled.
+    -else if(encrypted)
       div#decryption
         div#decryptionStatus This file is encrypted.
         div#decryptionTools.hpad
           input#password(type='password' placeholder='Password' autocomplete='new-password' autofocus)
           button#decrypt(disabled='true' onclick='decrypt();') Decrypt
-      if(fileType == 'image')
+      -if(fileType == 'image')
         center#imageContainer(style='display:none;')
           a#imageLink
             img#content
@@ -89,11 +93,10 @@ html
         div#textContainer(style='display:none;')
           code#content
     -else
-      mixin tools
       -if(fileType == 'image')
         center#imageContainer
           a#imageLink(href='/x/#{fileName}')
-            img#content(src='/x/#{fileName}' data-zoom-image='/x/#{fileName}')
+            img#content(src='/x/#{fileName}')
       -else if(fileType == 'audio')
         center#audioContainer
           audio#content(controls)
@@ -106,4 +109,4 @@ html
         div#binaryNotice This file cannot be displayed.
       -else
         div#textContainer
-          code#content= content
+          code#content= text

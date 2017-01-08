@@ -31,6 +31,9 @@ span.divider:after {
 .bold {
   font-weight: bold;
 }
+.underlined {
+  text-decoration: underline;
+}
 .pink {
   color: #B336B3;
 }
@@ -97,39 +100,75 @@ label {
   user-select: none;
 }
 
-/* login/register/delete/edit pages */
-form#login > *,
-form#register > *,
-form#edit > * {
-  display: block;
-}
-
-/* significant stuff */
+/* global bar */
 #globalBar {
   display: block;
   margin-bottom: 10px;
 }
+
+/* upload menu */
+#alsuti:after {
+  content: "☰ Alsuti";
+  cursor: pointer;
+  font-weight: bold;
+}
+#alsuti.noMenu:after {
+  content: "Alsuti";
+}
+.menu {
+  display: inline-block;
+  position: relative;
+}
+.menuWrapper {
+  cursor: pointer;
+  display: none;
+  position: absolute;
+}
+.menuContent {
+  background-color: #202020;
+  min-width: 80px;
+}
+.menu:hover .menuWrapper {
+  display: block;
+  left: -25px;
+  padding: 10px 25px 25px 25px;
+}
+.menuContent > a {
+  color: #F4F4F4;
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  transition: all 0.08s ease-in;
+}
+.menuContent a:hover {
+  background-color: #444;
+}
+
+/* header */
 #header {
   margin-bottom: 10px;
+}
+#header > * {
+  margin-bottom: 10px;
+}
+#header > *:last-child {
+  margin-bottom: 0px;
 }
 h1#title {
   display: block;
   font-size: 150%;
   margin: 0px;
 }
-h2#section {
-  font-size: 100%;
-}
 #description {
   display: block;
 }
-#info {
+#uploadInfo {
   color: #606060;
   font-size: 90%;
+  margin-top: 5px;
 }
-#uploadInfo {
-  margin-bottom: 2.5px;
-}
+
+/* tools */
 #tools {
   margin-bottom: 10px;
   overflow: auto;
@@ -138,88 +177,29 @@ h2#section {
 #tools > * {
   vertical-align: middle;
 }
-
-/* main title / menu */
-#alsuti:after {
-  content: "☰ Alsuti";
-  cursor: pointer;
-  font-weight: bold;
-}
-
-#alsuti.noMenu:after {
-  content: "Alsuti";
-}
-
-.menu {
-  display: inline-block;
+#copyNotify {
   position: relative;
 }
-.menu-wrapper {
-  cursor: pointer;
+#copyNotifyText {
   display: none;
   position: absolute;
 }
-.menu-content {
-  background-color: #202020;
-  min-width: 80px;
-}
-.menu:hover .menu-wrapper {
-  display: block;
-  left: -25px;
-  padding: 10px 25px 25px 25px;
-}
-.menu-content > a {
-  color: #F4F4F4;
-  display: block;
-  padding: 10px;
-  text-decoration: none;
-  transition: all 0.08s ease-in;
-}
-.menu-content a:hover {
-  background-color: #444;
+#copyNotifyText:after {
+  content: "Copied!"
 }
 
-/* header margins */
-#header > * {
-  margin-bottom: 10px;
-}
-#header > *:last-child {
-  margin-bottom: 0px;
+/* for settings page */
+h2#section {
+  font-size: 115%;
 }
 
-/* upload forms */
-#actionMessage {
+/* for info/delete page */
+#info {
   margin: 10px;
-  padding: 0px;
-}
-
-/* listing table */
-table#listing {
-  border: 1px solid #C8C8C8;
-}
-table#listing tr:nth-child(odd) {
-  background-color: #F8F8F8;
-}
-table#listing tr:nth-child(even) {
-  background-color: #ECECEC;
-}
-table#listing tr td.expand {
-  width: 100%;
-}
-table#listing tr td:not(.expand) {
-  white-space: pre;
-}
-table#listing tr td.alignRight {
-  text-align: right;
-}
-
-/* listing page bar */
-#pageBar {
-  margin: 10px 5px;
-  overflow: auto;
 }
 
 /* content */
+#sizeNotice,
 #binaryNotice {
   background-color: #F2F2F2;
   color: #808080;
@@ -237,6 +217,7 @@ table#listing tr td.alignRight {
   background-color: #B8C7E6;
   border-color: #808080;
 }
+#sizeNotice,
 #binaryNotice,
 #decryption {
   border: 1px solid #CCC;
@@ -244,6 +225,7 @@ table#listing tr td.alignRight {
   padding: 20px;
   text-align: center;
 }
+#sizeNotice,
 #binaryNotice,
 #decryptionStatus {
   font-family: monospace;
@@ -265,8 +247,6 @@ table#listing tr td.alignRight {
                Courier New;
   white-space: pre;
 }
-
-/* content */
 #textContainer {
   border: 1px solid #CCC;
   background-color: #E6E6E6;
@@ -295,4 +275,30 @@ code {
   overflow-wrap: break-word;
   padding: 5px;
   overflow-x: auto;
+}
+
+/* listings */
+table#listing {
+  border: 1px solid #C8C8C8;
+}
+table#listing tr:nth-child(odd) {
+  background-color: #F8F8F8;
+}
+table#listing tr:nth-child(even) {
+  background-color: #ECECEC;
+}
+table#listing tr td.expand {
+  width: 100%;
+}
+table#listing tr td:not(.expand) {
+  white-space: pre;
+}
+table#listing tr td.alignRight {
+  text-align: right;
+}
+
+/* invite listings dont use this */
+#pageBar {
+  margin: 10px 5px;
+  overflow: auto;
 }

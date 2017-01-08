@@ -18,10 +18,8 @@ router.post('/login', auth.require);
 router.post('/login', auth.startSession);
 
 router.get('/logout', function(req, res) {
-  var returnPath = req.headers.referer || '/public';
-
   if(req.session.validate() == false) {
-    res.redirect(returnPath);
+    res.redirect(req.headers.referer || '/public');
     return;
   }
 
@@ -37,7 +35,7 @@ router.get('/logout', function(req, res) {
   res.cookie('sessionKey', '', cookieOptions);
 
   db.hdel(userHash, ['sessionKey', 'sessionExpiry'], function(err, reply) {
-    res.redirect(returnPath);
+    res.redirect('/public');
   });
 });
 

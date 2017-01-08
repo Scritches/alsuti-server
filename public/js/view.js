@@ -35,9 +35,7 @@ $(function() {
       decrypt(window.location.hash.substr(1));
     }
   }
-  else if(fileType == 'text' ||
-          fileType == null)
-  {
+  else if(fileType == 'text' || fileType == null) {
     initText(null, null);
   }
 
@@ -270,7 +268,9 @@ function initText(url, text) {
 
   $('code').each(function(i, block) {
     if(fileType == null || (fileType == 'text' && subType != 'plain')) {
-      block.className = subType;
+      if(subType != null) {
+        block.className = "hljs " + subType;
+      }
       hljs.highlightBlock(block);
     }
   });

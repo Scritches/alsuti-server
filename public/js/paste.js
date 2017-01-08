@@ -4,17 +4,15 @@ function onPaste(ev) {
     return true;
   }
 
-  var password = $('input#password').val();
-  if(password.length == 0) {
+  var plainText = $('textarea#content').val(),
+      password = $('input#password').val();
+
+  if(plainText.length == 0 || password.length == 0) {
     ev.preventDefault();
     return false;
   }
 
-  var content = $('textarea#content'),
-      plainText = content.val(),
-      cipherText = CryptoJS.AES.encrypt(plainText, password);
-
-  content.val(cipherText);
+  content.val(CryptoJS.AES.encrypt(plainText, password));
   return true;
 }
 
