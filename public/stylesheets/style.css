@@ -171,7 +171,6 @@ h1#title {
 /* tools */
 #tools {
   margin-bottom: 10px;
-  overflow: auto;
   user-select: none;
 }
 #tools > * {

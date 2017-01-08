@@ -177,7 +177,7 @@ router.post('/rehost', function(req, res) {
         filePath = path.resolve(__dirname + '/../files/' + fileName);
         r.pipe(fs.createWriteStream(filePath))
          .on('error', function(err) { writeError(req, res, '/rehost'); })
-         .on('close', function() { finalizeUpload(req, res, fileName); })
+         .on('close', function() { finalizeUpload(fileName, req, res); })
       });
     }
     catch(e) {
@@ -241,8 +241,6 @@ router.post('/upload', function(req, res) {
   var fileExt,
       fileName,
       filePath;
-
-  req.body.encrypted = _.has(req.body, 'encrypted') && isTrue(req.body.encrypted);
 
   uploadFile(req, res, function(err) {
     if(err) {

@@ -72,6 +72,7 @@ app.use(function(req, res, next) {
     if(req.apiRequest) {
       this.api(true, {'message': "Database error."});
     } else {
+      this.status(500);
       this.render('info', {
         'error': true,
         'title': "Database Error",

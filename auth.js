@@ -12,19 +12,25 @@ function authorize(req, res, next, userName, password) {
       userHash = 'user:' + userName;
 
   db.hgetall(userHash, function(err, user) {
-    if(!err && user != null) {
-      bcrypt.compare(password, user.password, function(err, result) {
-        if(!err && result) {
-          req.session.user = userName;
-          req.session.admin = isTrue(user.admin);
-          req.session.status = 0;
-        }
-        else {
-          req.session.status = 2;
-        }
+    if(!err) {
+      if(user != null) {
+        bcrypt.compare(password, user.password, function(err, result) {
+          if(result) {
+            req.session.user = userName;
+            req.session.admin = isTrue(user.admin);
+            req.session.status = 0;
+          }
+          else {
+            req.session.status = 2;
+          }
 
+          next();
+        });
+      }
+      else {
+        req.session.status = 2;
         next();
-      });
+      }
     }
     else {
       res.status(401);
@@ -64,7 +70,7 @@ function cookieAuth(req, res, next) {
         }
       }
       else {
-        req.session.status = 2; // invalid auth info
+        req.session.status = 2; // invalid auth
       }
 
       next();
@@ -102,7 +108,7 @@ function parseAuth(str) {
   return auth;
 }
 
-function Session(req, res) {
+function Session(res) {
   this.user = null;
   this.admin = false;
   this.status = -1;
@@ -113,21 +119,15 @@ function Session(req, res) {
       return this.status == 0;
     }
   };
-
-  res.locals.session = this;
 }
 
 // used in app.js for handling sessions globally
 function handleSession(req, res, next) {
-  req.session = new Session(req, res);
+  req.session = new Session();
+  res.locals.session = req.session;
 
-  if (_.has(req.body, 'user') && _.has(req.body, 'password')) {
-    authorize(req, res, next, req.body.user, req.body.password);
-  }
-  else if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
-    cookieAuth(req, res, next);
-  }
-  else if(_.has(req.headers, 'authorization')) {
+  // api authentication
+  if(_.has(req.headers, 'authorization')) {
     var auth = parseAuth(req.headers.authorization);
     if(auth.scheme == 'Basic' && auth.user != null && auth.password != null) {
       authorize(req, res, next, auth.user, auth.password);
@@ -137,6 +137,7 @@ function handleSession(req, res, next) {
         res.api(true, {'message': "Invalid authorization header."});
       }
       else {
+        res.status(400);
         res.render('info', {
           'error': true,
           'title': "Client Error",
@@ -144,6 +145,14 @@ function handleSession(req, res, next) {
         });
       }
     }
+  }
+  // login form authorization
+  else if(_.has(req.body, 'user') && _.has(req.body, 'password')) {
+    authorize(req, res, next, req.body.user, req.body.password);
+  }
+  // cookie authentication
+  else if(_.has(req.cookies, 'sessionUser') && _.has(req.cookies, 'sessionKey')) {
+    cookieAuth(req, res, next);
   }
   else {
     next();

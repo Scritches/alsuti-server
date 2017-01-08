@@ -15,7 +15,7 @@ function setUser(name, password, admin) {
   var userHash = 'user:' + name,
       pHash = bcrypt.hashSync(password);
 
-  db.hmset(userHash, {'password': pHash, 'admin': admin, 'inviteQuota': 20}, function(err, reply) {
+  db.hmset(userHash, ['password', pHash, 'admin', admin, 'inviteQuota', 20], function(err, reply) {
     if(!err) {
       console.log("User configured: " + name + " [admin=" + admin + "]");
     } else {
@@ -43,7 +43,7 @@ function delUser(name) {
 
 function setAdmin(name, state) {
   var userHash = 'user:' + name;
-  db.hset(userHash, {'admin': state}, function(err, reply) {
+  db.hset(userHash, ['admin', state], function(err, reply) {
     if(!err) {
       console.log("User configured: " + name + " [admin=" + state + "]");
     } else {

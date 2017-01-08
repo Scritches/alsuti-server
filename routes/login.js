@@ -34,9 +34,7 @@ router.get('/logout', function(req, res) {
   res.cookie('sessionUser', '', cookieOptions);
   res.cookie('sessionKey', '', cookieOptions);
 
-  db.hdel(userHash, ['sessionKey', 'sessionExpiry'], function(err, reply) {
-    res.redirect('/public');
-  });
+  res.redirect('/public');
 });
 
 module.exports = router;
