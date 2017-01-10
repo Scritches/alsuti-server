@@ -8,7 +8,7 @@
     "cert": ""
   },
   "upload_limits": {
-    "paste": "128mb",
-    "file": "1.5gb"
+    "text_size": "128mb",
+    "file_size": "1.5gb"
   }
 }

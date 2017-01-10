@@ -87,12 +87,12 @@ try {
 
 // middleware
 
-function configureUploads(pasteSize, fileSize) {
+function configureUploads(textSize, fileSize) {
   var upload = multer({
     limits: {
       fields: 5,
-      fieldSize: bytes.parse(pasteSize) || config.upload_limits.paste_size,
-      fileSize: bytes.parse(fileSize)   || config.upload_limits.file_size
+      fieldSize: bytes.parse(textSize) || config.upload_limits.text_size,
+      fileSize: bytes.parse(fileSize)  || config.upload_limits.file_size
     },
     storage: multer.diskStorage({
       destination: function(req, file, callback) {
@@ -109,13 +109,12 @@ function configureUploads(pasteSize, fileSize) {
     }),
   });
   
-  app.set('pasteUploader', upload.array());
+  app.set('textUploader', upload.array());
   app.set('fileUploader', upload.single('file'));
 }
 
 app.locals.configureUploads = configureUploads;
-
-configureUploads(config.upload_limits.paste_size,
+configureUploads(config.upload_limits.text_size,
                  config.upload_limits.file_size);
 
 app.use(bodyParser.urlencoded({extended: true}));

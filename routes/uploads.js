@@ -110,8 +110,8 @@ router.get('/paste', function(req, res) {
 
 router.post('/paste', auth.require);
 router.post('/paste', function(req, res) {
-  var pasteUploader = req.app.get('pasteUploader');
-  pasteUploader(req, res, function(err) {
+  var textUploader = req.app.get('textUploader');
+  textUploader(req, res, function(err) {
     if(err) {
       if(req.apiRequest) {
         res.api(true, err.message);
@@ -176,64 +176,82 @@ router.get('/rehost', function(req, res) {
 
 router.post('/rehost', auth.require);
 router.post('/rehost', function(req, res) {
-  var url = _.has(req.body, 'url') ? req.body.url.trim() : null;
-  if(url != null && url.length > 0) {
-    try {
-      request.get(url, verify=false).on('response', function(r) {
-        var mimeType = _.has(r.headers, 'content-type') ? r.headers['content-type'] : null;
-
-        if(mimeType != null) {
-          fileExt = types.getExtension(mimeType);
-        }
-
-        if(!fileExt) {
-          fileExt = types.urlExtension(req.body.url);
-        }
-
-        if(fileExt != null) {
-          fileName = shortid.generate() + '.' + fileExt;
-        } else {
-          fileName = shortid.generate();
-        }
-
-        filePath = path.resolve(__dirname + '/../files/' + fileName);
-        r.pipe(fs.createWriteStream(filePath))
-         .on('error', function(err) { writeError(req, res, '/rehost'); })
-         .on('close', function() { finalizeUpload(fileName, req, res); })
-      });
-    }
-    catch(e) {
+  var textUploader = req.app.get('textUploader');
+  textUploader(req, res, function(err) {
+    if(err) {
       if(req.apiRequest) {
-        res.api(true, {
-          'message': e.name + ": " + e.message
+        res.api(true, err.message);
+      }
+      else {
+        res.render('info', {
+          'error': true,
+          'title': err.title,
+          'message': err.message,
+          'returnPath': '/rehost'
         });
+      }
+      return;
+    }
+
+    var url = _.has(req.body, 'url') ? req.body.url.trim() : null;
+    if(url != null && url.length > 0) {
+      try {
+        request.get(url, verify=false).on('response', function(r) {
+          var mimeType = _.has(r.headers, 'content-type') ? r.headers['content-type'] : null;
+
+          if(mimeType != null) {
+            fileExt = types.getExtension(mimeType);
+          }
+
+          if(!fileExt) {
+            fileExt = types.urlExtension(req.body.url);
+          }
+
+          if(fileExt != null) {
+            fileName = shortid.generate() + '.' + fileExt;
+          } else {
+            fileName = shortid.generate();
+          }
+
+          filePath = path.resolve(__dirname + '/../files/' + fileName);
+          r.pipe(fs.createWriteStream(filePath))
+           .on('error', function(err) { writeError(req, res, '/rehost'); })
+           .on('close', function() { finalizeUpload(fileName, req, res); })
+        });
+      }
+      catch(e) {
+        if(req.apiRequest) {
+          res.api(true, {
+            'message': e.name + ": " + e.message
+          });
+        }
+        else {
+          res.render('info', {
+            'error': true,
+            'title': 'Error',
+            'message': "Invalid URL.",
+            'returnPath': '/rehost',
+            'redirect': 5
+          });
+        }
+      }
+    }
+    else {
+      res.status(400);
+      if(req.apiRequest) {
+        res.api(true, {'message': "No URL specified."});
       }
       else {
         res.render('info', {
           'error': true,
           'title': 'Error',
-          'message': "Invalid URL.",
+          'message': "No URL specified.",
           'returnPath': '/rehost',
           'redirect': 5
         });
       }
     }
-  }
-  else {
-    res.status(400);
-    if(req.apiRequest) {
-      res.api(true, {'message': "No URL specified."});
-    }
-    else {
-      res.render('info', {
-        'error': true,
-        'title': 'Error',
-        'message': "No URL specified.",
-        'returnPath': '/rehost',
-        'redirect': 5
-      });
-    }
-  }
+  });
 });
 
 router.get('/upload', auth.require);

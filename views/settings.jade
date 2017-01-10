@@ -12,8 +12,8 @@ html
       div.vpad
         h2#section.green Admin
         form#adminGlobals(method='post' action='/admin/globals/set').vpad
-          label Paste size limit
-            input#pasteSizeLimit(type='text' name='pasteSizeLimit' value='#{config.upload_limits.paste_size}')
+          label Text size limit
+            input#textSizeLimit(type='text' name='textSizeLimit' value='#{config.upload_limits.text_size}')
           label File size limit
             input#fileSizeLimit(type='text' name='fileSizeLimit' value='#{config.upload_limits.file_size}')
           button(type='submit') Save
