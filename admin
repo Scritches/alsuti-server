@@ -132,7 +132,7 @@ function main() {
             db.hmset(fileHash,
               'user', admin,
               'time', u.time,
-              'encrypted', u.encrypted ? 'true' : 'false',
+              'encrypted', u.encrypted,
               'public', _public
             );
 
