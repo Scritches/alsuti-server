@@ -48,10 +48,16 @@ router.post('/register', function(req, res) {
      _.has(req.body, 'confirmPassword') == false ||
      _.has(req.body, 'code') == false)
   {
-    res.render('info', {
-      'title': "Client Error",
-      'message': "Invalid request."
-    });
+    if(req.apiRequest) {
+      res.apiMessage("Invalid request.");
+    }
+    else {
+      res.render('info', {
+        'error': true,
+        'title': "Client Error",
+        'message': "Invalid request."
+      });
+    }
     return;
   }
 
@@ -87,9 +93,7 @@ router.post('/register', function(req, res) {
             }
             else {
               if(req.apiRequest) {
-                res.json(true, {
-                  'message': "Passwords do not match."
-                });
+                res.apiMessage(true, "Passwords do not match.");
               }
               else {
                 res.render('register', {
@@ -102,7 +106,7 @@ router.post('/register', function(req, res) {
           }
           else {
             if(req.apiRequest) {
-              res.json(true, {'message': "Sorry. That user name is already taken."});
+              res.apiMessage(true, "Sorry. That user name is already taken.");
             }
             else {
               res.render('register', {
@@ -122,10 +126,7 @@ router.post('/register', function(req, res) {
       }
     }
     else {
-      res.render('info', {
-        'title': "Database Error",
-        'message': "Something went wrong."
-      });
+      res.dbError();
     }
   });
 });

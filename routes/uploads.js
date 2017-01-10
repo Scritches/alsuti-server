@@ -9,6 +9,7 @@ var _ = require('underscore')._,
     shortid = require('shortid');
 
 var auth = require('../auth'),
+    config = require('../config'),
     isTrue = require('../truthiness'),
     types = require('../types');
 
@@ -61,7 +62,8 @@ function finalizeUpload(fileName, req, res) {
       // upload successful, return fileName
       if(req.apiRequest) {
         res.api(false, {'fileName': fileName});
-      } else {
+      }
+      else {
         res.status(302);
         res.redirect('/' + fileName);
       }
@@ -75,7 +77,8 @@ function finalizeUpload(fileName, req, res) {
 function readError(req, res, returnPath) {
   if(req.apiRequest) {
     res.api(true, {'message': "Cannot read from file/URL."});
-  } else {
+  }
+  else {
     res.render('info', {
       'error': true,
       'title': "Upload Error",
@@ -88,7 +91,8 @@ function readError(req, res, returnPath) {
 function writeError(req, res, returnPath) {
   if(req.apiRequest) {
     res.api(true, {'message': "Cannot write file."});
-  } else {
+  }
+  else {
     res.render('info', {
       'error': true,
       'title': "Upload Error",
@@ -104,46 +108,64 @@ router.get('/paste', function(req, res) {
 });
 
 router.post('/paste', auth.require);
-router.post('/paste', multer().array());
 router.post('/paste', function(req, res) {
-  if(_.has(req.body, 'content') && req.body.content.length > 0) {
-    var fileExt;
-    if(_.has(req.body, 'extension')) {
-      fileExt = req.body.extension.trim();
-      if(fileExt.length == 0) {
-        fileExt = null;
+  var pasteUploader = req.app.get('pasteUploader');
+  pasteUploader(req, res, function(err) {
+    if(err) {
+      if(req.apiRequest) {
+        res.api(true, err.message);
       }
+      else {
+        res.render('info', {
+          'error': true,
+          'title': err.title,
+          'message': err.message,
+          'returnPath': '/paste'
+        });
+      }
+      return;
     }
 
-    if(fileExt != null) {
-      fileName = shortid.generate() + '.' + fileExt;
-    } else {
-      fileName = shortid.generate();
-    }
+    if(_.has(req.body, 'content') && req.body.content.length > 0) {
+      var fileExt;
+      if(_.has(req.body, 'extension')) {
+        fileExt = req.body.extension.trim();
+        if(fileExt.length == 0) {
+          fileExt = null;
+        }
+      }
 
-    filePath = path.resolve(__dirname + '/../files/' + fileName);
-    fs.writeFile(filePath, req.body.content, function(err) {
-      if(!err) {
-        finalizeUpload(fileName, req, res);
+      if(fileExt != null) {
+        fileName = shortid.generate() + '.' + fileExt;
       } else {
-        writeError(req, res, '/paste');
+        fileName = shortid.generate();
       }
-    });
-  }
-  else {
-    res.status(400);
-    if(req.apiRequest) {
-      res.api(true, {'message': "No content."});
-    } else {
-      res.render('info', {
-        'error': true,
-        'title': 'Error',
-        'message': "No content.",
-        'returnPath': '/paste',
-        'redirect': 5
+
+      filePath = path.resolve(__dirname + '/../files/' + fileName);
+      fs.writeFile(filePath, req.body.content, function(err) {
+        if(!err) {
+          finalizeUpload(fileName, req, res);
+        } else {
+          writeError(req, res, '/paste');
+        }
       });
     }
-  }
+    else {
+      res.status(400);
+      if(req.apiRequest) {
+        res.api(true, {'message': "No content."});
+      }
+      else {
+        res.render('info', {
+          'error': true,
+          'title': 'Error',
+          'message': "No content.",
+          'returnPath': '/paste',
+          'redirect': 5
+        });
+      }
+    }
+  });
 });
 
 router.get('/rehost', auth.require);
@@ -201,7 +223,8 @@ router.post('/rehost', function(req, res) {
     res.status(400);
     if(req.apiRequest) {
       res.api(true, {'message': "No URL specified."});
-    } else {
+    }
+    else {
       res.render('info', {
         'error': true,
         'title': 'Error',
@@ -218,34 +241,17 @@ router.get('/upload', function(req, res) {
   res.render('upload');
 });
 
-var fileUpload = multer({
-  storage: multer.diskStorage({
-    destination: function(req, file, callback) {
-      callback(null, path.join(__dirname, '/../files/'));
-    },
-    filename: function(request, file, callback) {
-      var fileExt = types.fileExtension(file.originalname);
-      if(fileExt != null) {
-        callback(null, shortid.generate() + '.' + fileExt);
-      } else {
-        callback(null, shortid.generate());
-      };
-    },
-  })
-});
-
-var uploadFile = fileUpload.single('file');
-
 router.post('/upload', auth.require);
 router.post('/upload', function(req, res) {
   var fileExt,
       fileName,
       filePath;
 
-  uploadFile(req, res, function(err) {
+  var fileUploader = req.app.get('fileUploader');
+  fileUploader(req, res, function(err) {
     if(err) {
-      if(apiRequest) {
-        res.api(true, {'message': err.message});
+      if(req.apiRequest) {
+        res.api(true, err.message);
       }
       else {
         res.render('info', {
@@ -265,7 +271,7 @@ router.post('/upload', function(req, res) {
       filePath = path.resolve(__dirname + '/../files/' + fileName);
 
       var encrypted = _.has(req.body, 'encrypted') && isTrue(req.body.encrypted),
-          t = types.getMimeType(fileExt);
+          type = types.getMimeType(fileExt);
 
       if(encrypted == false && type != null && type[0] == 'image' && type[1] == 'jpeg') {
         fs.readFile(filePath, function(err, data) {

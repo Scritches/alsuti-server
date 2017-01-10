@@ -96,8 +96,9 @@ function parseAuth(str) {
       parts = str.split(" ");
 
   auth.scheme = parts[0];
-  if(auth.scheme != 'Basic')
+  if(auth.scheme != 'Basic') {
     return auth;
+  }
 
   str = new Buffer(parts[1], 'base64').toString('utf8');
 
@@ -192,23 +193,32 @@ function startSession(req, res) {
     // store updated session data
     db.hmset(userHash, sessionData, function(err, reply) {
       if(!err) {
-        // set cookies
-        var cookieOptions = { httpOnly: true };
-        if(sessionExpiry == 'never') {
-          cookieOptions.maxAge = req.app.get('maxCookieAge');
-        } else {
-          cookieOptions.maxAge = req.app.get('cookieAge');
+        if(req.apiRequest) {
+          res.api(false, {
+            'sessionUser': req.body.user,
+            'sessionKey': sessionKey
+          });
         }
+        else {
+          // set cookies
+          var cookieOptions = { httpOnly: true };
+          if(sessionExpiry == 'never') {
+            cookieOptions.maxAge = req.app.get('maxCookieAge');
+          } else {
+            cookieOptions.maxAge = req.app.get('cookieAge');
+          }
 
-        res.cookie('sessionUser', req.body.user, cookieOptions);
-        res.cookie('sessionKey', sessionKey, cookieOptions);
+          res.cookie('sessionUser', req.body.user, cookieOptions);
+          res.cookie('sessionKey', sessionKey, cookieOptions);
 
-        res.redirect(req.body.returnPath || '/private');
+          res.redirect(req.body.returnPath || '/private');
+        }
       }
       else {
         if(req.apiRequest) {
           res.api(true, {'message': "Database error."});
-        } else {
+        }
+        else {
           res.render('info', {
             'title': "Database Error",
             'message': "Something went wrong."
@@ -228,7 +238,8 @@ function requireAuth(req, res, next) {
     res.status(401);
     if(req.apiRequest) {
       res.api(true, {'message': "Session expired."});
-    } else {
+    }
+    else {
       res.render('login', {
         'error': "Session expired.",
         'returnPath': req.path
@@ -258,11 +269,10 @@ function requireAuth(req, res, next) {
         'returnPath': req.path
       };
 
-      if(env.returnPath == '/login') {
+      if(env.returnPath == '/login')
         env.returnPath = '/private';
-      } else {
+      else
         env.returnPath = req.headers.referer || '/private';
-      }
 
       res.render('login', env);
     }

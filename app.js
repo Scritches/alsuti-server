@@ -5,21 +5,57 @@ var _ = require('underscore')._,
     express = require('express'),
     favicon = require('serve-favicon'),
     fs = require('fs'),
+    http = require('http'),
+    https = require('https'),
     path = require('path'),
     process = require('process'),
-    redis = require('redis'),
-    sys = require('sys');
+    redis = require('redis');
 
-var isTrue = require('./truthiness.js'),
-    types = require('./types.js');
+var config = require('./config'),
+    isTrue = require('./truthiness'),
+    types = require('./types');
 
 var app = express();
+
+app.locals.config = config;
+
+// server
+
+function homeResolve(str) {
+  if(str.substr(0,2) == '~/') {
+    var home = process.env.HOME || process.env.HOMEPATH ||
+               process.env.HOMEDIR || process.cwd();
+
+    str = path.join(home, str.substr(2));
+  }
+
+  return path.resolve(str);
+}
+
+var server;
+if(_.has(config, 'tls') && config.tls.enabled &&
+   _.has(config.tls, 'key') && _.has(config.tls, 'cert'))
+{
+  var options = {
+    key: fs.readFileSync(homeResolve(config.tls.key)).toString(),
+    cert: fs.readFileSync(homeResolve(config.tls.cert)).toString()
+  };
+
+  server = https.createServer(options, app);
+  console.log("TLS enabled.");
+}
+else {
+  server = http.createServer(app);
+}
+
+app.set('server', server);
 
 // database handle
 
 var db = redis.createClient();
-if(_.has(process.env, 'ALSUTI_DATABASE')) {
-  db.select(process.env.ALSUTI_DATABASE);
+if(_.has(config, 'database')) {
+  console.log("Selecting database " + config.database + ".");
+  db.select(config.database);
 }
 
 db.on("error", function(err) {
@@ -45,33 +81,37 @@ var faviconPath = __dirname + '/public/favicon.ico';
 try {
   fs.accessSync(faviconPath, fs.F_OK);
   app.use(favicon(faviconPath));
-}
-catch(e) {
-  console.log("Note: no favicon found.");
-  // make browsers stfu about it
-  app.use('/favicon.ico', function(req, res) { res.status(404); res.end(); });
-}
+} catch(e) {}
 
 // middleware
-app.use(bodyParser.urlencoded({ extended: true, limit: '512mb' }));
+
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(device.capture({'parseUserAgent': true}));
 app.use(express.static(__dirname + '/public'));
+
+config.setUploadLimits(app, config.upload_limits.paste_size,
+                            config.upload_limits.file_size);
 
 // request and response management
 app.use(function(req, res, next) {
   req.apiRequest = _.has(req.headers, 'api') && isTrue(req.headers.api);
 
-  res.api = function(err, data) {
-    data.error = err;
+  res.api = function(error, data) {
+    data.error = error;
     this.setHeader('Content-Type', 'application/json');
     this.json(data);
+  }.bind(res);
+
+  res.apiMessage = function(error, message) {
+    this.api(error, { 'message': message });
   }.bind(res);
 
   res.dbError = function() {
     if(req.apiRequest) {
       this.api(true, {'message': "Database error."});
-    } else {
+    }
+    else {
       this.status(500);
       this.render('info', {
         'error': true,
@@ -88,13 +128,12 @@ app.use(function(req, res, next) {
 app.use(require('./auth.js').handleSession);
 
 // primary routes -- in order of most likely used (except for the file view)
-app.use('/', require('./routes/login.js'));
-app.use('/', require('./routes/listings.js'));
 app.use('/', require('./routes/uploads.js'));
+app.use('/', require('./routes/listings.js'));
 app.use('/', require('./routes/fileActions.js'));
 app.use('/', require('./routes/settings.js'));
+app.use('/', require('./routes/login.js'));
 app.use('/', require('./routes/registration.js'));
-// this has to be last since it can match any single parameter under /
 app.use('/', require('./routes/fileView.js'));
 
 // catch 404 and forward to error handler

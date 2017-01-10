@@ -92,8 +92,9 @@ function getMimeType(ext) {
 
 function isImage(ext) {
   for(var ft in mimeMap['image']) {
-    if(mimeMap['image'][ft].indexOf(ext) != -1)
+    if(mimeMap['image'][ft].indexOf(ext) != -1) {
       return true;
+    }
   }
 
   return false;
@@ -101,8 +102,9 @@ function isImage(ext) {
 
 function isAudio(ext) {
   for(var ft in mimeMap['audio']) {
-    if(mimeMap['audio'][ft].indexOf(ext) != -1)
+    if(mimeMap['audio'][ft].indexOf(ext) != -1) {
       return true;
+    }
   }
 
   return false;
@@ -110,8 +112,9 @@ function isAudio(ext) {
 
 function isVideo(ext) {
   for(var ft in mimeMap['video']) {
-    if(mimeMap['video'][ft].indexOf(ext) != -1)
+    if(mimeMap['video'][ft].indexOf(ext) != -1) {
       return true;
+    }
   }
 
   return false;
@@ -119,8 +122,9 @@ function isVideo(ext) {
 
 function isText(ext) {
   for(var ft in mimeMap['text']) {
-    if(mimeMap['text'][ft].indexOf(ext) != -1)
+    if(mimeMap['text'][ft].indexOf(ext) != -1) {
       return true;
+    }
   }
 
   return false;

@@ -5,6 +5,15 @@ body {
   padding: 10px;
 }
 
+/* overrides */
+p {
+  margin: 0px;
+  padding: 0px;
+}
+label {
+  user-select: none;
+}
+
 /* common */
 a {
   color: #3689B3;
@@ -19,10 +28,6 @@ a.switch {
 }
 a.switch.enabled {
   border-bottom: 1px double;
-}
-p {
-  margin: 0px;
-  padding: 0px;
 }
 span.divider:after {
   color: #808080;
@@ -73,10 +78,10 @@ form#edit,
 form#delete {
   margin: 10px;
 }
-form > input[type=text],
-form > input[type=password],
+form > label,
+form > input,
+form > label > input,
 form > textarea {
-  box-sizing: border-box;
   display: block;
 }
 form > input#url,
@@ -88,16 +93,12 @@ form > textarea#description {
 }
 form > textarea#content {
   width: 100%;
-  min-width: 300px;
+  min-width: 250px;
   min-height: 200px;
   resize: vertical;
 }
-form > span {
-  width: 100%;
-  resize: none;
-}
-label {
-  user-select: none;
+textarea {
+  box-sizing: border-box;
 }
 
 /* global bar */

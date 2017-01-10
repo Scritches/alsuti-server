@@ -4,6 +4,7 @@ var _ = require('underscore'),
     shortid = require('shortid');
 
 var auth = require('../auth.js'),
+    config = require('../config.js'),
     isTrue = require('../truthiness.js');
 
 var router = express.Router();
@@ -18,24 +19,69 @@ router.get('/settings', function(req, res) {
   m.lrange(userHash + ':invites', 0, -1);
 
   m.exec(function(err, data) {
+    var fileUploader = req.app.get('fileUploader');
+
     var env = {
-      'quota': parseInt(data[0]),
-      'invites': data[1]
+      'inviteQuota': parseInt(data[0]),
+      'inviteCodes': data[1]
     };
 
-    if(_.has(req.query, 'state')) {
-      env.state = parseInt(req.query.state);
+    if(req.apiRequest) {
+      res.api(false, env);
+    }
+    else {
+      if(_.has(req.query, 'state')) {
+        env.state = parseInt(req.query.state);
+      }
+
+      res.render('settings', env);
+    }
+  });
+});
+
+router.post('/admin/globals/set', auth.require);
+router.post('/admin/globals/set', function(req, res) {
+  if(req.session.admin == false) {
+    if(req.apiRequest) {
+      res.apiMessage(true, "You can't do that.");
+    }
+    else {
+      res.render('info', {
+        'error': true,
+        'title': "You can't do that.",
+        'message': "Nice try, though.",
+        'returnPath': '/public',
+        'redirect': 5
+      });
     }
 
-    res.render('settings', env);
-  });
+    return;
+  }
+
+  var pasteSizeLimit = null,
+      fileSizeLimit = null;
+
+  if(_.has(req.body, 'pasteSizeLimit')) {
+    pasteSizeLimit = req.body.pasteSizeLimit;
+  }
+  if(_.has(req.body, 'fileSizeLimit')) {
+    fileSizeLimit = req.body.fileSizeLimit;
+  }
+
+  config.setUploadLimits(req.app, pasteSizeLimit, fileSizeLimit);
+
+  if(req.apiRequest) {
+    res.apiMessage(false, "Settings saved.");
+  } else {
+    res.redirect('/settings?state=3');
+  }
 });
 
 router.post('/password/set', auth.require);
 router.post('/password/set', function(req, res) {
   if(_.has(req.body, 'password') == false) {
     if(req.apiRequest) {
-      res.api(true, {'message': "Invalid request."});
+      res.apiMessage(true, "Invalid request.");
     }
     else {
       res.render('info', {
@@ -56,13 +102,14 @@ router.post('/password/set', function(req, res) {
           bcrypt.hash(req.body.newPassword, null, null, function(err, pHash) {
             db.hset(userHash, 'password', pHash, function(err) {
               if(req.apiRequest) {
-                res.api(false, {'message': "Password changed."});
-              } else {
+                res.apiMessage(false, "Password changed.");
+              }
+              else {
                 res.render('info', {
                   'title': "Password changed.",
                   'message': "You will be redirected shortly.",
-                  'redirect': 5,
-                  'returnPath': '/settings'
+                  'returnPath': '/settings',
+                  'redirect': 5
                 });
               }
             });
@@ -70,7 +117,7 @@ router.post('/password/set', function(req, res) {
         }
         else {
           if(req.apiRequest) {
-            res.api(true, {'message': "Confirmation password does not match."});
+            res.apiMessage(true, "Confirmation password does not match.");
           } else {
             res.redirect('/settings?state=2');
           }
@@ -78,7 +125,7 @@ router.post('/password/set', function(req, res) {
       }
       else {
         if(req.apiRequest) {
-          res.api(true, {'message': "Incorrect password."});
+          res.apiMessage(true, "Incorrect password.");
         } else {
           res.redirect('/settings?state=1');
         }
@@ -93,10 +140,16 @@ router.post('/invite/new', function(req, res) {
       userHash = 'user:' + req.session.user;
 
   db.hmget(userHash, ['admin', 'inviteQuota'], function(err, data) {
-    var admin = isTrue(data[0]),
-        invites = parseInt(data[1]);
+    var admin = isTrue(data[0]);
 
-    if(admin || invites > 0) {
+    var inviteQuota;
+    if(data[1] != null) {
+      inviteQuota = parseInt(data[1]);
+    } else {
+      inviteQuota = config.default_invite_quota;
+    }
+
+    if(admin || inviteQuota > 0) {
       var m = db.multi(),
           code = shortid.generate(),
           iHash = 'invite:' + code;
@@ -105,14 +158,18 @@ router.post('/invite/new', function(req, res) {
       m.hmset(iHash, ['sender', req.session.user]);
 
       if(admin == false) {
-        m.hset(userHash, 'inviteQuota', invites - 1);
+        m.hset(userHash, 'inviteQuota', inviteQuota - 1);
       }
 
       m.exec(function(err, replies) {
         if(req.apiRequest) {
-          res.json(false, {'code': code});
-        } else {
-          res.redirect('/settings');
+          res.api(false, {
+            'inviteCode': code,
+            'inviteQuota': inviteQuota
+          });
+        }
+        else {
+          res.redirect(req.headers.referer || '/settings');
         }
       });
     }
@@ -125,56 +182,37 @@ router.get('/invite/delete/:code', function(req, res) {
       iHash = 'invite:' + req.params.code;
 
   db.hget(iHash, 'sender', function(err, sender) {
-    if(!err) {
-      if(sender == req.session.user) {
-        var senderHash = 'user:' + sender;
-        db.hmget(senderHash, 'inviteQuota', function(err, quota) {
-          var m = db.multi();
+    if(!err && sender == req.session.user) {
+      var senderHash = 'user:' + sender;
+      db.hgetall(senderHash, function(err, sender) {
+        var m = db.multi();
 
-          if(!err) {
-            m.hset(senderHash, 'inviteQuota', parseInt(quota) + 1);
-          } else {
-            m.hset(senderHash, 'inviteQuota', 20);
+        m.del(iHash);
+        m.lrem(senderHash + ':invites', 1, req.params.code);
+        if(isTrue(sender.admin) == false) {
+          m.hset(senderHash, 'inviteQuota', parseInt(sender.inviteQuota) + 1);
+        }
+
+        m.exec(function(err, replies) {
+          if(req.apiRequest) {
+            res.json(false, {
+              'message': "Invite code deleted."
+            });
           }
-
-          m.lrem(senderHash + ':invites', 1, req.params.code);
-          m.del(iHash);
-
-          m.exec(function(err, replies) {
-            if(req.apiRequest) {
-              res.json(false, {
-                'message': "Invite code deleted."
-              });
-            }
-            else {
-              res.redirect('/settings');
-            }
-          });
+          else {
+            res.redirect('/settings');
+          }
         });
-      }
-      else {
-        if(req.apiRequest) {
-          res.json(true, {
-            'message': "No."
-          });
-        }
-        else {
-          res.render('info', {
-            'title': "LOL",
-            'message': "No."
-          });
-        }
-      }
+      });
     }
     else {
-      // no such invite
       if(req.apiRequest) {
-        res.json(true, {'message':"Invalid invite code."});
+        res.apiMessage(true, "Invalid request.");
       } else {
         res.render('info', {
           'error': true,
           'title': "Error",
-          'message': "Invalid invite code."
+          'message': "Invalid request."
         });
       }
     }

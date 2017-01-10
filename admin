@@ -6,6 +6,8 @@ var _ = require('underscore')._,
     fs = require('fs'),
     redis = require('redis');
 
+var isTrue = require('./truthiness');
+
 var db = redis.createClient(),
     argv = process.argv.slice(2),
 //  base64 regex from http://stackoverflow.com/a/18967082
@@ -15,7 +17,7 @@ function setUser(name, password, admin) {
   var userHash = 'user:' + name,
       pHash = bcrypt.hashSync(password);
 
-  db.hmset(userHash, ['password', pHash, 'admin', admin, 'inviteQuota', 20], function(err, reply) {
+  db.hmset(userHash, ['password', pHash, 'admin', admin, 'inviteQuota', isTrue(admin) ? -1 : 20], function(err, reply) {
     if(!err) {
       console.log("User configured: " + name + " [admin=" + admin + "]");
     } else {

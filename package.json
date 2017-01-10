@@ -1,6 +1,6 @@
 {
   "name": "alsuti-server",
-  "version": "0.0.0",
+  "version": "0.2",
   "private": true,
   "scripts": {
     "start": "node ./bin/www"
@@ -8,8 +8,8 @@
   "dependencies": {
     "bcrypt-nodejs": "latest",
     "body-parser": "latest",
+    "bytes": "latest",
     "cookie-parser": "latest",
-    "crypto-js": "latest",
     "express": "latest",
     "express-device": "latest",
     "jade": "latest",

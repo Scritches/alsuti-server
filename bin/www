@@ -1,35 +1,19 @@
 #!/usr/bin/env node
-var _ = require('underscore')._,
-		fs = require('fs'),
-    http = require('http'),
-    https = require('https'),
-    app = require('../app');
+var app = require('../app'),
+    config = require('../config');
 
 // server setup
 
-var port = process.env.PORT || 3067;
+var port = config.port || 3067,
+    server = app.get('server');
 
-var server;
-if(_.has(process.env, 'ALSUTI_TLS') &&
-   process.env.ALSUTI_TLS == 'yes' &&
-   _.has(process.env, 'ALSUTI_TLS_KEY') &&
-   _.has(process.env, 'ALSUTI_TLS_CERT'))
-{
-  var options = {
-    key: fs.readFileSync(process.env.ALSUTI_TLS_KEY).toString(),
-    cert: fs.readFileSync(process.env.ALSUTI_TLS_CERT).toString()
-  };
-
-  server = https.createServer(options, app).listen(port);
-}
-else {
-  server = http.createServer(app).listen(port);
-}
+server.listen(port);
+console.log("Listening on port " + port + ".");
 
 // signal handling for clean shutdown
 
 var shutdown = function() {
-  console.log("\b\bShutting down..");
+  console.log("\b\bShutting down...");
   server.close(function() {
     app.get('database').quit();
   });

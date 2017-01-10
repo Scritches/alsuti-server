@@ -43,8 +43,9 @@ function renderListing(req, res, zHash, title, listingType) {
   var offset;
   if(_.has(req.query, 'offset')) {
     offset = parseInt(req.query['offset']);
-    if(offset < 0)
+    if(offset < 0) {
       offset = 0;
+    }
   }
   else {
     offset = 0;
@@ -97,7 +98,8 @@ function renderListing(req, res, zHash, title, listingType) {
               'nTotal': nTotal,
               'page': Math.floor(start / count) + 1,
             });
-          } else {
+          }
+          else {
             res.render('listing', {
               'title': title,
               'uploads': uploads,
@@ -115,7 +117,8 @@ function renderListing(req, res, zHash, title, listingType) {
     else {
       if(req.apiRequest) {
         res.api(true, {'message': "Database error."});
-      } else {
+      }
+      else {
         res.render('info', {
           'title': "Database Error",
           'message': "Cannot render listing."

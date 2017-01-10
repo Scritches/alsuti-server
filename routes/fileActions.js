@@ -64,7 +64,8 @@ router.post('/edit', function(req, res) {
   if(_.has(req.body, 'file') == false) {
     if(req.apiRequest) {
       res.api(true, {'message': "No file specified."});
-    } else {
+    }
+    else {
       res.render('info', {
         'title': "Client Error",
         'message': "No file specified."
@@ -175,7 +176,8 @@ router.post('/edit', function(req, res) {
         else {
           if(req.apiRequest) {
             res.api(true, {'message': "You are not allowed to edit this file."});
-          } else {
+          }
+          else {
             res.render('info', {
               'title': "Not Authorized",
               'message': "You are not allowed to edit this file.",
@@ -261,7 +263,8 @@ router.post('/delete', function(req, res) {
   if(_.has(req.body, 'file') == false) {
     if(req.apiRequest) {
       res.api(true, {'message': "No file specified."});
-    } else {
+    }
+    else {
       res.status(400);
       res.render('info', {
         'error': true,

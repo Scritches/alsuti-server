@@ -1,12 +1,15 @@
 var express = require('express'),
-    auth = require('../auth.js'),
+//  --
+    auth = require('../auth'),
+//  --
     router = express.Router();
 
 router.get('/login', function(req, res) {
   var returnPath = req.headers.referer || '/private';
   if(req.session.validate()) {
     res.redirect(returnPath);
-  } else {
+  }
+  else {
     res.render('login', {
       'title': "Log In",
       'returnPath': returnPath
