@@ -26,7 +26,6 @@ function finalizeUpload(fileName, req, res) {
     'time', time,
     'user', req.session.user,
     'encrypted', _.has(req.body, 'encrypted') && isTrue(req.body.encrypted),
-    'public', _.has(req.body, 'public') && isTrue(req.body.public)
   ];
 
   if(_.has(req.body, 'title')) {
@@ -47,15 +46,17 @@ function finalizeUpload(fileName, req, res) {
     }
   }
 
-  m.hmset(fileHash, metadata);
-
-  if(metadata.public) {
+  if(_.has(req.body, 'public') && isTrue(req.body.public)) {
+    metadata.push('public', true);
     m.zadd('public', time, fileName);
     m.zadd(userHash + ':public', time, fileName);
   }
   else {
+    metadata.push('public', false);
     m.zadd(userHash + ':private', time, fileName);
   }
+
+  m.hmset(fileHash, metadata);
 
   m.exec(function(err, replies) {
     if(!err) {
@@ -174,7 +175,6 @@ router.get('/rehost', function(req, res) {
 });
 
 router.post('/rehost', auth.require);
-router.post('/rehost', multer().array());
 router.post('/rehost', function(req, res) {
   var url = _.has(req.body, 'url') ? req.body.url.trim() : null;
   if(url != null && url.length > 0) {

@@ -1,5 +1,6 @@
 var _ = require('underscore')._,
     bodyParser = require('body-parser'),
+    bytes = require('bytes'),
     cookieParser = require('cookie-parser'),
     device = require('express-device'),
     express = require('express'),
@@ -7,6 +8,7 @@ var _ = require('underscore')._,
     fs = require('fs'),
     http = require('http'),
     https = require('https'),
+    multer = require('multer'),
     path = require('path'),
     process = require('process'),
     redis = require('redis');
@@ -42,7 +44,7 @@ if(_.has(config, 'tls') && config.tls.enabled &&
   };
 
   server = https.createServer(options, app);
-  console.log("TLS enabled.");
+  console.log("> TLS enabled");
 }
 else {
   server = http.createServer(app);
@@ -54,7 +56,7 @@ app.set('server', server);
 
 var db = redis.createClient();
 if(_.has(config, 'database')) {
-  console.log("Selecting database " + config.database + ".");
+  console.log("> Selecting database " + config.database);
   db.select(config.database);
 }
 
@@ -85,13 +87,41 @@ try {
 
 // middleware
 
+function configureUploads(pasteSize, fileSize) {
+  var upload = multer({
+    limits: {
+      fields: 5,
+      fieldSize: bytes.parse(pasteSize) || config.upload_limits.paste_size,
+      fileSize: bytes.parse(fileSize)   || config.upload_limits.file_size
+    },
+    storage: multer.diskStorage({
+      destination: function(req, file, callback) {
+        callback(null, path.resolve(__dirname + '/files/'));
+      },
+      filename: function(request, file, callback) {
+        var fileExt = types.fileExtension(file.originalname);
+        if(fileExt != null) {
+          callback(null, shortid.generate() + '.' + fileExt);
+        } else {
+          callback(null, shortid.generate());
+        };
+      },
+    }),
+  });
+  
+  app.set('pasteUploader', upload.array());
+  app.set('fileUploader', upload.single('file'));
+}
+
+app.locals.configureUploads = configureUploads;
+
+configureUploads(config.upload_limits.paste_size,
+                 config.upload_limits.file_size);
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(device.capture({'parseUserAgent': true}));
 app.use(express.static(__dirname + '/public'));
-
-config.setUploadLimits(app, config.upload_limits.paste_size,
-                            config.upload_limits.file_size);
 
 // request and response management
 app.use(function(req, res, next) {
@@ -108,11 +138,11 @@ app.use(function(req, res, next) {
   }.bind(res);
 
   res.dbError = function() {
+    this.status(500);
     if(req.apiRequest) {
       this.api(true, {'message': "Database error."});
     }
     else {
-      this.status(500);
       this.render('info', {
         'error': true,
         'title': "Database Error",

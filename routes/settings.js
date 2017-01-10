@@ -3,9 +3,10 @@ var _ = require('underscore'),
     express = require('express'),
     shortid = require('shortid');
 
-var auth = require('../auth.js'),
-    config = require('../config.js'),
-    isTrue = require('../truthiness.js');
+var app = require('../app'),
+    auth = require('../auth'),
+    config = require('../config'),
+    isTrue = require('../truthiness');
 
 var router = express.Router();
 
@@ -58,17 +59,13 @@ router.post('/admin/globals/set', function(req, res) {
     return;
   }
 
-  var pasteSizeLimit = null,
-      fileSizeLimit = null;
+  var pasteSizeLimit = req.body.pasteSizeLimit || null;
+      fileSizeLimit = req.body.fileSizeLimit || null;
 
-  if(_.has(req.body, 'pasteSizeLimit')) {
-    pasteSizeLimit = req.body.pasteSizeLimit;
-  }
-  if(_.has(req.body, 'fileSizeLimit')) {
-    fileSizeLimit = req.body.fileSizeLimit;
-  }
+  app.locals.configureUploads(pasteSizeLimit, fileSizeLimit);
 
-  config.setUploadLimits(req.app, pasteSizeLimit, fileSizeLimit);
+  config.upload_limits.paste_size = pasteSize;
+  config.upload_limits.file_size = fileSize;
 
   if(req.apiRequest) {
     res.apiMessage(false, "Settings saved.");
