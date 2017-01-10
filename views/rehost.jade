@@ -6,7 +6,7 @@ head
 body
   include globalBar
   h1#title Rehost
-  form#rehost.vpad(method='post' action='/rehost')
+  form#rehost.vpad(method='post' action='/rehost' enctype='multipart/form-data')
     input#url(type='text' name='url' placeholder="URL" autofocus)
     input#title(type='text' name='title' placeholder="Title")
     textarea#description(form='rehost' name='description' placeholder="Description")
