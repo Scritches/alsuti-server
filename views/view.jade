@@ -9,7 +9,7 @@ mixin tools
     -if(fileType == 'text' || fileType == null)
       span#textTools.hpad(style='display:none;')
         span.divider
-        a#copyLink(onclick='copyToClipboard();') Copy
+        a#copyLink.switch(onclick='copyToClipboard();') Copy
         span.divider
         a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
     -if(session.admin || session.validate(user))

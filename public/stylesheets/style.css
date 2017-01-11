@@ -16,7 +16,7 @@ label {
 
 /* common */
 a {
-  color: #3689B3;
+  color: #1F7099;
   text-decoration: underline;
 }
 a:hover {
@@ -39,14 +39,14 @@ span.divider:after {
 .underlined {
   text-decoration: underline;
 }
-.pink {
-  color: #B336B3;
+.red {
+  color: #991F1F;
 }
 .green {
-  color: #75B336;
+  color: #48991F;
 }
-.red {
-  color: #B33636;
+.pink {
+  color: #991F99;
 }
 .hpad > * {
   margin-right: 5px;
@@ -173,19 +173,10 @@ h1#title {
 #tools {
   margin-bottom: 10px;
   user-select: none;
+  overflow: auto;
 }
 #tools > * {
   vertical-align: middle;
-}
-#copyNotify {
-  position: relative;
-}
-#copyNotifyText {
-  display: none;
-  position: absolute;
-}
-#copyNotifyText:after {
-  content: "Copied!"
 }
 
 /* for settings page */

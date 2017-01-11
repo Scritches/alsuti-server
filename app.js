@@ -78,13 +78,6 @@ app.set('views', __dirname + '/views');
 // pretty html output
 app.locals.pretty = true;
 
-// use favicon if it exists
-var faviconPath = __dirname + '/public/favicon.ico';
-try {
-  fs.accessSync(faviconPath, fs.F_OK);
-  app.use(favicon(faviconPath));
-} catch(e) {}
-
 // middleware
 
 function configureUploads(textSize, fileSize) {
@@ -122,6 +115,13 @@ app.use(cookieParser());
 app.use(device.capture({'parseUserAgent': true}));
 app.use(express.static(__dirname + '/public'));
 
+// use favicon if it exists
+var faviconPath = __dirname + '/public/favicon.ico';
+try {
+  fs.accessSync(faviconPath, fs.F_OK);
+  app.use(favicon(faviconPath));
+} catch(e) {}
+
 // request and response management
 app.use(function(req, res, next) {
   req.apiRequest = _.has(req.headers, 'api') && isTrue(req.headers.api);
@@ -157,12 +157,12 @@ app.use(function(req, res, next) {
 app.use(require('./auth.js').handleSession);
 
 // primary routes -- in order of most likely used (except for the file view)
-app.use('/', require('./routes/uploads.js'));
 app.use('/', require('./routes/listings.js'));
-app.use('/', require('./routes/fileActions.js'));
+app.use('/', require('./routes/uploads.js'));
 app.use('/', require('./routes/settings.js'));
 app.use('/', require('./routes/login.js'));
 app.use('/', require('./routes/registration.js'));
+app.use('/', require('./routes/fileActions.js'));
 app.use('/', require('./routes/fileView.js'));
 
 // catch 404 and forward to error handler

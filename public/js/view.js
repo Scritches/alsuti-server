@@ -279,12 +279,30 @@ function initText(url, text) {
   $('#textTools').show();
 }
 
+var inhibitCopy = false;
 function copyToClipboard() {
+  if(inhibitCopy) {
+    return;
+  }
+
   var $temp = $("<input>");
   $('body').append($temp);
   $temp.val($('#content').text()).select();
   document.execCommand('copy');
   $temp.remove();
+
+  var copyLink = $('#copyLink'),
+      copyTextNormal = copyLink.text();
+
+  inhibitCopy = true;
+  copyLink.text("Copied!");
+  copyLink.addClass("enabled pink");
+
+  window.setTimeout(function() {
+    copyLink.text(copyTextNormal);
+    copyLink.removeClass("enabled pink");
+    inhibitCopy = false;
+  }, 4000);
 }
 
 function setLineNumbers(state) {

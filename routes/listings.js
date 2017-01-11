@@ -17,6 +17,26 @@ router.get('/public', function(req, res) {
   renderListing(req, res, 'public', 'Public', 'public');
 });
 
+router.get('/user/:user/private', auth.require);
+router.get('/user/:user/private', function(req, res) {
+  if(req.session.admin || req.session.validate(req.params.user)) {
+    renderListing(req, res, 'user:' + req.params.user + ':private',
+                  'Private', 'private');
+  }
+  else {
+    if(req.apiRequest) {
+      res.apiMessage();
+    }
+    else {
+      res.render('info', {
+        'error': true,
+        'title': "Not Authorized.",
+        'message': "You're not allowed to access this page."
+      });
+    }
+  }
+});
+
 router.get('/user/:user/public', function(req, res) {
   var db = req.app.get('database');
   db.exists('user:' + req.params.user, function(err, exists) {
