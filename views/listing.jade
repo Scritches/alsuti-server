@@ -57,13 +57,9 @@ body(onload="renderRelativeTimes();")
           -if(u.time != null)
             td.alignRight
               span.uploadTime.hidden= u.time
-          -else
-            td.alignRight
           -if(listingType == 'public' && u.user != null)
             td.alignRight
               a(href='/user/#{u.user}/public')= u.user
-          -else
-            td.alignRight
     div#pageBar
       -if(start > 0)
         a.floatLeft(href='?offset=#{Math.max(start - count, 0)}') Previous

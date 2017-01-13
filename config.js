@@ -1,7 +1,4 @@
-var bytes = require('bytes'),
-    fs = require('fs');
-
-var types = require('./types');
+var fs = require('fs'),
 
 var config;
 try {
