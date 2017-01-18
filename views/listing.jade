@@ -43,7 +43,7 @@ body(onload="renderRelativeTimes();")
       table#listing(border='0' cellpadding='5px' cellspacing='0')
         each u,i in uploads
           tr
-            td.alignRight.listingFileIndex #{start + i + 1}
+            td.alignRight.listingFileIndex= start + i + 1
             td.expand
               -if(u.encrypted)
                 a.red(href='/#{u.fileName}')= u.title || u.fileName
