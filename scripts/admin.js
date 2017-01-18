@@ -4,14 +4,16 @@ var _ = require('underscore')._,
     async = require('async'),
     bcrypt = require('bcrypt-nodejs'),
     fs = require('fs'),
+    path = require('path'),
     redis = require('redis');
 
-var isTrue = require('./truthiness');
+var config = require('../config'),
+    isTrue = require('../truthiness');
 
 var db = redis.createClient(),
     argv = process.argv.slice(2),
-//  base64 regex from http://stackoverflow.com/a/18967082
-    b64m = new RegExp("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$");
+//  base64 regex
+    b64m = new RegExp("^[A-Za-z0-9+/=]+$");
 
 function setUser(name, password, admin) {
   var userHash = 'user:' + name,
@@ -55,8 +57,9 @@ function setAdmin(name, state) {
 }
 
 function main() {
-  if(_.has(process.env, 'ALSUTI_DATABASE')) {
-    db.select(process.env.ALSUTI_DATABASE);
+  if(_.has(config, 'database')) {
+    console.log("> Selecting database " + config.database);
+    db.select(config.database);
   }
 
   if(argv[0] == 'flush') {
@@ -102,57 +105,53 @@ function main() {
 
     if(admin == null || password == null) {
       console.log("Error: you must specify an administrator user and password.");
-      console.log("Example: ./admin mkdb user=someone password=something");
+      console.log("Example: ./admin mkdb admin=someone password=something");
+      return;
     }
-    else {
-      setUser(admin, password, 'yes'); // add default admin user
 
-      var slugs = fs.readdirSync('files').filter(function(slug) {
-        return slug.startsWith(".") == false;
-      });
+    console.log("\nAll uploads will be " + (_public ? "public." : "private."));
+    setUser(admin, password, 'yes'); // add default admin user
 
-      var uploads = slugs.map(function(slug) {
-        var filePath = 'files/' + slug;
-        return {
-          'fileName': slug,
-          'time': fs.statSync(filePath).mtime.getTime(),
-          'encrypted': b64m.test(fs.readFileSync(filePath, 'utf-8').toString()),
-        };
-      }).sort(function(a,b) {
-        return a.time - b.time;
-      });
+    var fileNames = fs.readdirSync(path.resolve(__dirname + '/../files')).filter(function(fn) {
+      return fn.substr(0,1) != '.';
+    });
 
-      for(var i=0; i < uploads.length; ++i) {
-        var u = uploads[i],
-            fileHash = 'file:' + u.fileName,
-            settings = [];
+    for(var i=0; i < fileNames.length; ++i) {
+      var fileName = fileNames[i],
+          filePath = './files/' + fileName,
+          fileHash = 'file:' + fileName;
 
-        db.exists(fileHash, function(err, exists) {
-          if(!err && exists == false) {
-            db.hmset(fileHash,
-              'user', admin,
-              'time', u.time,
-              'encrypted', u.encrypted,
-              'public', _public
-            );
+      var u = {
+        'fileName': fileName,
+        'user': admin,
+        'time': fs.statSync(filePath).mtime.getTime(),
+        'encrypted': b64m.test(fs.readFileSync(filePath, 'utf-8').toString()),
+        'public': _public
+      };
 
-            // push to user upload lists
-            var userHash = 'user:' + admin;
-            if(_public) {
-              db.zadd('public', u.time, u.fileName);
-              db.zadd(userHash + ':public', u.time, u.fileName);
-            } else {
-              db.zadd(userHash + ':private', u.time, u.fileName);
-            }
-          }
-        });
+      var m = db.multi();
 
-        console.log(u.fileName + ": time=" + u.time.toString() + (u.encrypted ? ', encrypted' : ''));
+      m.hmset(fileHash,
+        'user', admin,
+        'time', u.time,
+        'encrypted', u.encrypted,
+        'public', u.public
+      );
+
+      // push to user upload lists
+      var userHash = 'user:' + admin;
+      if(_public) {
+        m.zadd('public', u.time, u.fileName);
+        m.zadd(userHash + ':public', u.time, u.fileName);
+      } else {
+        m.zadd(userHash + ':private', u.time, u.fileName);
       }
+
+      m.exec();
+      console.log(u.fileName + ", time=" + u.time + (u.encrypted ? ", encrypted" : ", plain"));
     }
   }
-
-  db.quit();
 }
 
 main();
+db.quit();

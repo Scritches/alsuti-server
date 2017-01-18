@@ -74,6 +74,11 @@ span.divider:after {
 form {
   margin: 10px 0px 10px;
 }
+form#adminGlobals input[type=text],
+form#changePassword input[type=password] {
+  box-sizing: border-box;
+  width: 200px;
+}
 form#edit,
 form#delete {
   margin: 10px;
@@ -84,12 +89,11 @@ form > label > input,
 form > textarea {
   display: block;
 }
-form > input#url,
-form > input#title,
-form > textarea#description {
+form input#url,
+form input#title,
+form textarea#description {
   min-width: 250px;
   width: 25%;
-  resize: none;
 }
 form > textarea#content {
   width: 100%;
@@ -99,6 +103,7 @@ form > textarea#content {
 }
 textarea {
   box-sizing: border-box;
+  resize: none;
 }
 
 /* global bar */
@@ -286,6 +291,9 @@ table#listing tr td:not(.expand) {
 }
 table#listing tr td.alignRight {
   text-align: right;
+}
+.listingFileIndex {
+  color: #606060;
 }
 
 /* invite listings dont use this */
