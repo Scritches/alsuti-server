@@ -2,10 +2,10 @@ mixin tools
   div#tools.hpad
     -if(encrypted)
       span#genericTools(style='display:none;')
-        a#downloadLink(download='#{fileName}') Download
+        a#downloadLink Download
     -else
       span#genericTools
-        a#downloadLink(href='/x/#{fileName}' download='#{fileName}') Download
+        a#downloadLink(href='/x/#{fileName}') Download
     -if(fileType == 'text' || fileType == null)
       span#textTools.hpad(style='display:none;')
         span.divider
