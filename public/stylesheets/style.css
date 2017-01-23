@@ -74,8 +74,8 @@ span.divider:after {
 form {
   margin: 10px 0px 10px;
 }
-form#adminGlobals input[type=text],
-form#changePassword input[type=password] {
+form input[type=text],
+form input[type=password] {
   box-sizing: border-box;
   width: 200px;
 }
