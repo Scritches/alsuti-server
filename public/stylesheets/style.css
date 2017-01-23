@@ -30,7 +30,7 @@ a.switch.enabled {
   border-bottom: 1px double;
 }
 span.divider:after {
-  color: #808080;
+  color: #A0A0A0;
   content: '|';
 }
 .bold {
@@ -198,7 +198,7 @@ h2#section {
 #sizeNotice,
 #binaryNotice {
   background-color: #F2F2F2;
-  color: #808080;
+  color: #606060;
 }
 #decryption {
   background-color: #E6DBCF;
@@ -245,8 +245,13 @@ h2#section {
 }
 #textContainer {
   border: 1px solid #CCC;
-  background-color: #E6E6E6;
   clear: both;
+}
+code.hljs-line-numbers {
+  border: 0px;
+  color: #606060;
+  padding: 5px 7.5px;
+  display: inline-block;
 }
 img#content {
   max-width: 80%;
@@ -255,13 +260,6 @@ audio#content,
 video#content
 {
   width: 50%;
-}
-code.hljs-line-numbers {
-  border: 0px;
-  background-color: #E6E6E6;
-  color: #808080;
-  padding: 5px 7.5px;
-  display: inline-block;
 }
 code {
   border-left: 0px solid #CCC;
@@ -276,12 +274,6 @@ code {
 /* listings */
 table#listing {
   border: 1px solid #C8C8C8;
-}
-table#listing tr:nth-child(odd) {
-  background-color: #F8F8F8;
-}
-table#listing tr:nth-child(even) {
-  background-color: #ECECEC;
 }
 table#listing tr td.expand {
   width: 100%;
@@ -300,4 +292,14 @@ table#listing tr td.alignRight {
 #pageBar {
   margin: 10px 5px;
   overflow: auto;
+}
+
+/* shades for line numbers + tables */
+table#listing tr:nth-child(odd) {
+  background-color: #E8E8E8;
+}
+#textContainer,
+code.hljs-line-numbers,
+table#listing tr:nth-child(even) {
+  background-color: #D8D8D8;
 }

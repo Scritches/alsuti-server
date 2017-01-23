@@ -8,7 +8,7 @@ body
   div#fileUpload
     h1#title Upload
     form#upload.vpad(method='post' action='/upload' enctype='multipart/form-data')
-      input#file(type='file' name='file')
+      input#file(type='file' name='file' autofocus)
       input#title(type='text' name='title' placeholder='Title')
       textarea#description(form='upload' name='description' placeholder='Description')
       span.hpad
