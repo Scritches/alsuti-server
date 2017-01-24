@@ -1,10 +1,12 @@
 var _ = require('underscore')._,
+    bytes = require('bytes'),
     device = require('express-device'),
     express = require('express'),
     fs = require('fs'),
     path = require('path');
 
-var isTrue = require('../truthiness'),
+var config = require('../config'),
+    isTrue = require('../truthiness'),
     types = require('../types');
 
 var router = express.Router();
@@ -62,12 +64,8 @@ router.get('/:file', function(req, res) {
           u.subType = null;
         }
 
-        function toMegabytes(size) {
-          return size / 1024 / 1024;
-        }
-
         // try not to touch this code. it's sensitive.
-        u.tooLarge = toMegabytes(u.fileSize) > 256;
+        u.tooLarge = u.fileSize > bytes.parse(config.size_limits.file_view);
         if(u.tooLarge == false && u.encrypted == false) {
           if(u.fileType == 'text') {
             fs.readFile(filePath, function(err, data) {
@@ -80,15 +78,17 @@ router.get('/:file', function(req, res) {
               }
             });
           }
+          // unknown extensions/types
           else if(u.fileType == null) {
             fs.readFile(filePath, function(err, data) {
               if(!err) {
                 if(types.isBinary(data, binaryThreshold)) {
+                  // binary
                   u.fileType = 'application';
                   u.subType = 'octet-stream';
                 }
                 else {
-                  // only render unencrypted text under the size limit
+                  // text
                   u.text = data.toString('utf8');
                 }
 

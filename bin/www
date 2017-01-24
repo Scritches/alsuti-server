@@ -14,6 +14,7 @@ console.log("> Listening on port " + port);
 
 var shutdown = function() {
   console.log("\b\bShutting down...");
+  config.save();
   server.close(function() {
     app.get('database').quit();
   });

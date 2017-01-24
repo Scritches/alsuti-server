@@ -12,10 +12,12 @@ html
       div.vpad
         h2#section.green Admin
         form#adminGlobals(method='post' action='/admin/globals/set').vpad
-          label Text size limit
-            input#textSizeLimit(type='text' name='textSizeLimit' value='#{config.upload_limits.text_size}')
-          label File size limit
-            input#fileSizeLimit(type='text' name='fileSizeLimit' value='#{config.upload_limits.file_size}')
+          label Text upload size limit
+            input#textUploadSizeLimit(type='text' name='textUploadSizeLimit' value='#{config.size_limits.text_upload}')
+          label File upload size limit
+            input#fileUploadSizeLimit(type='text' name='fileUploadSizeLimit' value='#{config.size_limits.file_upload}')
+          label File view size limit
+            input#fileViewSizeLimit(type='text' name='fileViewSizeLimit' value='#{config.size_limits.file_view}')
           button(type='submit') Save
           -if(state == 3)
             p#description.green Settings saved.

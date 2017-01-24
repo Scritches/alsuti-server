@@ -84,8 +84,8 @@ function configureUploads(textSize, fileSize) {
   var upload = multer({
     limits: {
       fields: 5,
-      fieldSize: bytes.parse(textSize) || config.upload_limits.text_size,
-      fileSize: bytes.parse(fileSize)  || config.upload_limits.file_size
+      fieldSize: bytes.parse(textSize) || config.size_limits.text_upload,
+      fileSize: bytes.parse(fileSize)  || config.size_limits.file_upload
     },
     storage: multer.diskStorage({
       destination: function(req, file, callback) {
@@ -101,14 +101,14 @@ function configureUploads(textSize, fileSize) {
       },
     }),
   });
-  
+
   app.set('textUploader', upload.array());
   app.set('fileUploader', upload.single('file'));
 }
 
 app.locals.configureUploads = configureUploads;
-configureUploads(config.upload_limits.text_size,
-                 config.upload_limits.file_size);
+configureUploads(config.size_limits.text_upload || null,
+                 config.size_limits.file_upload || null);
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -120,7 +120,10 @@ var faviconPath = __dirname + '/public/favicon.ico';
 try {
   fs.accessSync(faviconPath, fs.F_OK);
   app.use(favicon(faviconPath));
-} catch(e) {}
+}
+catch(e) {
+  console.log("> Note: No favicon found in /public");
+}
 
 // request and response management
 app.use(function(req, res, next) {

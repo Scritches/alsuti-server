@@ -1,8 +1,14 @@
 var fs = require('fs');
 
+function saveConfig() {
+  delete this.save;
+  fs.writeFileSync(__dirname + '/config.json', JSON.stringify(this, null, 2));
+}
+
 var config;
 try {
   config = JSON.parse(fs.readFileSync(__dirname + '/config.json'));
+  config.save = saveConfig.bind(config);
 }
 catch(e) {
   if(e.code == 'ENOENT') {

@@ -7,8 +7,9 @@
     "key": "",
     "cert": ""
   },
-  "upload_limits": {
-    "text_size": "128mb",
-    "file_size": "1.5gb"
+  "size_limits": {
+    "text_upload": "128mb",
+    "file_upload": "1.5gb",
+    "file_view": "256mb"
   }
 }

@@ -59,13 +59,15 @@ router.post('/admin/globals/set', function(req, res) {
     return;
   }
 
-  var textSizeLimit = req.body.textSizeLimit || null;
-      fileSizeLimit = req.body.fileSizeLimit || null;
+  var textUploadSizeLimit = req.body.textUploadSizeLimit || null,
+      fileUploadSizeLimit = req.body.fileUploadSizeLimit || null,
+      fileViewSizeLimit = req.body.fileViewSizeLimit || null;
 
-  app.locals.configureUploads(textSizeLimit, fileSizeLimit);
+  req.app.locals.configureUploads(textUploadSizeLimit, fileUploadSizeLimit);
 
-  config.upload_limits.text_size = textSizeLimit;
-  config.upload_limits.file_size = fileSizeLimit;
+  config.size_limits.text_upload = textUploadSizeLimit;
+  config.size_limits.file_upload = fileUploadSizeLimit;
+  config.size_limits.file_view = fileViewSizeLimit;
 
   if(req.apiRequest) {
     res.apiMessage(false, "Settings saved.");
