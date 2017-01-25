@@ -3,38 +3,24 @@ The alsuti server component
 
 ## Setup
 
-**1)** Set the following environment variables:
+**1)** First make sure that *redis* is installed and running. It is highly recommended to enable AOF (append only) and make daily/weekly backups to ensure data does not get lost.
 
-####ALSUTI_DATABASE
-The redis database to use. *Optional, but recommended*.
-
-Make sure you set this correctly if you have other databases or else they will likely get clobbered.
-
-####ALSUTI_TLS
-When set to 'yes' the key and cert variables explained below are used to configure TLS. *Optional.*
-
-This isn't needed if your server is configured to proxy subdomain requests to alsuti via localhost. If not, keep in mind that plain HTTP is **inherently insecure**.
-
-####ALSUTI_TLS_KEY
-TLS key. *Optional.*
-
-####ALSUTI_TLS_CERT
-TLS certificate. *Optional.*
-
-**2)** Make sure redis-server is running
-
-**3)** cd into the alsuti-server directory and issue this command with 'USER' and 'PASSWORD' replaced respectively:
+**2)** *cd* into the alsuti-server directory and run the following command with '*USER*' and '*PASSWORD*' replaced to your liking. It will automatically generate metadata for any existing uploads from previous versions.
 
 ~~~~
 ./admin mkdb admin=USER password=PASSWORD
 ~~~~
 
-You may also append 'public' to this command to make all existing uploads publicly listed, as any uploads are private by default.
+You may also append '*public*' to this command to make any existing uploads public instead of private (default).
 
-**4)** Start Alsuti:
+## Running Alsuti:
+
+**Note:** It is recommended to use a *tmux/screen* session on your server so you can easily start/stop alsuti via *ssh*.
+
+Finally, simply run:
 
 ~~~~
 ./bin/www
 ~~~~
 
-**5)** Enjoy the awesomeness. :)
+Enjoy. :)
