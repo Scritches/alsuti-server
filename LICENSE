@@ -1,0 +1,24 @@
+Alsuti-server -- an open source file upload, pastebin and rehosting tool.
+
+Copyright (C) 2016-2017 Andrew Felske (origin206@protonmail.ch)
+                        Luke Slater (tinmachin3@gmail.com)
+
+Project started by Luke Slater. Code heavily rewritten October-December
+2016 by Andrew Felske, utilizing Redis for content metadata, listings,
+and most backend functionality (user system, sessions, invites,
+registration, etc).
+
+----
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses>.

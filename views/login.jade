@@ -1,0 +1,22 @@
+doctype html
+head
+  title Login
+  meta(name='viewport' content="width=device-width, initial-scale=1")
+  link(rel='stylesheet' href='/stylesheets/style.css')
+body
+  include globalBar
+  center
+    h1#title Log In
+    -if(error)
+      p#loginMessage.red= error
+    -else
+      p#loginMessage= message
+    form#login.vpad(method='post' action='/login')
+      input#user(type='text' name='user' placeholder="User Name" autocomplete='username')
+      input#password(type='password' name='password' placeholder="Password" autocomplete='current-password')
+      input(type='hidden' name='returnPath' value="#{returnPath || '/private'}")
+      div.hpad
+        label
+          input(type='checkbox' name='noExpiry')
+          | Stay logged in
+        button(type='submit') Log In

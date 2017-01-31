@@ -1,45 +1,112 @@
+mixin tools
+  div#tools.hpad
+    -if(encrypted)
+      span#genericTools(style='display:none;')
+        a#downloadLink Download
+    -else
+      span#genericTools
+        a#downloadLink(href='/x/#{fileName}') Download
+    -if(fileType == 'text' || fileType == null)
+      span#textTools.hpad(style='display:none;')
+        span.divider
+        a#copyLink.switch(onclick='copyToClipboard();') Copy
+        span.divider
+        a#lineNumbers.switch(onclick="setLineNumbers(); saveSettings();") Line Numbers
+    -if(session.admin || session.validate(user))
+      span#ownerTools.hpad.floatRight
+        a(href='/edit/#{fileName}')
+          img(src='/edit.png' height='18px')
+        a(href='/delete/#{fileName}')
+          img(src='/delete.png' height='18px')
+
 doctype html
 html
   head
-    title= title
-    -if(encrypted)
-      link(rel='stylesheet', href='../stylesheets/style.css')
-      script(type='text/javascript' src='../js/lib/jquery.min.js')
-      script(type='text/javascript' src='../js/lib/aes.js')
-      script(type='text/javascript' src='../js/lib/js.cookie.js')
-      script(type='text/javascript' src='../js/main.js')
-      script(type='text/javascript').
-        var encrypted=true;
-        var cipherText="!{content}";
+    -if(title != null)
+      title= title
     -else
-      link(rel='stylesheet', href='./stylesheets/style.css')
-      script(type='text/javascript' src='./js/lib/jquery.min.js')
-      script(type='text/javascript' src='./js/lib/aes.js')
-      script(type='text/javascript' src='./js/lib/js.cookie.js')
-      script(type='text/javascript' src='./js/main.js')
-      script(type='text/javascript').
-        var encrypted=false;
-    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js')
-    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css')
-    -if(encrypted)
-      script(type='text/javascript' src='../js/lib/highlightjs-line-numbers.js')
+      title= fileName
+    meta(name='viewport' content="width=device-width, initial-scale=1")
+    link(rel='stylesheet' href='/stylesheets/style.css')
+    link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css')
+    script(src='//code.jquery.com/jquery-3.1.1.min.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js')
+    script(src='/js/view.js')
+    script(src='/js/time.js')
+    script(src='/js/lib/js.cookie.js')
+    script(src='/js/lib/highlightjs-line-numbers.js')
+    script.
+      var fileName = '#{fileName}',
+          encrypted = #{encrypted};
+    -if(fileType != null)
+      script.
+        var fileType = '#{fileType}',
+            subType = '#{subType}';
     -else
-      script(type='text/javascript' src='./js/lib/highlightjs-line-numbers.js')
-    script(type='text/javascript').
-      var fileName="!{fileName}";
+      script.
+        var fileType = null,
+            subType = null;
   body
-    div#decryptThings(style='display:none;')
-      h1 Decrypt File
-      p Password:
-      input(id='password' type='password')
-      button#decryptButton(onclick='decrypt()') Decrypt
-    div#optionBar(style='display:none;')
-      a#downloadButton(style='display:none;') Download
-      label#lineNumbersLabel(style='display:none;')
-        input#lineNumbersCheckbox(type='checkbox' onclick='toggleLineNumbers(); saveOptions();')
-        | Show Line Numbers
-    p#message(style='display:none')
-    center
-      img#image(style='display:none;width:80%;')
-    pre
-      code#content #{content}
+    include globalBar
+    div#header
+      h1#title= title || fileName
+      -if(description != null)
+        p#description= description
+      div#uploadInfo.hpad
+        span
+          span.hidden.uploadTime= time
+          |  by 
+          -if(user != null)
+            a(href='/user/#{user}/public')= user
+          -else
+            span.underlined nobody
+          script.
+            renderAbsoluteTimes();
+        div.hpad
+          -if(title != null)
+            span#fileName <u>#{fileName}</u>
+            span.divider
+          span#fileSize Size: <u>#{fileSize}</u>
+    mixin tools
+    -if(tooLarge)
+      div#sizeNotice This file is too large to be handled.
+    -else if(encrypted)
+      div#decryption
+        div#decryptionStatus This file is encrypted.
+        div#decryptionTools.hpad
+          input#password(type='password' placeholder='Password' autocomplete='new-password' autofocus)
+          button#decrypt(disabled='true' onclick='decrypt();') Decrypt
+      -if(fileType == 'image')
+        center#imageContainer(style='display:none;')
+          a#imageLink
+            img#content
+      -else if(fileType == 'audio')
+        center#audioContainer()
+          audio#content(controls)
+            source(src='/x/#{fileName}' type='#{mimeType}')
+      -else if(fileType == 'video')
+        center#videoContainer(style='display:none;')
+          video#content(controls)
+            source(src='/x/#{fileName}' type='#{mimeType}')
+      -else
+        div#binaryNotice(style='display:none;') This file cannot be displayed.
+        div#textContainer(style='display:none;')
+          code#content
+    -else
+      -if(fileType == 'image')
+        center#imageContainer
+          a#imageLink(href='/x/#{fileName}')
+            img#content(src='/x/#{fileName}')
+      -else if(fileType == 'audio')
+        center#audioContainer
+          audio#content(controls)
+            source(src='/x/#{fileName}' type='#{mimeType}')
+      -else if(fileType == 'video')
+        center#videoContainer
+          video#content(controls)
+            source(src='/x/#{fileName}' type='#{mimeType}')
+      -else if(fileType == 'application')
+        div#binaryNotice This file cannot be displayed.
+      -else
+        div#textContainer
+          code#content= text

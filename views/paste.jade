@@ -1,0 +1,40 @@
+doctype html
+head
+  title Paste
+  meta(name='viewport' content="width=device-width, initial-scale=1")
+  link(rel='stylesheet' href='/stylesheets/style.css')
+  script(src='//code.jquery.com/jquery-3.1.1.min.js')
+  script(src='/js/lib/aes.js')
+  script(src='/js/paste.js')
+body
+  include globalBar
+  h1#title Paste
+  form#paste.vpad(method='post' action='/paste' enctype='multipart/form-data' onsubmit="return onPaste(event);")
+    input#title(type='text' name='title' placeholder="Title" autofocus)
+    textarea#description(form='paste' name='description' placeholder="Description")
+    div.hpad
+      select(form='paste' name='extension')
+        option(label='Plain Text') txt
+        option(label='Markdown') md
+        option(label='HTML') html
+        option(label='Shell Script') sh
+        option(label='C') c
+        option(label='C++') cpp
+        option(label='Javascript') js
+        option(label='Python') py
+        option(label='Ruby') rb
+        option(label='Rust') rs
+        option(label='Perl') pl
+        option(label='Java') java
+        option(label='Groovy') groovy\
+    textarea#content(form='paste' name='content' placeholder="Content")
+    div.hpad
+      label
+        input#encryptCheckbox(onchange="togglePasswordEntry();" type='checkbox' name='encrypted' value='yes').vcenter
+        | Encrypt
+      input#password(type='password' placeholder="Password" disabled)
+    div.hpad
+      label
+        input(type='checkbox' name='public' value="yes").vcenter
+        | Public
+      button#paste(type='submit') Paste

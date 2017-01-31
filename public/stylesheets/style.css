@@ -1,56 +1,305 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: "Lucida Grande", Helvetica;
+  font-size: 14px;
+  margin: 0px;
+  padding: 10px;
 }
 
+/* overrides */
+p {
+  margin: 0px;
+  padding: 0px;
+}
+label {
+  user-select: none;
+}
+
+/* common */
 a {
-  color: #00B7FF;
+  color: #1F7099;
+  text-decoration: underline;
+}
+a:hover {
+  cursor: pointer;
+}
+a.switch {
+  text-decoration: none;
+  border-bottom: 1px dashed;
+}
+a.switch.enabled {
+  border-bottom: 1px double;
+}
+span.divider:after {
+  color: #A0A0A0;
+  content: '|';
+}
+.bold {
+  font-weight: bold;
+}
+.underlined {
+  text-decoration: underline;
+}
+.red {
+  color: #991F1F;
+}
+.green {
+  color: #48991F;
+}
+.pink {
+  color: #991F99;
+}
+.hpad > * {
+  margin-right: 5px;
+}
+.hpad > *:last-child {
+  margin-right: 0px;
+}
+.vpad > * {
+  margin-bottom: 5px;
+}
+.vpad > *:last-child {
+  margin-bottom: 0px;
+}
+.floatLeft {
+  float: left;
+}
+.floatRight {
+  float: right;
+}
+.hidden {
+  display: none;
 }
 
-#optionBar {
-    padding: 5px;
-    background-color: rgb(240,240,240);
-    border: 1px solid #CCC;
+/* common input */
+form {
+  margin: 10px 0px 10px;
+}
+form input[type=text],
+form input[type=password] {
+  box-sizing: border-box;
+  width: 200px;
+}
+form#edit,
+form#delete {
+  margin: 10px;
+}
+form > label,
+form > input,
+form > label > input,
+form > textarea {
+  display: block;
+}
+form input#url,
+form input#title,
+form textarea#description {
+  min-width: 250px;
+  width: 25%;
+}
+form > textarea#content {
+  width: 100%;
+  min-width: 250px;
+  min-height: 200px;
+  resize: vertical;
+}
+textarea {
+  box-sizing: border-box;
+  resize: none;
 }
 
-#optionBar > * {
-    margin-right: 10px;
+/* global bar */
+#globalBar {
+  display: block;
+  margin-bottom: 10px;
 }
 
-#optionBar:last-child {
-    margin-right: 0px;
+/* upload menu */
+#alsuti:after {
+  content: "☰ Alsuti";
+  cursor: pointer;
+  font-weight: bold;
+}
+#alsuti.noMenu:after {
+  content: "Alsuti";
+}
+.menu {
+  display: inline-block;
+  position: relative;
+}
+.menuWrapper {
+  cursor: pointer;
+  display: none;
+  position: absolute;
+}
+.menuContent {
+  background-color: #202020;
+  min-width: 80px;
+}
+.menu:hover .menuWrapper {
+  display: block;
+  left: -25px;
+  padding: 10px 25px 25px 25px;
+}
+.menuContent > a {
+  color: #F4F4F4;
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  transition: all 0.08s ease-in;
+}
+.menuContent a:hover {
+  background-color: #444;
 }
 
-li.uploadListing {
-    list-style: none;
+/* header */
+#header {
+  margin-bottom: 10px;
 }
-li.uploadListing:nth-child(even) {
-    background-color: #FFF;
+#header > * {
+  margin-bottom: 10px;
 }
-li.uploadListing:nth-child(odd) {
-    background-color: #EEE;
+#header > *:last-child {
+  margin-bottom: 0px;
 }
-.uploadTime {
-    float: right;
+h1#title {
+  display: block;
+  font-size: 150%;
+  margin: 0px;
+}
+#description {
+  display: block;
+}
+#uploadInfo {
+  color: #606060;
+  font-size: 90%;
+  margin-top: 5px;
 }
 
-.pageLink {
-    font-size: 18px;
-    margin-right: 10px
+/* tools */
+#tools {
+  margin-bottom: 10px;
+  user-select: none;
+  overflow: auto;
 }
-.pageLink:last-child {
-    margin-right: 0;
+#tools > * {
+  vertical-align: middle;
 }
 
+/* for settings page */
+h2#section {
+  font-size: 115%;
+}
+
+/* for info/delete page */
+#info {
+  margin: 10px;
+}
+
+/* content */
+#sizeNotice,
+#binaryNotice {
+  background-color: #F2F2F2;
+  color: #606060;
+}
+#decryption {
+  background-color: #E6DBCF;
+  color: #000;
+  transition: all 0.25s ease-in;
+}
+#decryption.error {
+  background-color: #E6B8B8;
+  border-color: #808080;
+}
+#decryption.notify {
+  background-color: #B8C7E6;
+  border-color: #808080;
+}
+#sizeNotice,
+#binaryNotice,
+#decryption {
+  border: 1px solid #CCC;
+  border-radius: 2.5px;
+  padding: 20px;
+  text-align: center;
+}
+#sizeNotice,
+#binaryNotice,
+#decryptionStatus {
+  font-family: monospace;
+  font-size: 125%;
+  font-weight: bold;
+}
+#decryptionTools {
+  margin-top: 10px;
+}
+#decryptionStatus,
+#code#textContent {
+  font-family: Consolas,
+               Monaco,
+               Lucida Console,
+               Liberation Mono,
+               Droid Sans Mono,
+               DejaVu Sans Mono,
+               Bitstream Vera Sans Mono,
+               Courier New;
+  white-space: pre;
+}
+#textContainer {
+  border: 1px solid #CCC;
+  clear: both;
+}
 code.hljs-line-numbers {
-    border-right: 1px solid #CCC;
-    color: #999;
-    float: left;
-    text-align: right;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+  border: 0px;
+  color: #606060;
+  padding: 5px 7.5px;
+  display: inline-block;
+}
+img#content {
+  max-width: 80%;
+}
+audio#content,
+video#content
+{
+  width: 50%;
+}
+code {
+  border-left: 0px solid #CCC;
+  background-color: #F2F2F2;
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  padding: 5px;
+  overflow-x: auto;
+}
+
+/* listings */
+table#listing {
+  border: 1px solid #C8C8C8;
+}
+table#listing tr td.expand {
+  width: 100%;
+}
+table#listing tr td:not(.expand) {
+  white-space: pre;
+}
+table#listing tr td.alignRight {
+  text-align: right;
+}
+.listingFileIndex {
+  color: #606060;
+}
+
+/* invite listings dont use this */
+#pageBar {
+  margin: 10px 5px;
+  overflow: auto;
+}
+
+/* shades for line numbers + tables */
+table#listing tr:nth-child(odd) {
+  background-color: #E8E8E8;
+}
+#textContainer,
+code.hljs-line-numbers,
+table#listing tr:nth-child(even) {
+  background-color: #D8D8D8;
 }

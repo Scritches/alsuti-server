@@ -1,0 +1,52 @@
+doctype html
+html
+  head
+    title Alsuti Settings
+    meta(name='viewport' content="width=device-width, initial-scale=1")
+    link(rel='stylesheet' href='/stylesheets/style.css')
+  body
+    include globalBar
+    div#header
+      h1#title Settings
+    -if(session.admin)
+      div.vpad
+        h2#section.green Admin
+        form#adminGlobals(method='post' action='/admin/globals/set').vpad
+          label Text upload size limit
+            input#textUploadSizeLimit(type='text' name='textUploadSizeLimit' value='#{config.size_limits.text_upload}')
+          label File upload size limit
+            input#fileUploadSizeLimit(type='text' name='fileUploadSizeLimit' value='#{config.size_limits.file_upload}')
+          label File view size limit
+            input#fileViewSizeLimit(type='text' name='fileViewSizeLimit' value='#{config.size_limits.file_view}')
+          button(type='submit') Save
+          -if(state == 3)
+            p#description.green Settings saved.
+    div.vpad
+      h2#section Password
+      form#changePassword(method='post' action='/password/set').vpad
+        input#password(type='password' name='password' placeholder="Current Password")
+        input#newPassword(type='password' name='newPassword' placeholder="New Password" autocomplete='new-password')
+        input#confirmNewPassword(type='password' name='confirmNewPassword' placeholder="Confirm New Password")
+        button(type='submit') Update
+      -if(state == 1)
+        p#description.red Incorrect password.
+      -else if(state == 2)
+        p#description.red Confirmation password does not match.
+    div.vpad
+      h2#section Invite Codes
+      -if(session.admin || inviteQuota > 0)
+        p Quota: 
+          span.red #{inviteQuota < 0 ? "unlimited" : inviteQuota}
+        form(method='post' action='/invite/new')
+          button(type='submit') New
+      -else
+        p.red Your invite quota has been reached.
+      -if(inviteCodes.length > 0)
+        table#listing(style="width:150px;" cellpadding='5px' cellspacing='0')
+          each code,i in inviteCodes
+            tr
+              td.expand
+                a(href='/register/#{code}')= code
+              td
+                a(href='/invite/delete/#{code}')
+                  img(src='/delete.png' height='18px')

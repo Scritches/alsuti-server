@@ -1,0 +1,24 @@
+doctype html
+html
+  head
+    -if(title)
+      title= title
+    -else
+      title Info
+    meta(name='viewport' content="width=device-width, initial-scale=1")
+    -if(redirect)
+      meta(http-equiv='refresh' content="#{redirect};url=#{returnPath}")
+    link(rel='stylesheet' href='/stylesheets/style.css')
+body
+  center
+    -if(title)
+      h1#title= title
+    -else
+      h1#title= Info
+    -if(message)
+      -if(error)
+        p#info.red= message
+      -else
+        p#info= message
+    -if(typeof redirect === 'undefined' && returnPath)
+      a(href='#{returnPath}') Go Back

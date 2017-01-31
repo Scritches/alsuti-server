@@ -2,25 +2,68 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='./stylesheets/style.css')
-  body
-    center
-      h1= title
-      h2
-        | Page #{currentPage}
-    each u,i in uploads
-      li(class='uploadListing')
-        if u.title != null
-          a(href='#{u.externalPath}')= u.title
-        else
-          a(href='#{u.externalPath}')= u.fileName
-        if u.description != null
-          p(class='uploadDescription')= u.description
-        span(class='uploadTime')= moment(u.uploadTime).format("Y/MM/DD HH:mm:SS")
-    center
-      if currentPage > 1
-        a(class='pageLink', href='?page=#{currentPage - 1}')
-          | Previous
-      if lastPage == false
-        a(class='pageLink', href='?page=#{currentPage + 1}')
-          | Next
+    meta(name='viewport' content="width=device-width, initial-scale=1")
+    link(rel='stylesheet' href='/stylesheets/style.css')
+    script(src='/js/lib/jquery.min.js')
+    script(src='/js/lib/js.cookie.js')
+    script(src='/js/listing.js')
+    script(src='/js/time.js')
+    script.
+      var offset = #{start};
+body(onload="renderRelativeTimes();")
+  include globalBar
+  div
+    div#header
+      h1#title= title
+    div#tools
+      span
+        | Show 
+        select#listingCount(onchange='updateListingCount();')
+          option 15
+          option 20
+          option 25
+          option 30
+          option 35
+          option 40
+          option 45
+          option 50
+        |  files per page
+        script.
+          $('#listingCount').val('#{count}');
+      -if(nTotal > 0)
+        -if(nTotal < count)
+          p.floatRight #{nTotal} #{nTotal != 1 ? "files" : "file"}
+        -else
+          p.floatRight #{start + 1}-#{end + 1} of #{nTotal} files / Page #{page}
+    -if(nTotal == 0 && listingType == 'private')
+      p.pink You haven't uploaded anything yet.
+    -else if(uploads.length == 0)
+      p.pink There's nothing here.
+    -else
+      table#listing(border='0' cellpadding='5px' cellspacing='0')
+        each u,i in uploads
+          tr
+            td.alignRight.listingFileIndex= start + i + 1
+            td.expand
+              -if(u.encrypted)
+                a.red(href='/#{u.fileName}')= u.title || u.fileName
+              -else
+                a(href='/#{u.fileName}')= u.title || u.fileName
+            -if(session.admin || session.validate(u.user))
+              td
+                a(href='/edit/#{u.fileName}')
+                  img(src='/edit.png' height='18px')
+              td
+                a(href='/delete/#{u.fileName}')
+                  img(src='/delete.png' height='18px')
+            -if(u.time != null)
+              td.alignRight
+                span.uploadTime.hidden= u.time
+            -if(listingType == 'public' && u.user != null)
+              td.alignRight
+                a(href='/user/#{u.user}/public')= u.user
+      div#pageBar
+        -if(start > 0)
+          a.floatLeft(href='?offset=#{Math.max(start - count, 0)}') Previous
+        -if(end < nTotal - 1)
+          a.floatRight(href='?offset=#{Math.min(start + count, nTotal - 1)}') Next

@@ -1,0 +1,15 @@
+doctype html
+head
+  title Delete #{fileName}
+  meta(name='viewport' content="width=device-width, initial-scale=1")
+  link(rel='stylesheet' href='/stylesheets/style.css')
+body
+  include globalBar
+  center
+    h1#title #{title || fileName}
+    p#info.error Are you sure you want to delete this file?
+    form#delete(method='post' action='/delete')
+      input(type='hidden' name='file' value="#{fileName}")
+      input(type='hidden' name='returnPath' value="#{deleteReturnPath}")
+      button(type='submit') Confirm
+    a(href='#{cancelReturnPath}') Go Back

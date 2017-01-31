@@ -1,0 +1,26 @@
+mixin mainMenu
+  div.menu
+    span#alsuti
+    div.menuWrapper
+      div.menuContent
+        a(href='/paste') Paste
+        a(href='/rehost') Rehost
+        a(href='/upload') Upload
+
+div#globalBar.hpad
+  -if(session.validate())
+    mixin mainMenu
+    span.divider
+    a(href='/private') Private
+    span.divider
+    a(href='/public') Public
+    span.floatRight.hpad
+      a(href='/settings') Settings
+      span.divider
+      a(href='/logout') Log out
+  -else
+    span#alsuti.noMenu
+    span.divider
+    a(href='/public') Public
+    span.floatRight
+      a(href='/login') Log In

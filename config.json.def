@@ -1,0 +1,15 @@
+{
+  "port": 3067,
+  "database": 0,
+  "default_invite_quota": 20,
+  "tls": {
+    "enabled": false,
+    "key": "",
+    "cert": ""
+  },
+  "size_limits": {
+    "text_upload": "128mb",
+    "file_upload": "1.5gb",
+    "file_view": "256mb"
+  }
+}

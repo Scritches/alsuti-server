@@ -1,6 +1,18 @@
-extends layout
-
-block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+doctype html
+head
+  title Alsuti Error
+  meta(name='viewport' content='width=device-width, initial-scale=1')
+  link(rel='stylesheet' href='/stylesheets/style.css')
+body
+  div
+    div#header
+      -if(e.status && e.message)
+        h1#title #{e.status}: #{e.message}
+      -else if(e.status)
+        h1#title= e.status
+      -else
+        h1#title Error
+    -if(e.stack)
+      code#textContainer= e.stack
+    -else
+      div.red That's an error.
